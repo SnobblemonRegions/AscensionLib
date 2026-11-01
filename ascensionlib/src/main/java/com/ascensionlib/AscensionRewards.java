@@ -199,8 +199,10 @@ public final class AscensionRewards {
         for (var player : players) {
             double share = shares.get(player) == null ? -1 : shares.get(player);
             if (com.cobbleascend.domain.v1.RaidRewardBands.tooSmall(share, n)) { skipped.put(player, "TOO_SMALL"); continue; }
-            boolean capped = usedToday(player, APEX_COUNTER) >= settings.fullApexPayoutsPerDay();
-            var pay = com.cobbleascend.domain.v1.RaidRewardBands.pay(encounterId, player, tier, share, n, capped, settings.reducedPercent());
+            int usedToday = usedToday(player, APEX_COUNTER);
+            boolean capped = usedToday >= settings.fullApexPayoutsPerDay();
+            // The first raid payout of the UTC day pays double: the day's counter is still zero.
+            var pay = com.cobbleascend.domain.v1.RaidRewardBands.pay(encounterId, player, tier, share, n, capped, settings.reducedPercent(), usedToday == 0);
             var amounts = new LinkedHashMap<String, Long>();
             pay.materials().forEach((material, amount) -> amounts.put(material.id(), amount));
             payouts.put(player, amounts);

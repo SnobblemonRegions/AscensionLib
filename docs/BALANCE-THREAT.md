@@ -23,7 +23,7 @@ The full design (power curve, pacing simulation, modifier pass, 8-player duel ra
 | --- | --- |
 | Enemy tiers | `trial_rank_1`-`3` fight as `threat_1`-`3`, `boss` as `threat_6` (`design/enemy-tiers.json`, `threatAliases`) |
 | Battle | Every profiled Pokemon fights with its rarity aura: +0/4/8/13/19/26% Atk, SpA, Def, SpD, Common to Mythic (`balance.json` `auraPercent`), applied after the affix caps |
-| Promotions | Priced from `balance.json` `threatPromotions`: Epic to Legendary needs 2 Cores and 4 Apex Shards, Legendary to Mythic 4 Cores and 10 |
+| Promotions | Priced from `balance.json` `threatPromotions`: Epic to Legendary needs 800 dust, 2 Cores and 4 Apex Shards; Legendary to Mythic 1,500 dust, 4 Cores and 8 Apex Shards |
 | Overreach, Fusion | +1 and +12 Apex Shards |
 | Tower completion | Paid by Threat band (when CobbleTowers passes one), Cores from one roll per completion |
 | Raids | Paid Apex Shards, attunement and dust by tier and damage share (when CobbleRaids calls `settleRaid`) |
@@ -46,9 +46,19 @@ No enemy spends more than the ten credits a player can earn, and 777 is never an
 
 ## Rewards
 
-**Tower completion at band T** (Silver quality; Bronze, Gold and Mythic multiply as before): `100 + 75(T-1)` dust, `round(1.5(2+T)) - 1` facets, the usual fragments, Scouters and Marks, and one Core roll at `min(95, 20 + 12T)` percent. The crown never rolls a Core while Threat is on. After a player's `fullCoreRollsPerDay` completions in a UTC day, the Core chance is cut to `reducedPercent` of itself.
+**Tower completion at band T** (Silver quality; Bronze, Gold and Mythic multiply as before): `100 + 75(T-1)` dust, `round(1.5(2+T)) - 1` facets, the usual fragments, Scouters and Marks, and one Core roll at `min(95, 20 + 12T)` percent. The crown never rolls a Core while Threat is on. After a player's `fullCoreRollsPerDay` completions in a UTC day, the Core chance is cut to `reducedPercent` of itself. From Threat III up a completion also pays Apex Shards, on average 0.3, 0.9, 1.8, 2.4 and 2.7 at Threat III to VII (the whole part, plus a seeded chance of one more), cut the same way, so Tower-first players are not gated on raids.
 
-**Raid win** (full share): starter 0.3 Apex, 3 attunement, 60 dust; powerhouse 0.6, 5, 60; legendary 1.2, 8, 60; mythical 1.8, 12, 60; world boss 3.0, 15, 120. A fractional Apex amount is a seeded chance of one more. Everything scales by `share x players`, clamped to 0.5-1.5; a player under a quarter of an even split is paid nothing. After `fullApexPayoutsPerDay` raid wins in a UTC day, Apex is cut to `reducedPercent`.
+**Raid win** (full share), per tier: Apex, Facets, Core chance, attunement, dust.
+
+| Tier | Apex | Facets | Core | Attunement | Dust |
+| --- | --- | --- | --- | --- | --- |
+| starter | 0.30 | 2.5 | 45% | 3 | 100 |
+| powerhouse | 0.60 | 2.5 | 42% | 5 | 120 |
+| legendary | 1.20 | 2.5 | 45% | 8 | 150 |
+| mythical | 1.80 | 3.0 | 66% | 12 | 200 |
+| world boss | 3.00 | 5.0 | 100% | 15 | 350 |
+
+A player's **first raid payout of the UTC day pays every material double** (not attunement): a catch-up for players who raid a few times a week. It reads the same daily Apex counter as the cap, so it needs no new storage. A fractional Apex or Facet amount is a seeded chance of one more. Raids pay Facets and Cores so a player who never runs a Tower can still promote. Everything scales by `share x players`, clamped to 0.5-1.5 (the Core chance by at most 1.0); a player under a quarter of an even split is paid nothing. After `fullApexPayoutsPerDay` raid wins in a UTC day, Apex, Facets and the Core chance are cut to `reducedPercent`.
 
 The daily counters live in the store's `threat_daily` table, created when missing. The store's schema version is unchanged, so an older AscensionLib still opens the world.
 

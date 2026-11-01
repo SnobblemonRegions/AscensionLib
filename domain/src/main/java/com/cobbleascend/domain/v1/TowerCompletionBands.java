@@ -184,6 +184,15 @@ public record TowerCompletionBands(int dust, int facets, int fragments, int scou
     /** Facets a Threat completion's pile pays at Silver quality (the mini chest's 1 comes on top): 4 at Threat I up to 13 at Threat VII. */
     public static int threatFacets(int threat) { return (int) Math.round(1.5 * (2 + clampThreat(threat))) - 1; }
 
+    /**
+     * Expected Apex Shards of a Threat completion, in thousandths: none below Threat III, then 0.3, 0.9, 1.8, 2.4 and 2.7 at Threat III to VII. The whole part is
+     * paid and the rest is a seeded chance of one more (Threat V is one Shard and an 80% chance of a second). Tower-first players need some.
+     */
+    public static int threatApexPermille(int threat) {
+        return switch (clampThreat(threat)) { case 3 -> 300; case 4 -> 900; case 5 -> 1800; case 6 -> 2400; case 7 -> 2700; default -> 0; };
+    }
+
+
     private static int clampThreat(int threat) { return Math.max(1, Math.min(7, threat)); }
 
     /**
@@ -232,6 +241,12 @@ public record TowerCompletionBands(int dust, int facets, int fragments, int scou
             add(materials, MaterialId.ASCENSION_CORE, 1);
             crowns.add(Crown.CORE);
         }
+        // After the Core roll, so the Core a seed pays is unchanged; cut like the Core past the day's full-odds rolls.
+        int apexPermille = threatApexPermille(threat);
+        if (coreCapped) apexPermille = apexPermille * Math.max(0, Math.min(100, reducedPercent)) / 100;
+        long apexWhole = apexPermille / 1000;
+        if (apexPermille % 1000 > 0 && random.nextInt(1000) < apexPermille % 1000) apexWhole++;
+        if (apexWhole > 0) add(materials, MaterialId.APEX_SHARD, apexWhole);
         return new Completion(spec.tier(), score, pile, Collections.unmodifiableMap(materials), List.copyOf(crowns), armor, tickets);
     }
 

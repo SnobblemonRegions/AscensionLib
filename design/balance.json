@@ -28,7 +28,7 @@
     {"from":"uncommon","to":"rare","dust":60,"facets":2,"cores":0,"apex":0},
     {"from":"rare","to":"epic","dust":150,"facets":6,"cores":0,"apex":0},
     {"from":"epic","to":"legendary","dust":800,"facets":12,"cores":2,"apex":4},
-    {"from":"legendary","to":"mythical","dust":1500,"facets":20,"cores":4,"apex":10}
+    {"from":"legendary","to":"mythical","dust":1500,"facets":20,"cores":4,"apex":8}
   ],
   "research":{"dustPerSpecies":4,"speciesPerDay":5,"onboardingFacetAtSpecies":5},
   "trialRewards":[

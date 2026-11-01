@@ -19,16 +19,17 @@ import java.util.UUID;
 public final class RaidRewardBands {
     public enum Tier {
         // Balance sim fixes: Apex halved (raids minted 5.5 Apex per Core); a small Core chance so raid-focused players are not gated.
-        STARTER(15, 3, 60, 0), POWERHOUSE(30, 5, 60, 40), LEGENDARY(60, 8, 60, 80), MYTHICAL(90, 12, 60, 120), WORLD_BOSS(150, 15, 120, 200);
+        STARTER(30, 3, 100, 450, 250), POWERHOUSE(60, 5, 120, 420, 250), LEGENDARY(120, 8, 150, 450, 250), MYTHICAL(180, 12, 200, 660, 300), WORLD_BOSS(300, 15, 350, 1000, 500);
 
-        /** Expected Apex Shards in hundredths, attunement, dust, all for a full share; Core chance in permille. */
-        final int apexHundredths, attunement, dust, corePermille;
+        /** Expected Apex Shards in hundredths, attunement, dust, all for a full share; Core chance in permille; expected Facets in hundredths. */
+        final int apexHundredths, attunement, dust, corePermille, facetHundredths;
 
-        Tier(int apexHundredths, int attunement, int dust, int corePermille) {
+        Tier(int apexHundredths, int attunement, int dust, int corePermille, int facetHundredths) {
             this.apexHundredths = apexHundredths;
             this.attunement = attunement;
             this.dust = dust;
             this.corePermille = corePermille;
+            this.facetHundredths = facetHundredths;
         }
 
         public int attunement() { return attunement; }
@@ -60,7 +61,14 @@ public final class RaidRewardBands {
         return players > 1 && share >= 0 && share * players < 0.25;
     }
 
+    /** What a player's first raid win of the UTC day pays, times over (every material, not attunement). Casual players raid a few times a week, so a per-day bonus helps them most. */
+    public static final int FIRST_WIN_MULTIPLIER = 2;
     public static Pay pay(String encounterId, UUID player, Tier tier, double share, int players, boolean apexCapped, int reducedPercent) {
+        return pay(encounterId, player, tier, share, players, apexCapped, reducedPercent, false);
+    }
+
+    /** As above; {@code firstWinOfDay} pays every material {@link #FIRST_WIN_MULTIPLIER} times over. The rolls are the same, so a retry recomputes the same amounts. */
+    public static Pay pay(String encounterId, UUID player, Tier tier, double share, int players, boolean apexCapped, int reducedPercent, boolean firstWinOfDay) {
         double m = multiplier(share, players);
         var random = new Random(RewardSeed.of("raid-threat", encounterId, player));
         double apex = tier.apexHundredths / 100.0 * m;
@@ -73,8 +81,15 @@ public final class RaidRewardBands {
         double core = tier.corePermille / 1000.0 * Math.min(1.0, m);
         if (apexCapped) core = core * Math.max(0, Math.min(100, reducedPercent)) / 100.0;
         if (random.nextDouble() < core) materials.put(MaterialId.ASCENSION_CORE, 1L);
+        // Facets last, so the Apex and Core a seed pays are unchanged. Raid-only players run no Towers, and Towers were the only Facet source.
+        double facets = tier.facetHundredths / 100.0 * m;
+        if (apexCapped) facets = facets * Math.max(0, Math.min(100, reducedPercent)) / 100.0;
+        long wholeFacets = (long) Math.floor(facets);
+        if (random.nextDouble() < facets - wholeFacets) wholeFacets++;
+        if (wholeFacets > 0) materials.put(MaterialId.FACET, wholeFacets);
         long dust = Math.round(tier.dust * m);
         if (dust > 0) materials.put(MaterialId.RESONANCE_DUST, dust);
+        if (firstWinOfDay) materials.replaceAll((material, amount) -> amount * FIRST_WIN_MULTIPLIER);
         int attunement = Math.max(1, (int) Math.round(tier.attunement * m));
         return new Pay(Collections.unmodifiableMap(materials), attunement, m);
     }

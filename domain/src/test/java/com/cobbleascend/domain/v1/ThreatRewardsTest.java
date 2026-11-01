@@ -68,13 +68,58 @@ class ThreatRewardsTest {
         long capped = 0;
         for (int i = 0; i < samples; i++)
             capped += RaidRewardBands.pay("c-" + i, new UUID(77, i), RaidRewardBands.Tier.MYTHICAL, 0.25, 4, true, 25).materials().getOrDefault(MaterialId.APEX_SHARD, 0L);
-        assertEquals(0.9 * 0.25, capped / (double) samples, 0.02, "past the daily full raids Apex is cut to a quarter");
+        assertEquals(1.8 * 0.25, capped / (double) samples, 0.03, "past the daily full raids Apex is cut to a quarter");
         assertTrue(RaidRewardBands.tooSmall(0.02, 8), "2% of an 8-player raid is under a quarter of an even split");
         assertFalse(RaidRewardBands.tooSmall(0.05, 8), "5% of an 8-player raid is 0.4 of an even split");
         assertFalse(RaidRewardBands.tooSmall(0.05, 1), "a solo raider is never too small");
         assertEquals(1.0, RaidRewardBands.multiplier(Double.NaN, 4));
         assertEquals(RaidRewardBands.Tier.WORLD_BOSS, RaidRewardBands.Tier.fromId("world_boss"));
         assertThrows(IllegalArgumentException.class, () -> RaidRewardBands.Tier.fromId("epic"));
+    }
+
+    @Test void raidsPayFacetsAndCoresSoRaidOnlyPlayersCanPromote() {
+        int samples = 20000;
+        for (var tier : RaidRewardBands.Tier.values()) {
+            long facets = 0, cores = 0;
+            for (int i = 0; i < samples; i++) {
+                var materials = RaidRewardBands.pay("rf-" + i, new UUID(tier.ordinal(), i), tier, 0.25, 4, false, 25).materials();
+                facets += materials.getOrDefault(MaterialId.FACET, 0L);
+                cores += materials.getOrDefault(MaterialId.ASCENSION_CORE, 0L);
+            }
+            assertEquals(tier.facetHundredths / 100.0, facets / (double) samples, 0.04, "even split pays the tier's expected Facets: " + tier);
+            assertEquals(tier.corePermille / 1000.0, cores / (double) samples, 0.012, "even split rolls the tier's Core chance: " + tier);
+        }
+        long cut = 0;
+        for (int i = 0; i < samples; i++)
+            cut += RaidRewardBands.pay("cf-" + i, new UUID(5, i), RaidRewardBands.Tier.MYTHICAL, 0.25, 4, true, 25).materials().getOrDefault(MaterialId.FACET, 0L);
+        assertEquals(3.0 * 0.25, cut / (double) samples, 0.03, "past the daily full raids Facets are cut to a quarter too");
+    }
+
+    @Test void theFirstRaidWinOfTheDayPaysEveryMaterialDoubleButNotAttunement() {
+        for (var tier : RaidRewardBands.Tier.values()) {
+            for (int i = 0; i < 200; i++) {
+                var player = new UUID(3, i);
+                var normal = RaidRewardBands.pay("fw-" + i, player, tier, 0.25, 4, false, 25);
+                var first = RaidRewardBands.pay("fw-" + i, player, tier, 0.25, 4, false, 25, true);
+                assertEquals(normal.materials().keySet(), first.materials().keySet(), "the same rolls, so the same kinds: " + tier);
+                normal.materials().forEach((material, amount) ->
+                        assertEquals(amount * RaidRewardBands.FIRST_WIN_MULTIPLIER, first.materials().get(material), material + " at " + tier));
+                assertEquals(normal.attunement(), first.attunement(), "attunement is not doubled");
+                assertEquals(normal, RaidRewardBands.pay("fw-" + i, player, tier, 0.25, 4, false, 25, false), "false is the ordinary pay");
+            }
+        }
+    }
+
+    @Test void highThreatTowerCompletionsMayPayAnApexShard() {
+        int samples = 20000;
+        for (int t : new int[] {1, 4, 6}) {
+            long apex = 0;
+            for (int i = 0; i < samples; i++)
+                apex += bands.payoutThreat("ta-" + i, new UUID(t, i), t, 2, 0, false, false, 25).materials().getOrDefault(MaterialId.APEX_SHARD, 0L);
+            assertEquals(TowerCompletionBands.threatApexPermille(t) / 1000.0, apex / (double) samples, 0.015, "Apex rate at Threat " + t);
+        }
+        assertEquals(0, TowerCompletionBands.threatApexPermille(2), "low bands pay no Apex");
+        assertTrue(TowerCompletionBands.threatApexPermille(7) > TowerCompletionBands.threatApexPermille(4), "the ladder climbs");
     }
 
     @Test void doorAdviceIsTeamRarityPlusOne() {

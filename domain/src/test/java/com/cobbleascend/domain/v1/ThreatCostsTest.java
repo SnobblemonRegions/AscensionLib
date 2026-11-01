@@ -30,9 +30,9 @@ class ThreatCostsTest {
         assertEquals(new Cost(20, 0, 0, 0), rules.promotion(Rarity.COMMON, true).cost());
         assertEquals(new Cost(150, 6, 0, 0), rules.promotion(Rarity.RARE, true).cost());
         assertEquals(new Cost(800, 12, 2, 4), rules.promotion(Rarity.EPIC, true).cost());
-        assertEquals(new Cost(1500, 20, 4, 10), rules.promotion(Rarity.LEGENDARY, true).cost());
+        assertEquals(new Cost(1500, 20, 4, 8), rules.promotion(Rarity.LEGENDARY, true).cost());
         assertEquals(rules.promotion(Rarity.EPIC).attunement(), rules.promotion(Rarity.EPIC, true).attunement(), "attunement needs are the same");
-        assertEquals(10L, MaterialId.of(rules.promotion(Rarity.LEGENDARY, true).cost()).get(MaterialId.APEX_SHARD));
+        assertEquals(8L, MaterialId.of(rules.promotion(Rarity.LEGENDARY, true).cost()).get(MaterialId.APEX_SHARD));
         assertNull(MaterialId.of(rules.promotion(Rarity.LEGENDARY, false).cost()).get(MaterialId.APEX_SHARD));
     }
 
