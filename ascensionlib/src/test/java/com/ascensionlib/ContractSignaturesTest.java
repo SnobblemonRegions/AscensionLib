@@ -26,6 +26,8 @@ class ContractSignaturesTest {
     @Test void grantContractsMatchWhatRaidsAndTowersLookUp() throws Exception {
         assertContract(AscensionGrants.class, "upgradeRandomly", AscensionGrants.Result.class, com.cobblemon.mod.common.pokemon.Pokemon.class);
         assertContract(AscensionGrants.class, "grantWithRarity", AscensionGrants.Result.class, com.cobblemon.mod.common.pokemon.Pokemon.class, String.class);
+        // Balance phase 3: the captured raid boss's rarity floor (CobbleRaids RaidCaptureSessionService).
+        assertContract(AscensionGrants.class, "grantWithRarityFloor", AscensionGrants.Result.class, com.cobblemon.mod.common.pokemon.Pokemon.class, String.class);
     }
 
     /** CobbleTowers asks this before opening a page of its own, so it never covers the completion reveal. */

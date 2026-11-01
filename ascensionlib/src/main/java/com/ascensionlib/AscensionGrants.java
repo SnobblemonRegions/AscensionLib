@@ -50,6 +50,31 @@ public final class AscensionGrants {
     }
 
     /**
+     * Balance phase 3, for a captured raid boss: gives an owned Pokemon a profile whose rarity is rolled from the normal
+     * table but is at least {@code floorRarityId}. Call right after the Pokemon is added to the player's party or PC, on
+     * the server thread, so it is profiled before the ordinary gift path would roll it. Safe to repeat: a Pokemon that
+     * already has a profile keeps it. CobbleRaids reaches this by reflection and falls back to the ordinary gift roll
+     * when it is missing.
+     */
+    public static Result grantWithRarityFloor(Pokemon pokemon, String floorRarityId) {
+        Rarity floor;
+        try {
+            floor = Rarity.fromId(floorRarityId.trim().toLowerCase(Locale.ROOT));
+        } catch (RuntimeException exception) {
+            return Result.UNKNOWN_RARITY;
+        }
+        var service = AscensionApi.service();
+        if (service.isEmpty()) return Result.DISABLED;
+        try {
+            service.get().acquireWithRarityFloor(pokemon, Origin.of("external_grant"), floor);
+            return Result.GRANTED;
+        } catch (RuntimeException exception) {
+            LOG.error("Could not grant a profile of at least {} to Pokemon {}", floor.id(), pokemon.getUuid(), exception);
+            return Result.FAILED;
+        }
+    }
+
+    /**
      * Gives an owned Pokemon a profile at an operator-chosen rarity: the rarity is never rolled, its modifier slots
      * are. Call after the Pokemon has been added to the player's party or PC, on the server thread. Safe to repeat:
      * a Pokemon that already has a profile keeps it.

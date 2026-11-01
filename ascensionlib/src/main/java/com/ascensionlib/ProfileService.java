@@ -134,6 +134,21 @@ public final class ProfileService {
     }
 
     /**
+     * Balance phase 3: registers an owned Pokemon with a rarity rolled from the normal table but never below {@code floor}
+     * (a captured raid boss). Same once-only guarantee as {@link #acquire}: a Pokemon that already has a profile keeps it.
+     */
+    public ProfileV1 acquireWithRarityFloor(Pokemon pokemon, Origin origin, Rarity floor) {
+        Objects.requireNonNull(floor, "floor");
+        return register(pokemon, (id, level, types) ->
+                progression.create(id, runtime.authority(), atLeast(rules.base().rollRarity(random), floor), origin, level, types, random));
+    }
+
+    /** The higher of two rarities. Package-visible for the tests. */
+    static Rarity atLeast(Rarity rolled, Rarity floor) {
+        return rolled.ordinal() >= floor.ordinal() ? rolled : floor;
+    }
+
+    /**
      * Spends one Ascension Sigil to give a Pokemon of the player's that has no profile one, with a rarity rolled from the normal table.
      * The Sigil and the profile are one transaction, so a refusal costs nothing and a retry after a crash never charges twice.
      * Refused: not the player's own, on loan, in a battle, already profiled, quarantined, or no Sigil in the wallet.
