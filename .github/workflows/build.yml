@@ -55,6 +55,15 @@ jobs:
       - name: Compile and test
         run: ./gradlew --no-daemon :domain:test :store:test :ascensionlib:build --stacktrace --warning-mode all
 
+      # 90 simulated days of the Threat economy with synthetic players (balance-sim, dev-only, never shipped): fails on a broken
+      # ledger or a lost invariant; the spec's pacing targets are enforced once simStrict is switched on here.
+      - name: Balance simulation
+        run: ./gradlew --no-daemon :balance-sim:test :balance-sim:simulate --stacktrace
+
+      - name: Balance simulation report
+        if: always()
+        run: cat balance-sim/build/balance-sim/report.md >> "$GITHUB_STEP_SUMMARY" || true
+
       # Fails on an invalid catalog: affix bands, weights, promotion chain, channel caps, example profile.
       - name: Validate the design catalog
         run: python3 tools/analyze_balance.py

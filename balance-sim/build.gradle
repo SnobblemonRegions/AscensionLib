@@ -1,0 +1,25 @@
+// Dev-only (balance phase 3): a 90-day economy simulation over the pure domain rules, with synthetic players and no Minecraft.
+// Never published and never packed into the mod jar. CI runs :balance-sim:test; ./gradlew :balance-sim:simulate writes a report.
+plugins { id 'java' }
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+dependencies {
+    implementation project(':domain')
+    implementation 'com.google.code.gson:gson:2.10.1'
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+test {
+    useJUnitPlatform()
+    systemProperty "simStrict", project.findProperty("simStrict") ?: "false"
+    testLogging { showStandardStreams = true }
+}
+
+tasks.register('simulate', JavaExec) {
+    group = 'verification'
+    description = 'Runs the 90-day balance simulation and writes build/balance-sim/report.{json,md}'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.cobbleascend.sim.Main'
+    args = [layout.buildDirectory.dir('balance-sim').get().asFile.path,
+            project.findProperty('simSeed') ?: '20261103', project.findProperty('simPlayers') ?: '250', project.findProperty('simDays') ?: '90']
+}
