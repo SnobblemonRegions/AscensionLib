@@ -42,7 +42,19 @@ public final class Simulation {
         public int wildCapturesPerDay = 1;
         /** Challenge cards a run carries (scores the completion chest). */
         public int challengeCards = 4;
-    }
+        /** Raid charges: a player holds at most this many (0 = no limit), regaining {@code raidChargeRegenPerHour} an hour; they start each play day full. */
+        public int raidChargeCap = 3;
+        public double raidChargeRegenPerHour = 1.0;
+        /**
+         * Sink prototypes ({@link Sinks}), off by default. {@code recycle}: players in the {@code recycleParticipation} share send every unwanted Pokemon to the
+         * Reclaimer. {@code gamble}: players in the {@code gambleParticipation} share, once they hold a Mythic, stake dust above {@code wagerReserve} at the
+         * Wager Altar, the largest tier they can cover, up to {@code wagerPlaysPerDay} plays a play day.
+         */
+        public boolean recycle = false, gamble = false;
+        public double recycleParticipation = 0.8, gambleParticipation = 0.4;
+        public int wagerReserve = 5000, wagerPlaysPerDay = 3;
+        /** Facets, Cores and Apex Shards a gambler keeps back for the promotions still ahead of them. */
+        public int wagerReserveFacets = 100, wagerReserveCores = 20, wagerReserveApex = 40;    }
 
     private final long seed;
     private final int days;
@@ -53,6 +65,9 @@ public final class Simulation {
     private final List<SimPlayer> players = new ArrayList<>();
     private final Ledger ledger;
     private final Random random;
+    /** A stream of its own for the sink prototypes, so switching them on never changes the base economy's rolls. */
+    private final Random sinkRandom;
+    public final Sinks.Stats sinks = new Sinks.Stats();
     private int encounters;
     /** Day of each player's last tower / raid, for the "both in the last week" figure. */
     private final Map<UUID, int[]> lastActivity = new java.util.HashMap<>();
@@ -66,6 +81,7 @@ public final class Simulation {
         this.tunables = Tunables.defaults();
         this.ledger = new Ledger(days);
         this.random = new Random(seed);
+        this.sinkRandom = new Random(seed * 31 + 7);
         double total = 0;
         for (Archetype a : Archetype.values()) total += a.weight;
         for (int i = 0; i < playerCount; i++) {
@@ -80,6 +96,11 @@ public final class Simulation {
             for (int slot = 0; slot < 6; slot++) player.team[slot] = ranked.base().rollRarity(random);
             players.add(player);
         }
+        // Who uses the sinks: drawn from the sink stream after the players exist, so the base rolls above are untouched.
+        for (SimPlayer player : players) {
+            player.reclaimer = sinkRandom.nextDouble() < model.recycleParticipation;
+            player.gambler = sinkRandom.nextDouble() < model.gambleParticipation;
+        }
     }
 
     public List<SimPlayer> players() { return players; }
@@ -87,6 +108,9 @@ public final class Simulation {
     public Ledger ledger() { return ledger; }
 
     public int days() { return days; }
+
+    /** Whether either sink prototype was switched on for this run. */
+    public boolean sinksOn() { return model.recycle || model.gamble; }
 
     public long seed() { return seed; }
 
@@ -101,13 +125,17 @@ public final class Simulation {
         for (SimPlayer player : players) {
             player.coreRollsToday = 0;
             player.apexPayoutsToday = 0;
+            player.playedToday = false;
             if (random.nextInt(7) >= player.archetype.daysPerWeek) continue;
+            player.playedToday = true;
             // Ecology: wild captures on a play day.
             for (int c = 0; c < model.wildCapturesPerDay; c++) player.offer(ranked.base().rollRarity(random));
             double minutes = player.archetype.hoursPerDay * 60 * (0.75 + random.nextDouble() * 0.5);
             double towerMinutes = minutes * player.archetype.towerShare;
             for (double t = model.towerMinutes; t <= towerMinutes; t += model.towerMinutes) tower(player, day);
             int raids = (int) ((minutes - towerMinutes) / model.raidMinutes);
+            // Charges: the full tank plus what regenerates over the session, and no more raids than that.
+            if (model.raidChargeCap > 0) raids = Math.min(raids, model.raidChargeCap + (int) Math.floor(minutes / 60.0 * model.raidChargeRegenPerHour));
             for (int r = 0; r < raids; r++) raiders.add(player);
         }
         // Raids are group content: the day's raid slots are shuffled into groups of 2-8.
@@ -119,7 +147,54 @@ public final class Simulation {
             at += size;
             raid(group, day);
         }
-        for (SimPlayer player : players) promote(player, day);
+        for (SimPlayer player : players) {
+            reclaim(player, day);
+            promote(player, day);
+            wager(player, day);
+        }
+    }
+
+    /** R1: today's unwanted Pokemon become dust by rarity (the first 20 in full, then a quarter); everyone else's are simply let go. */
+    private void reclaim(SimPlayer player, int day) {
+        if (model.recycle && player.reclaimer) {
+            int count = 0;
+            for (Rarity rarity : player.unwanted) {
+                long dust = Sinks.RECLAIM_DUST[rarity.ordinal()];
+                if (count++ >= Sinks.RECLAIM_FULL_PER_DAY) dust = Math.max(1, dust * Sinks.RECLAIM_REDUCED_PERCENT / 100);
+                ledger.mint(player, day, Map.of(MaterialId.RESONANCE_DUST, dust));
+                sinks.reclaimed++;
+                sinks.reclaimedDust += dust;
+                sinks.reclaimers.add(player.id);
+            }
+        }
+        player.unwanted.clear();
+    }
+
+    /**
+     * G1: a player with a Mythic stakes the dearest tier their spare materials cover (after a reserve of each kept for the rest of their promotions), up
+     * to a few plays a play day.
+     */
+    private void wager(SimPlayer player, int day) {
+        if (!model.gamble || !player.gambler || !player.playedToday || player.firstMythicDay < 0) return;
+        // Each tier at most once a day, dearest first, while the plays last.
+        int plays = 0;
+        for (int tier = Sinks.TIERS.length - 1; tier >= 0 && plays < model.wagerPlaysPerDay; tier--) {
+            var stake = Sinks.TIERS[tier];
+            if (!covers(player, stake)) continue;
+            ledger.burn(player, day, MaterialId.RESONANCE_DUST, stake.dust());
+            ledger.burn(player, day, MaterialId.FACET, stake.facets());
+            ledger.burn(player, day, MaterialId.ASCENSION_CORE, stake.cores());
+            ledger.burn(player, day, MaterialId.APEX_SHARD, stake.apex());
+            sinks.wager(player.id, tier, sinkRandom.nextDouble());
+            plays++;
+        }
+    }
+
+    private boolean covers(SimPlayer player, Sinks.Tier stake) {
+        return player.wallet.getOrDefault(MaterialId.RESONANCE_DUST, 0L) - model.wagerReserve >= stake.dust()
+                && player.wallet.getOrDefault(MaterialId.FACET, 0L) - model.wagerReserveFacets >= stake.facets()
+                && player.wallet.getOrDefault(MaterialId.ASCENSION_CORE, 0L) - model.wagerReserveCores >= stake.cores()
+                && player.wallet.getOrDefault(MaterialId.APEX_SHARD, 0L) - model.wagerReserveApex >= stake.apex();
     }
 
     private double winChance(int gap) {
@@ -186,7 +261,8 @@ public final class Simulation {
             var settings = tunables.threat();
             boolean capped = player.apexPayoutsToday >= settings.fullApexPayoutsPerDay();
             player.apexPayoutsToday++;
-            var pay = RaidRewardBands.pay(encounter, player.id, tier, share, n, capped, settings.reducedPercent());
+            // The first raid payout of the day pays double, as AscensionRewards.settleRaid does (the day's Apex counter is still zero).
+            var pay = RaidRewardBands.pay(encounter, player.id, tier, share, n, capped, settings.reducedPercent(), player.apexPayoutsToday == 1);
             ledger.mint(player, day, pay.materials());
             player.attune(pay.attunement());
             // Ecology: a caught raid boss, never below the tier's rarity floor (CobbleRaids CaptureRarityFloor).

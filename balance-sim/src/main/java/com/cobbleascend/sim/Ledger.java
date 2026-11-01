@@ -44,6 +44,12 @@ public final class Ledger {
         take(player, day, MaterialId.APEX_SHARD, cost.apex());
     }
 
+    /** A sink that is not a promotion (the Wager Altar's stake): the player must hold it. */
+    public void burn(SimPlayer player, int day, MaterialId id, long amount) {
+        if (have(player, id) < amount) throw new IllegalStateException("overspend by " + player.id + ": " + amount + " " + id.id());
+        take(player, day, id, amount);
+    }
+
     private void take(SimPlayer player, int day, MaterialId id, long amount) {
         if (amount <= 0) return;
         player.wallet.merge(id, -amount, Long::sum);

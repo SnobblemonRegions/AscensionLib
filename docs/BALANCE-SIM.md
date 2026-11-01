@@ -7,7 +7,15 @@ packed into the mod; CI runs it on every push.
 ./gradlew :balance-sim:test                         # invariants (CI)
 ./gradlew :balance-sim:test -PsimStrict=true        # also the spec's pacing and sink targets
 ./gradlew :balance-sim:simulate [-PsimSeed=1 -PsimPlayers=500 -PsimDays=120]   # build/balance-sim/report.{md,json}
+./gradlew :balance-sim:simulate -PsimSinks=true     # also the Reclaimer and Wager Altar prototypes (below)
 ```
+
+**Sink prototypes (not shipped rules).** Players finish their promotions around day 30 and then pile up materials with nothing to spend them
+on. `Sinks` models two concepts so they can be sized before anything is built, both off unless `-PsimSinks=true`: the *Reclaimer* turns an
+unwanted Pokemon into dust by rarity alone (3 / 10 / 35 / 110 / 400 / 1500, the first 20 a day in full), and the *Wager Altar* takes a
+stake in three tiers on separate materials (Bronze 2,000 dust; Silver 3,000 dust and 150 facets; Gold 30 Cores and 60 Apex Shards) for prizes that are
+not tracked materials (65% of the stake's assumed value back). Gamblers keep a reserve of each material for their remaining promotions. The prototypes draw from their own random
+stream, so switching them on never changes the base economy. `Model.gambleParticipation`, `wagerPlaysPerDay` and `wagerReserve` set the appetite.
 
 **Rules come from the shipped domain code**: promotion prices (`threatPromotions`), Tower completion pay
 (`TowerCompletionBands.payoutThreat` + the mini chest), raid pay (`RaidRewardBands.pay`), the door's advice

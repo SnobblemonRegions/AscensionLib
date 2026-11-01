@@ -135,6 +135,19 @@ public final class SimReport {
                 pct(towerWinByGap[0]), pct(towerWinByGap[1]), pct(towerWinByGap[2]), pct(towerWinByGap[3])));
         md.append(String.format(Locale.ROOT, "Active players doing both Towers and raids in the last week: %s (target over 50%%).%n", pct(bothActivitiesLastWeek)));
         md.append(String.format(Locale.ROOT, "Cores minted per Apex Shard minted: %.2f.%n", coresPerApex));
+        if (sim.sinksOn()) {
+            var s = sim.sinks;
+            int players = Math.max(1, sim.players().size());
+            md.append("\n## Sink prototypes (not shipped rules)\n\n");
+            md.append(String.format(Locale.ROOT, "Reclaimer: %d Pokemon sent in by %d players, paying %d dust (%.1f dust per player per day).%n", s.reclaimed,
+                    s.reclaimers.size(), s.reclaimedDust, (double) s.reclaimedDust / players / sim.days()));
+            md.append(String.format(Locale.ROOT, "Wager Altar: %d plays by %d players (Bronze %d, Silver %d, Gold %d).%n", s.plays, s.gamblers.size(),
+                    s.playsByTier[0], s.playsByTier[1], s.playsByTier[2]));
+            md.append(String.format(Locale.ROOT, "Staked per player per day: %.0f dust, %.1f facets, %.2f Cores, %.1f Apex.%n", (double) s.stakedDust / players / sim.days(),
+                    (double) s.stakedFacets / players / sim.days(), (double) s.stakedCores / players / sim.days(), (double) s.stakedApex / players / sim.days()));
+            md.append(String.format(Locale.ROOT, "Prizes: %d small, %d big, %d jackpots (%.0f%% of the stakes' assumed value back).%n",
+                    s.small, s.big, s.jackpots, s.stakeValue == 0 ? 0.0 : 100 * s.prizeValue / s.stakeValue));
+        }
         return md.toString();
     }
 

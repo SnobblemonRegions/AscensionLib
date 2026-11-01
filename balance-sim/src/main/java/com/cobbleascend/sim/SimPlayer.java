@@ -17,7 +17,10 @@ public final class SimPlayer {
     /** Today's full-odds Core rolls and full Apex payouts used (AscensionLib's threat_daily counters). */
     int coreRollsToday;
     int apexPayoutsToday;
-
+    /** Whether they played today; the Pokemon they caught today and do not want; and whether they use the Reclaimer / the Wager Altar (the sink prototypes). */
+    boolean playedToday;
+    final java.util.List<Rarity> unwanted = new java.util.ArrayList<>();
+    boolean reclaimer, gambler;
     /** First day (0-based) the team held a Legendary / a Mythic; -1 if never. */
     public int firstLegendaryDay = -1;
     public int firstMythicDay = -1;
@@ -57,13 +60,19 @@ public final class SimPlayer {
         for (int i = 0; i < attunement.length; i++) attunement[i] += amount;
     }
 
-    /** A caught Pokemon replaces the weakest if it is better (it starts unattuned). */
+    /**
+     * A caught Pokemon replaces the weakest if it is better (it starts unattuned). Whichever one is left over, the replaced Pokemon or the catch itself, is
+     * unwanted: it waits in {@link #unwanted} for the Reclaimer prototype and is otherwise ignored.
+     */
     void offer(Rarity caught) {
         int at = weakest();
         if (caught.ordinal() > team[at].ordinal()) {
+            unwanted.add(team[at]);
             team[at] = caught;
             attunement[at] = 0;
             captures++;
+        } else {
+            unwanted.add(caught);
         }
     }
 }

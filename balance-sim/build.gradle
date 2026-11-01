@@ -21,5 +21,6 @@ tasks.register('simulate', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.cobbleascend.sim.Main'
     args = [layout.buildDirectory.dir('balance-sim').get().asFile.path,
-            project.findProperty('simSeed') ?: '20261103', project.findProperty('simPlayers') ?: '250', project.findProperty('simDays') ?: '90']
+            project.findProperty('simSeed') ?: '20261103', project.findProperty('simPlayers') ?: '250', project.findProperty('simDays') ?: '90',
+            project.findProperty('simSinks') ?: 'false']
 }

@@ -13,7 +13,10 @@ public final class Main {
         long seed = args.length > 1 ? Long.parseLong(args[1]) : 20261103L;
         int players = args.length > 2 ? Integer.parseInt(args[2]) : 250;
         int days = args.length > 3 ? Integer.parseInt(args[3]) : 90;
-        Simulation sim = new Simulation(seed, players, days, new Simulation.Model()).run();
+        var model = new Simulation.Model();
+        // The optional fifth argument switches the Reclaimer and Wager Altar prototypes on (-PsimSinks=true).
+        if (args.length > 4 && Boolean.parseBoolean(args[4])) { model.recycle = true; model.gamble = true; }
+        Simulation sim = new Simulation(seed, players, days, model).run();
         SimReport report = new SimReport(sim);
         Files.createDirectories(out);
         Files.writeString(out.resolve("report.json"), report.json(), StandardCharsets.UTF_8);
