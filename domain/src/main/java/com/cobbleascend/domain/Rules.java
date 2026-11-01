@@ -98,6 +98,9 @@ public final class Rules {
         return parse(resource("balance.json"), resource("affixes.json"));
     }
 
+    /** A shipped design file ({@code /cobbleascend/<name>}) for the v1 package's own tables. */
+    public static JsonObject resourceJson(String name) { return resource(name); }
+
     static JsonObject resource(String name) {
         var stream = Rules.class.getResourceAsStream("/cobbleascend/" + name);
         if (stream == null) throw new IllegalStateException("Missing rules resource: " + name);

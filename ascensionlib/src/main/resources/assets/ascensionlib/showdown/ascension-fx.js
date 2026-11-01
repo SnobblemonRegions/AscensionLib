@@ -25,7 +25,7 @@
 //   * Every hook is wrapped in try/catch and falls back to the native value.
 
 const MAX_MONS = 32;
-const MAX_EFFECTS = 10;   // 6 slots, a Unique and a Haunting, with room for a Transcendent's rider
+const MAX_EFFECTS = 11;   // 6 slots, a Unique and a Haunting, with room for a Transcendent's rider, and the rarity aura
 const HP_HIGH = 0.8;
 const HP_LOW = 0.35;
 const DEFAULT_CAPS = {out: 100, inc: 50, heal: 50, res: 100};
@@ -80,6 +80,10 @@ const BLEED_TURNS = 3;          // refreshed by every new application
 
 // Uniques (docs/UNIQUES-DESIGN.md): one fixed power each, sent as an effect whose percent is only an "on" flag. A benefit joins its
 // channel (so it is capped with the rest); a drawback is a fixed multiplier applied after the caps and never removed by them.
+// The rarity aura (balance phase 1, sent only while the Threat system is on): +p% to Attack, Sp. Atk, Defense and Sp. Def, applied
+// as a damage multiplier, attacker's aura over defender's, after the channel caps (it is not an affix and has no cap of its own
+// beyond the 100 every percent is clamped to). Sent first in a Pokemon's list so the effect limit can never cut it off.
+const AURA = 'aura';
 const UNIQUES = {ashen_heart: 1, last_breath: 1, creeping_venom: 1, stormcaller: 1, rupture: 1, titans_heart: 1, triple_seven: 1};
 const ASHEN_BURN = 50;          // +50% burn damage you inflict (residual channel)
 const ASHEN_PENALTY = 0.85;     // your direct move damage
@@ -122,7 +126,7 @@ const CHILL_DIVISOR = 16;     // Graveyard Chill: a foe that makes contact loses
 const REAPER_FRACTION = 3;    // Reaper's Toll restores 1/3 of max HP after a KO
 
 const HANDLED = new Set([...Object.keys(OUTGOING), ...Object.keys(INCOMING), ...Object.keys(HEALING),
-  ...Object.keys(POTENCY), RENDING, ...Object.keys(UNIQUES), ...MECHANICS, ...HAUNT_MECHANICS]);
+  ...Object.keys(POTENCY), RENDING, ...Object.keys(UNIQUES), ...MECHANICS, ...HAUNT_MECHANICS, AURA]);
 for (const id of INTERNAL) HANDLED.delete(id);   // only a validated transcendent may create these
 
 function clamp(value, low, high, fallback) {
@@ -236,6 +240,8 @@ function apply(battle, payload) {
   const momentum = new Map();   // holder -> KO stacks, reset when the holder leaves the field
   const titanUsed = new Set();   // titans_heart pays once per move use, however many targets or hits
   const has = (mon, id) => !!mon && (byUuid.get(mon.uuid) || []).some(fx => fx.i === id);
+  /** The holder's rarity aura in percent, 0 when it has none. */
+  const auraOf = mon => { const fx = mon && (byUuid.get(mon.uuid) || []).find(e => e.i === AURA); return fx ? fx.p : 0; };
   // A Unique held plainly runs at full strength; one held through a transcendent at its benefit share b and drawback share d.
   const uniqueOf = (mon, id) => (mon && byUuid.get(mon.uuid) || []).find(fx => fx.i === id);
   const bScale = (mon, id) => { const fx = uniqueOf(mon, id); return fx && fx.b ? fx.b / 100 : 1; };
@@ -272,6 +278,9 @@ function apply(battle, payload) {
         let scaled = damage;
         if (out.length) scaled = battle.modify(scaled, Math.round(grow(out, caps.out) * 1000), 1000);
         if (inc.length) scaled = Math.max(1, battle.modify(scaled, Math.round(shrink(inc, caps.inc) * 1000), 1000));
+        // Rarity aura: outside the caps, the attacker's over the defender's.
+        const auraOut = auraOf(pokemon), auraIn = auraOf(target);
+        if (auraOut || auraIn) scaled = Math.max(1, battle.modify(scaled, Math.round((100 + auraOut) / (100 + auraIn) * 1000), 1000));
         // Unique drawbacks: fixed, after the caps.
         if (has(pokemon, 'ashen_heart')) scaled = Math.max(1, battle.modify(scaled, Math.round(drawback(ASHEN_PENALTY, dScale(pokemon, 'ashen_heart')) * 1000), 1000));
         if (has(pokemon, 'stormcaller') && !weather) scaled = Math.max(1, battle.modify(scaled, Math.round(drawback(STORM_PENALTY, dScale(pokemon, 'stormcaller')) * 1000), 1000));

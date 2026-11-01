@@ -22,6 +22,7 @@
     {"from":"epic","to":"legendary","dust":200,"facets":10,"cores":2,"attunement":50},
     {"from":"legendary","to":"mythical","dust":400,"facets":20,"cores":5,"attunement":90}
   ],
+  "auraPercent": {"common":0,"uncommon":4,"rare":8,"epic":13,"legendary":19,"mythical":26},
   "threatPromotions": [
     {"from":"common","to":"uncommon","dust":20,"facets":0,"cores":0,"apex":0},
     {"from":"uncommon","to":"rare","dust":60,"facets":2,"cores":0,"apex":0},

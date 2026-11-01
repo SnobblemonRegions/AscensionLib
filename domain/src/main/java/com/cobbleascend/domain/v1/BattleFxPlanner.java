@@ -106,7 +106,11 @@ public final class BattleFxPlanner {
     }
 
     private static void put(Map<String, List<BattleFx.Effect>> result, Combatant combatant, CombatSnapshot snapshot) {
-        var effects = BattleFx.effectsOf(snapshot);
+        var effects = new java.util.ArrayList<BattleFx.Effect>();
+        // The rarity aura goes first so the module's per-Pokemon effect limit can never cut it off (only sent with Threat on).
+        var aura = RarityAura.effectFor(snapshot.rarity());
+        if (aura != null) effects.add(aura);
+        effects.addAll(BattleFx.effectsOf(snapshot));
         if (!effects.isEmpty()) result.put(combatant.effectedId(), effects);
     }
 }
