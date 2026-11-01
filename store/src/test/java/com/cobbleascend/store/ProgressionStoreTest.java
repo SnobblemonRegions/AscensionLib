@@ -419,7 +419,7 @@ class ProgressionStoreTest {
                     base.rarity(), base.initialRarity(), base.origin(), base.catalogVersion(), 50, base.highestLevelObserved(),
                     base.awardedMilestones(), base.spentUpgradeCredits(), base.ordinarySlots(), null);
             store.acquire(UUID.randomUUID(), pokemon, () -> attuned);
-            store.grant(UUID.randomUUID(), player, Map.of(MaterialId.RESONANCE_DUST, 300L, MaterialId.FACET, 12L, MaterialId.ASCENSION_CORE, 2L,
+            store.grant(UUID.randomUUID(), player, Map.of(MaterialId.RESONANCE_DUST, 800L, MaterialId.FACET, 12L, MaterialId.ASCENSION_CORE, 2L,
                     MaterialId.APEX_SHARD, 3L), "test");
             assertEquals(Reason.INSUFFICIENT_FUNDS, reasonOf(() -> store.craft(CraftRequest.promote(UUID.randomUUID(), player, pokemon, types, 1,
                     store.wallet(player).revision()))), "3 Apex Shards are one short");
