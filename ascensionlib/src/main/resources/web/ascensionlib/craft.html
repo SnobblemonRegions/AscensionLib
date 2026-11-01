@@ -112,6 +112,7 @@
     if (p.dust > 0) parts.push(p.dust + ' Dust');
     if (p.facets > 0) parts.push(p.facets + (p.facets === 1 ? ' Facet' : ' Facets'));
     if (p.cores > 0) parts.push(p.cores + (p.cores === 1 ? ' Core' : ' Cores'));
+    if (p.apex > 0) parts.push(p.apex + (p.apex === 1 ? ' Apex Shard' : ' Apex Shards'));
     return parts.length ? parts.join(' + ') : 'Free';
   }
   function costText() {
@@ -121,13 +122,13 @@
       case 'refine': return shortPrice(view.refine);
       case 'reforge': return shortPrice(view.reforge);
       case 'perfect': { var ps = slot(); return ps ? ps.perfectCost + ' Resonance Dust (you have ' + view.dust + ')' : '—'; }
-      case 'overreach': { var os = slot(); return os ? os.overreachDust + ' Resonance Dust + ' + os.overreachFacets + ' Facets + 1 Tower Mark (you have ' + view.dust + ' / ' + view.facets + ' / ' + view.marks + ')' : '—'; }
+      case 'overreach': { var os = slot(); var apex = view.overreachApex > 0 ? ' + ' + view.overreachApex + ' Apex Shard' : ''; return os ? os.overreachDust + ' Resonance Dust + ' + os.overreachFacets + ' Facets + 1 Tower Mark' + apex + ' (you have ' + view.dust + ' / ' + view.facets + ' / ' + view.marks + (apex ? ' / ' + view.apex : '') + ')' : '—'; }
       case 'promote': return shortPrice(view.promotion.price);
       case 'respec': return '1 Hourglass of Undoing (you have ' + view.respec.hourglasses + ')';
       default: return '1 Unique Catalyst + 1 Tower Mark (you have ' + view.unique.catalysts + ' / ' + view.marks + ')';
     }
   }
-  function shortCost() { if (isHaunt()) return view.haunt.cost + ' Spooky Essence'; var ps = slot(); return mode === 'upgrade' ? '1 upgrade' : mode === 'respec' ? '1 Hourglass' : mode === 'unique' ? '1 Catalyst + 1 Mark' : mode === 'perfect' ? (ps ? ps.perfectCost + ' Dust' : '—') : mode === 'overreach' ? (ps ? ps.overreachDust + ' Dust + ' + ps.overreachFacets + ' Facets + 1 Mark' : '—') : costText(); }
+  function shortCost() { if (isHaunt()) return view.haunt.cost + ' Spooky Essence'; var ps = slot(); return mode === 'upgrade' ? '1 upgrade' : mode === 'respec' ? '1 Hourglass' : mode === 'unique' ? '1 Catalyst + 1 Mark' : mode === 'perfect' ? (ps ? ps.perfectCost + ' Dust' : '—') : mode === 'overreach' ? (ps ? ps.overreachDust + ' Dust + ' + ps.overreachFacets + ' Facets + 1 Mark' + (view.overreachApex > 0 ? ' + ' + view.overreachApex + ' Apex' : '') : '—') : costText(); }
   function canReview() {
     var s = slot();
     if (mode === 'promote') return !view.promotion.block && !!view.promotion.toRarity;
@@ -330,7 +331,7 @@
     var box = $('wallet'); box.innerHTML = ''; box.appendChild(A.el('div', 'label', 'Wallet'));
     var u = view.unique;
     [['Resonance Dust', 'resonance_dust', view.dust], ['Facets', 'facet', view.facets], ['Ascension Cores', 'ascension_core', view.cores],
-     ['Scouters', 'scouter', view.scouters], ['Unique Fragments', 'unique_fragment', u.fragments], ['Unique Catalysts', 'unique_catalyst', u.catalysts], ['Tower Marks', 'tower_mark', view.marks], ['Hourglass', 'rank_respec', view.respec.hourglasses], ['Prism', 'unique_respec', view.respec.prisms]].concat(view.haunt && (view.haunt.show || view.haunt.essence > 0) ? [['Spooky Essence', 'spooky_essence', view.haunt.essence]] : []).forEach(function (c) {
+     ['Scouters', 'scouter', view.scouters], ['Unique Fragments', 'unique_fragment', u.fragments], ['Unique Catalysts', 'unique_catalyst', u.catalysts], ['Tower Marks', 'tower_mark', view.marks], ['Hourglass', 'rank_respec', view.respec.hourglasses], ['Prism', 'unique_respec', view.respec.prisms]].concat(view.apex > 0 || view.overreachApex > 0 ? [['Apex Shards', 'apex_shard', view.apex]] : []).concat(view.haunt && (view.haunt.show || view.haunt.essence > 0) ? [['Spooky Essence', 'spooky_essence', view.haunt.essence]] : []).forEach(function (c) {
       var r = A.el('div', 'coin'); r.title = c[0];
       var d = new Image(); d.className = 'dot'; d.alt = ''; d.src = 'icons/' + c[1] + '.png'; r.appendChild(d);
       r.appendChild(A.el('div', c[2] > 0 ? '' : 'muted', A.num(c[2])));

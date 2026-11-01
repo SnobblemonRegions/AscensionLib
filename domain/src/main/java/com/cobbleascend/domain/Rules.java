@@ -19,12 +19,20 @@ public final class Rules {
     private final Map<Rarity, Tier> tiers;
     private final Map<String, AffixDefinition> affixes;
     private final Map<Rarity, Promotion> promotions;
+    /** Promotion prices while the Threat system is on (balance.json "threatPromotions"); the same as {@link #promotions} when absent. */
+    private final Map<Rarity, Cost> threatPromotionCosts;
     private final Map<String, Integer> caps;
     private final Map<String, Cost> craftCosts;
     private final int totalWeight;
 
     public Rules(List<Tier> tiers, List<AffixDefinition> affixes, List<Promotion> promotions,
                  Map<String, Integer> caps, Map<String, Cost> craftCosts) {
+        this(tiers, affixes, promotions, caps, craftCosts, Map.of());
+    }
+
+    /** @param threatPromotionCosts the price of each promotion (keyed by the rarity it starts from) with Threat on; empty keeps the normal prices */
+    public Rules(List<Tier> tiers, List<AffixDefinition> affixes, List<Promotion> promotions,
+                 Map<String, Integer> caps, Map<String, Cost> craftCosts, Map<Rarity, Cost> threatPromotionCosts) {
         var tierMap = new EnumMap<Rarity, Tier>(Rarity.class);
         for (var tier : tiers) {
             if (tier.weight() < 1 || tier.weight() > 10000 || tier.prefixSlots() < 0
@@ -73,6 +81,14 @@ public final class Rules {
         }
         if (promotions.size() != 5) throw new IllegalArgumentException("Unexpected promotion");
         this.promotions = Collections.unmodifiableMap(promotionMap);
+        var threatCosts = new EnumMap<Rarity, Cost>(Rarity.class);
+        for (var from : promotionMap.keySet()) threatCosts.put(from, promotionMap.get(from).cost());
+        if (!threatPromotionCosts.isEmpty()) {
+            if (!threatPromotionCosts.keySet().equals(promotionMap.keySet()))
+                throw new IllegalArgumentException("threatPromotions must price every promotion once");
+            threatCosts.putAll(threatPromotionCosts);
+        }
+        this.threatPromotionCosts = Collections.unmodifiableMap(threatCosts);
         this.craftCosts = Map.copyOf(craftCosts);
         if (!this.craftCosts.keySet().equals(Set.of("refine", "reforge")))
             throw new IllegalArgumentException("Missing craft costs");
@@ -114,11 +130,22 @@ public final class Rules {
         balance.getAsJsonObject("capsPercent").entrySet().forEach(e -> caps.put(e.getKey(), e.getValue().getAsInt()));
         var costs = new HashMap<String, Cost>();
         balance.getAsJsonObject("crafts").entrySet().forEach(e -> costs.put(e.getKey(), cost(e.getValue().getAsJsonObject())));
-        return new Rules(tiers, affixes, promotions, caps, costs);
+        var threatCosts = new EnumMap<Rarity, Cost>(Rarity.class);
+        if (balance.has("threatPromotions")) {
+            balance.getAsJsonArray("threatPromotions").forEach(element -> {
+                var p = element.getAsJsonObject();
+                var from = Rarity.fromId(p.get("from").getAsString());
+                var to = Rarity.fromId(p.get("to").getAsString());
+                if (to.ordinal() != from.ordinal() + 1) throw new IllegalArgumentException("threatPromotions must step one rarity");
+                if (threatCosts.put(from, cost(p)) != null) throw new IllegalArgumentException("Duplicate threat promotion");
+            });
+        }
+        return new Rules(tiers, affixes, promotions, caps, costs, threatCosts);
     }
 
     private static Cost cost(JsonObject object) {
-        return new Cost(object.get("dust").getAsInt(), object.get("facets").getAsInt(), object.get("cores").getAsInt());
+        return new Cost(object.get("dust").getAsInt(), object.get("facets").getAsInt(), object.get("cores").getAsInt(),
+                object.has("apex") ? object.get("apex").getAsInt() : 0);
     }
 
     public Tier tier(Rarity rarity) { return Objects.requireNonNull(tiers.get(rarity)); }
@@ -132,6 +159,12 @@ public final class Rules {
         var result = promotions.get(from);
         if (result == null) throw new IllegalArgumentException("Already at maximum rarity");
         return result;
+    }
+
+    /** The promotion from {@code from}, priced for the Threat system when {@code threat} is on (same attunement, different materials). */
+    public Promotion promotion(Rarity from, boolean threat) {
+        var normal = promotion(from);
+        return threat ? new Promotion(normal.from(), normal.to(), threatPromotionCosts.get(from), normal.attunement()) : normal;
     }
     public Cost craftCost(String action) { return Objects.requireNonNull(craftCosts.get(action)); }
     public int cap(String channel) { return Objects.requireNonNull(caps.get(channel)); }

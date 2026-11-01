@@ -22,6 +22,13 @@
     {"from":"epic","to":"legendary","dust":200,"facets":10,"cores":2,"attunement":50},
     {"from":"legendary","to":"mythical","dust":400,"facets":20,"cores":5,"attunement":90}
   ],
+  "threatPromotions": [
+    {"from":"common","to":"uncommon","dust":20,"facets":0,"cores":0,"apex":0},
+    {"from":"uncommon","to":"rare","dust":60,"facets":2,"cores":0,"apex":0},
+    {"from":"rare","to":"epic","dust":150,"facets":6,"cores":0,"apex":0},
+    {"from":"epic","to":"legendary","dust":300,"facets":12,"cores":2,"apex":4},
+    {"from":"legendary","to":"mythical","dust":500,"facets":20,"cores":5,"apex":10}
+  ],
   "research":{"dustPerSpecies":4,"speciesPerDay":5,"onboardingFacetAtSpecies":5},
   "trialRewards":[
     {"rank":1,"dust":6,"facets":0,"coreChance":0.0,"cycleMinutesAssumption":6},

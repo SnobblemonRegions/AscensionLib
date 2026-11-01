@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:generic",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:shulker_shell",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "ascensionlib": {
+                    "material": "apex_shard"
+                  }
+                },
+                "minecraft:custom_model_data": 8114,
+                "minecraft:custom_name": "{\"text\":\"Apex Shard\",\"color\":\"#3cc2b2\",\"italic\":false}",
+                "minecraft:lore": [
+                  "[\"\",{\"text\":\"EPIC\",\"color\":\"#af69ff\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Currency\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
+                  "{\"text\":\"A crown of crystal won from raid bosses.\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"Needed for the highest promotions.\",\"color\":\"gray\",\"italic\":false}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

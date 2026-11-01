@@ -21,8 +21,10 @@ public final class CraftPayloads {
                            String perfectBlock, int perfectCost, int floor, String overreachBlock, boolean sealed, int overreachDust,
                            int overreachFacets, int overreachChance, int overreachMin, int overreachMax) {}
 
-    /** A material cost: dust, facets, cores. */
-    public record Price(int dust, int facets, int cores) {}
+    /** A material cost: dust, facets, cores, and Apex Shards (only priced while the Threat system is on). */
+    public record Price(int dust, int facets, int cores, int apex) {
+        public Price(int dust, int facets, int cores) { this(dust, facets, cores, 0); }
+    }
 
     /**
      * The next promotion: {@code toRarity} is empty at the top rarity. {@code block} is the reason it cannot be done now (empty when it
@@ -54,7 +56,8 @@ public final class CraftPayloads {
      */
     public record View(String pokemonId, String name, String speciesId, List<String> aspects, int level, String rarityId, String uniqueName,
                        int pending, int nextMilestone, long profileRevision, long walletRevision, long dust, long facets, long cores, long scouters, long marks,
-                       Price refine, Price reforge, Promotion promotion, UniqueState unique, Respec respec, List<SlotView> slots, String message, boolean open, HauntView haunt) {}
+                       Price refine, Price reforge, Promotion promotion, UniqueState unique, Respec respec, List<SlotView> slots, String message, boolean open, HauntView haunt,
+                       long apex, int overreachApex) {}
 
     /** One Haunting a roll can land on: its text, whether it is a Rare, and its chance in percent. */
     public record HauntOption(String id, String name, boolean rare, String effect, double chance) {}

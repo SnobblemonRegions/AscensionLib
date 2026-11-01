@@ -224,7 +224,13 @@ public final class RankedProgression {
     public static final int INSTALL_MARKS = 1;
 
     /** The materials one Overreach attempt costs. */
+    /** Apex Shards an Overreach also costs while the Threat system is on (balance phase 1). */
+    public static final int OVERREACH_APEX = 1;
+
     public static Map<MaterialId, Long> overreachCost() {
+        if (Tunables.current().threat().enabled())
+            return Map.of(MaterialId.RESONANCE_DUST, (long) OVERREACH_DUST, MaterialId.FACET, (long) OVERREACH_FACETS, MaterialId.TOWER_MARK, (long) OVERREACH_MARKS,
+                    MaterialId.APEX_SHARD, (long) OVERREACH_APEX);
         return Map.of(MaterialId.RESONANCE_DUST, (long) OVERREACH_DUST, MaterialId.FACET, (long) OVERREACH_FACETS, MaterialId.TOWER_MARK, (long) OVERREACH_MARKS);
     }
 
@@ -271,7 +277,7 @@ public final class RankedProgression {
         rules.validate(profile);
         if (profile.rarity() == Rarity.MYTHICAL)
             throw new CraftException(Reason.MAX_RARITY, "Already at maximum rarity");
-        Rules.Promotion promotion = rules.base().promotion(profile.rarity());
+        Rules.Promotion promotion = rules.base().promotion(profile.rarity(), Tunables.current().threat().enabled());
         if (profile.attunement() < promotion.attunement())
             throw new CraftException(Reason.INSUFFICIENT_ATTUNEMENT, "Insufficient attunement");
         Category added = null;

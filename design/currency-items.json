@@ -51,6 +51,18 @@
       "rarity": "epic",
       "kind": "Currency"
     },
+    "apex_shard": {
+      "base": "minecraft:shulker_shell",
+      "model": 8114,
+      "name": "Apex Shard",
+      "color": "#3cc2b2",
+      "lore": [
+        "A crown of crystal won from raid bosses.",
+        "Needed for the highest promotions."
+      ],
+      "rarity": "epic",
+      "kind": "Currency"
+    },
     "unique_fragment": {
       "base": "minecraft:echo_shard",
       "model": 8104,

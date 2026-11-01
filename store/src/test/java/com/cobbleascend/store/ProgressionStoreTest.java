@@ -407,6 +407,33 @@ class ProgressionStoreTest {
         assertEquals(0, store.wallet(player).balance(MaterialId.UNIQUE_CATALYST), "A refused replacement spends nothing");
     }
 
+    @Test void withThreatOnAnEpicPromotionAlsoSpendsApexShards() {
+        var d = com.cobbleascend.domain.v1.Tunables.defaults();
+        com.cobbleascend.domain.v1.Tunables.use(new com.cobbleascend.domain.v1.Tunables(d.budget(), d.withdrawalFeePercent(), d.respecMarksPrice(),
+                d.attunementPerVictory(), d.towerCompletion(), d.miniChest(), d.zones(), new com.cobbleascend.domain.v1.ThreatSettings(true, 3, 4, 25)));
+        try {
+            var store = open();
+            var pokemon = UUID.randomUUID();
+            var base = generate(pokemon, Rarity.EPIC, 1);
+            var attuned = new ProfileV1(base.schemaVersion(), base.profileId(), base.pokemonId(), base.authorityId(), base.revision(),
+                    base.rarity(), base.initialRarity(), base.origin(), base.catalogVersion(), 50, base.highestLevelObserved(),
+                    base.awardedMilestones(), base.spentUpgradeCredits(), base.ordinarySlots(), null);
+            store.acquire(UUID.randomUUID(), pokemon, () -> attuned);
+            store.grant(UUID.randomUUID(), player, Map.of(MaterialId.RESONANCE_DUST, 300L, MaterialId.FACET, 12L, MaterialId.ASCENSION_CORE, 2L,
+                    MaterialId.APEX_SHARD, 3L), "test");
+            assertEquals(Reason.INSUFFICIENT_FUNDS, reasonOf(() -> store.craft(CraftRequest.promote(UUID.randomUUID(), player, pokemon, types, 1,
+                    store.wallet(player).revision()))), "3 Apex Shards are one short");
+            store.grant(UUID.randomUUID(), player, Map.of(MaterialId.APEX_SHARD, 1L), "test");
+            var promoted = store.craft(CraftRequest.promote(UUID.randomUUID(), player, pokemon, types, 1, store.wallet(player).revision()));
+            assertEquals(Rarity.LEGENDARY, promoted.profile().rarity());
+            assertEquals(0, promoted.wallet().balance(MaterialId.APEX_SHARD));
+            assertEquals(0, promoted.wallet().balance(MaterialId.ASCENSION_CORE));
+            assertEquals(0, promoted.wallet().balance(MaterialId.RESONANCE_DUST));
+        } finally {
+            com.cobbleascend.domain.v1.Tunables.use(com.cobbleascend.domain.v1.Tunables.defaults());
+        }
+    }
+
     @Test void attunementAwardsAdvanceTheProfileOnceAndUnlockPromotion() {
         var store = open();
         var pokemon = UUID.randomUUID();

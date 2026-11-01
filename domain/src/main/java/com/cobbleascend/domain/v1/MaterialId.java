@@ -9,6 +9,11 @@ public enum MaterialId {
     RESONANCE_DUST("resonance_dust"),
     FACET("facet"),
     ASCENSION_CORE("ascension_core"),
+    /**
+     * Earned only from raids (balance phase 1, docs/BALANCE-THREAT.md): with Ascension Cores from the Tower it pays for the two top promotions,
+     * Overreach and Fusion when the Threat system is on, so both activities matter. Tradable like the Core.
+     */
+    APEX_SHARD("apex_shard"),
     UNIQUE_FRAGMENT("unique_fragment"),
     UNIQUE_CATALYST("unique_catalyst"),
     /** One use reveals one enemy for one encounter. Only granted as a CobbleTowers reward for now. */
@@ -42,6 +47,7 @@ public enum MaterialId {
         if (cost.dust() > 0) result.put(RESONANCE_DUST, (long) cost.dust());
         if (cost.facets() > 0) result.put(FACET, (long) cost.facets());
         if (cost.cores() > 0) result.put(ASCENSION_CORE, (long) cost.cores());
+        if (cost.apex() > 0) result.put(APEX_SHARD, (long) cost.apex());
         return java.util.Collections.unmodifiableMap(result);
     }
 }

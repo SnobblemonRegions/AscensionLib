@@ -137,8 +137,10 @@
     if (detail.donorType) types.push('-10% damage from ' + A.cap(detail.donorType) + ' moves');
     if (types.length) line(box, '', 'Types: ' + types.join('; '));
     var p = detail.price, b = detail.balances;
-    line(box, 'gold', 'Price: ' + p[0] + ' Resonance Dust, ' + p[1] + ' Facets, ' + p[2] + ' Cores, ' + p[3] + ' Catalyst, ' + p[4] + ' Tower Marks');
-    line(box, 'muted', 'You have: ' + b.join(' / '));
+    // The sixth entry is Apex Shards, priced only while the Threat system is on (balance phase 1).
+    var apex = p.length > 5 && p[5] > 0;
+    line(box, 'gold', 'Price: ' + p[0] + ' Resonance Dust, ' + p[1] + ' Facets, ' + p[2] + ' Cores, ' + p[3] + ' Catalyst, ' + p[4] + ' Tower Marks' + (apex ? ', ' + p[5] + ' Apex Shards' : ''));
+    line(box, 'muted', 'You have: ' + (apex ? b : b.slice(0, 5)).join(' / '));
     if (detail.block) line(box, 'bad', detail.block);
   }
 

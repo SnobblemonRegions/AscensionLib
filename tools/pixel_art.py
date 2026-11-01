@@ -486,6 +486,54 @@ def spooky_essence():
     return c
 
 
+# Crowned Crest (balance phase 1): three teal crystals in a gold crown with a red gem. Drawn as a palette and a pixel map rather than
+# primitives because it is the owner-approved concept art pixel for pixel; 'O' is the shared outline.
+APEX_PALETTE = {'a': '9ff0e0', 'b': '0f4a50', 'c': 'f0fffb', 'd': '3cc2b2', 'e': '208a86', 'f': 'fff0b0', 'g': 'f2c765', 'h': 'b07a1e', 'i': 'ff6a7a', 'j': 'd6334a', 'k': 'ffd0d6', 'l': '7a1424', 'm': 'd9a441', 'n': '7a4f12'}
+APEX_PIXELS = [
+    '............................O...',
+    '................O..........OaO..',
+    '...............ObO........OOcOO.',
+    '..............OcdbO......OacccaO',
+    '..............OcdbO.......OOcOO.',
+    '.............OdcdebO.......OaO..',
+    '............OdacdeebO.......O...',
+    '............OdacdeebO...........',
+    '.......O...OdaacdeeebO...O......',
+    '......ObO..OdaacdeeebO..ObO.....',
+    '......OdbO.OdaacdeeebO.OcbO.....',
+    '.....OcdebOOdaacdeeebOOcddbO....',
+    '.....OcdebOOdaacdeeebOOcddbO....',
+    '....OdcddebOdaacdeeebOdcddebO...',
+    '....OdcddeebdaacOeeebdacdeebO...',
+    '...OdaOddeebdaaOfOeebdacdeOebO..',
+    '...OdOfOdeebdaOfffOebdacdOfObO..',
+    '...OOfffOeebdaOfffOebdacOfffOO..',
+    '...OOgfgOeebdOggfggObdacOgfhOO..',
+    '...OggfggOOOOOggfggOOOOOggfhhO..',
+    '..OgggfgggggggggfgggggggggfhhhO.',
+    '..OffffffffffffOOfffffffffffhfO.',
+    '..OgggggggggggOijOggggggggghhhO.',
+    '..OggggggggggOikijOgggggggghhhO.',
+    '..OgggaeggggOikijjlOggggggaehhO.',
+    '..OmmmmmmmmmmOjjjlOmmmmmmmmhhhO.',
+    '..OmmmmmmmmmmmOllOmmmmmmmmmhhhO.',
+    '..OnnnnnnnnnnnnOOnnnnnnnnnnnnnO.',
+    '..OhhhhhhhhhhhhhhhhhhhhhhhhhhhO.',
+    '...OOOOOOOOOOOOOOOOOOOOOOOOOOO..',
+    '................................',
+    '................................',
+]
+
+
+def apex_shard():
+    c = Canvas()
+    for y, row in enumerate(APEX_PIXELS):
+        for x, ch in enumerate(row):
+            if ch != '.':
+                c.set(x, y, OUTLINE if ch == 'O' else rgb(APEX_PALETTE[ch]))
+    return c
+
+
 PAPER = ramp('8f8668', 'c4bb9b', 'e8e1c9', 'f6f1df', 'ffffff')
 WAX = ramp('5e1018', '8a1f2b', 'b72e3d', 'd23a46', 'ff9aa0')
 
@@ -529,6 +577,7 @@ ICONS = {
     'rank_respec': rank_respec,
     'unique_respec': unique_respec,
     'spooky_essence': spooky_essence,
+    'apex_shard': apex_shard,
 }
 
 

@@ -309,6 +309,12 @@ window.GUIDE = {
        "Tradable"
       ],
       [
+       "Apex Shard",
+       "Epic",
+       "A crown of crystal won from raid bosses. Needed for the highest promotions.",
+       "Tradable"
+      ],
+      [
        "Unique Fragment",
        "Rare",
        "Collect enough to assemble a Unique Catalyst.",
@@ -348,6 +354,12 @@ window.GUIDE = {
        "Unbinding Prism",
        "Legendary",
        "Swaps a Pokemon's Unique for another, with no Catalyst and no Tower Mark.",
+       "Tradable"
+      ],
+      [
+       "Spooky Essence",
+       "Epic",
+       "Halloween 2026. Spent with /ascend haunt to give a Pokemon a random Haunting. Earned from the World Boss; trade it freely. It works after the event ends.",
        "Tradable"
       ]
      ]

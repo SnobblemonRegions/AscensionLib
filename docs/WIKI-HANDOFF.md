@@ -91,6 +91,7 @@ Materials live in your wallet, which is saved with the world. Loot that drops as
 | Resonance Dust | Common | Raw resonance, spent on upgrades, refining and perfecting. | Tradable |
 | Facet | Uncommon | A cut crystal that sharpens an affix. Spent on reforging and overreaching. | Tradable |
 | Ascension Core | Epic | The heart of a promotion. Earned in the Tower. | Tradable |
+| Apex Shard | Epic | A crown of crystal won from raid bosses. Needed for the highest promotions. | Tradable |
 | Unique Fragment | Rare | Collect enough to assemble a Unique Catalyst. | Tradable |
 | Unique Catalyst | Legendary | Installs or replaces a Unique power. | Tradable |
 | Scouter | Uncommon | Reveals one enemy's rating. | Tradable |
@@ -98,6 +99,7 @@ Materials live in your wallet, which is saved with the world. Loot that drops as
 | Tower Mark | Rare | Proof of a Tower clear. Bound to you; it cannot be traded. | Bound to you |
 | Hourglass of Undoing | Epic | Resets one Pokemon's ranks to I and returns its upgrade credits to spend again. Materials are not refunded. Never works on an Overreached Pokemon. | Tradable |
 | Unbinding Prism | Legendary | Swaps a Pokemon's Unique for another, with no Catalyst and no Tower Mark. | Tradable |
+| Spooky Essence | Epic | Halloween 2026. Spent with /ascend haunt to give a Pokemon a random Haunting. Earned from the World Boss; trade it freely. It works after the event ends. | Tradable |
 
 Take currency out as items to trade it, then redeem the items with Deposit. A 3% fee, rounded up, is paid on top of a withdrawal. Tower Marks are bound to you and can never be taken out.
 

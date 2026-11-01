@@ -26,10 +26,12 @@ class PageJsonTest {
         var view = new CraftPayloads.View("id", "Name", "cobblemon:mewtwo", List.of(), 50, "mythical", "777", 1, 60, 7, 8, 100, 20, 3, 4, 2,
                 price, price, new CraftPayloads.Promotion("", price, 10, 90, ""), unique,
                 new CraftPayloads.Respec(1, 2, 90, 90, 5, "", "", List.of(new CraftPayloads.ResetLine("Burn Boost", 3, 0))), List.of(slot), "", false,
-                new CraftPayloads.HauntView(true, 3, "wisp", "Wisp", false, "x", 1, 3, "", List.of(new CraftPayloads.HauntOption("wisp", "Wisp", false, "x", 17.3))));
+                new CraftPayloads.HauntView(true, 3, "wisp", "Wisp", false, "x", 1, 3, "", List.of(new CraftPayloads.HauntOption("wisp", "Wisp", false, "x", 17.3))),
+                5, 1);
         var json = JsonParser.parseString(gson.toJson(view)).getAsJsonObject();
         has(json, "pokemonId", "name", "speciesId", "level", "rarityId", "uniqueName", "pending", "nextMilestone", "profileRevision", "walletRevision",
-                "dust", "facets", "cores", "scouters", "refine", "reforge", "promotion", "unique", "respec", "slots", "message", "haunt");
+                "dust", "facets", "cores", "scouters", "refine", "reforge", "promotion", "unique", "respec", "slots", "message", "haunt", "apex", "overreachApex");
+        has(json.getAsJsonObject("refine"), "dust", "facets", "cores", "apex");
         has(json.getAsJsonObject("haunt"), "show", "essence", "id", "name", "rare", "effect", "rolls", "cost", "block", "all");
         has(json.getAsJsonObject("haunt").getAsJsonArray("all").get(0).getAsJsonObject(), "id", "name", "rare", "effect", "chance");
         has(json.getAsJsonObject("respec"), "hourglasses", "prisms", "marks", "price", "spent", "hourglassBlock", "prismBlock", "resets");

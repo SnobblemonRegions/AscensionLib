@@ -156,12 +156,12 @@ public final class CraftNet {
             int perfectCost = canPerfect ? progressionRules.perfectCost(slot) : 0;
             String perfectBlock = slot.sealed() ? "Sealed: only a reforge" : slot.rank() < 5 ? "Needs rank V" : !canPerfect ? "The floor is already at the top of the band"
                     : wallet.balance(MaterialId.RESONANCE_DUST) < perfectCost ? "Needs " + perfectCost + " Resonance Dust" : "";
+            var overreachPrice = RankedProgression.overreachCost();
             String overreachBlock = slot.sealed() ? "Already attempted: sealed" : slot.rank() < 5 ? "Needs rank V" : slot.rolledValue() < band.max() ? "The value must be at the band maximum"
-                    : wallet.balance(MaterialId.RESONANCE_DUST) < RankedProgression.OVERREACH_DUST
-                    || wallet.balance(MaterialId.FACET) < RankedProgression.OVERREACH_FACETS
-                    || wallet.balance(MaterialId.TOWER_MARK) < RankedProgression.OVERREACH_MARKS
+                    : !wallet.canAfford(overreachPrice)
                     ? "Needs " + RankedProgression.OVERREACH_DUST + " Resonance Dust + " + RankedProgression.OVERREACH_FACETS + " Facets + "
-                    + RankedProgression.OVERREACH_MARKS + " Tower Mark" : "";
+                    + RankedProgression.OVERREACH_MARKS + " Tower Mark"
+                    + (overreachPrice.containsKey(MaterialId.APEX_SHARD) ? " + " + overreachPrice.get(MaterialId.APEX_SHARD) + " Apex Shard" : "") : "";
             // The affixes this slot could become: its category, minus the families the other slots already hold (the same filter a reforge draws from).
             var others = profile.ordinarySlots().stream().filter(s -> !s.slotId().equals(slot.slotId())).map(s -> rules.affix(s.affixId()).family()).toList();
             int pool = (int) rules.affixes().stream().filter(a -> a.category() == slot.category() && !others.contains(a.family())).count();
@@ -179,12 +179,12 @@ public final class CraftNet {
         if (profile.rarity() == Rarity.MYTHICAL) {
             promotion = new CraftPayloads.Promotion("", new CraftPayloads.Price(0, 0, 0), profile.attunement(), 0, "Already Mythical");
         } else {
-            var step = rules.base().promotion(profile.rarity());
+            var step = rules.base().promotion(profile.rarity(), Tunables.current().threat().enabled());
             String block = profile.attunement() < step.attunement()
                     ? "Needs " + step.attunement() + " attunement (has " + profile.attunement() + ")"
                     : !wallet.canAfford(MaterialId.of(step.cost())) ? "Needs " + describe(step.cost()) : "";
             promotion = new CraftPayloads.Promotion(step.to().id(), new CraftPayloads.Price(step.cost().dust(), step.cost().facets(),
-                    step.cost().cores()), profile.attunement(), step.attunement(), block);
+                    step.cost().cores(), step.cost().apex()), profile.attunement(), step.attunement(), block);
         }
         var held = profile.unique() == null ? "" : profile.unique().uniqueId();
         var uniqueOptions = new ArrayList<CraftPayloads.UniqueOption>();
@@ -213,7 +213,8 @@ public final class CraftNet {
                 profile.pendingCredits(), nextMilestone, profile.revision(), wallet.revision(), wallet.balance(MaterialId.RESONANCE_DUST),
                 wallet.balance(MaterialId.FACET), wallet.balance(MaterialId.ASCENSION_CORE), wallet.balance(MaterialId.SCOUTER), wallet.balance(MaterialId.TOWER_MARK),
                 new CraftPayloads.Price(refineCost.dust(), refineCost.facets(), refineCost.cores()),
-                new CraftPayloads.Price(reforgeCost.dust(), reforgeCost.facets(), reforgeCost.cores()), promotion, uniqueState, respec, slots, message, open, haunt(player, pokemon, service, wallet));
+                new CraftPayloads.Price(reforgeCost.dust(), reforgeCost.facets(), reforgeCost.cores()), promotion, uniqueState, respec, slots, message, open, haunt(player, pokemon, service, wallet),
+                wallet.balance(MaterialId.APEX_SHARD), Tunables.current().threat().enabled() ? RankedProgression.OVERREACH_APEX : 0);
     }
 
     /** The Haunting row's data: what the Pokemon holds, what the next roll costs, and the ten Hauntings with their odds. */
@@ -238,6 +239,7 @@ public final class CraftNet {
         if (cost.dust() > 0) parts.add(cost.dust() + " Resonance Dust");
         if (cost.facets() > 0) parts.add(cost.facets() + " Facet" + (cost.facets() == 1 ? "" : "s"));
         if (cost.cores() > 0) parts.add(cost.cores() + " Core" + (cost.cores() == 1 ? "" : "s"));
+        if (cost.apex() > 0) parts.add(cost.apex() + " Apex Shard" + (cost.apex() == 1 ? "" : "s"));
         return String.join(" + ", parts);
     }
 

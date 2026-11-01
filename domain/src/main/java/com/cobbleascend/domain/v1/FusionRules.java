@@ -17,6 +17,8 @@ public final class FusionRules {
     public static final int CATALYSTS = 1;
     /** Tower Marks: proof of a personal Tower clear, so the top rung cannot be bought (docs/TOWER-COMPLETION-REWARDS.md). */
     public static final int MARKS = 5;
+    /** Apex Shards a Fusion also costs while the Threat system is on (balance phase 1). */
+    public static final int APEX = 12;
     /** Lifetime attunement the host must have earned. */
     public static final int HOST_ATTUNEMENT = 150;
     /**
@@ -34,6 +36,7 @@ public final class FusionRules {
         cost.put(MaterialId.ASCENSION_CORE, (long) CORES);
         cost.put(MaterialId.UNIQUE_CATALYST, (long) CATALYSTS);
         cost.put(MaterialId.TOWER_MARK, (long) MARKS);
+        if (Tunables.current().threat().enabled()) cost.put(MaterialId.APEX_SHARD, (long) APEX);
         return java.util.Collections.unmodifiableMap(cost);
     }
 
