@@ -34,7 +34,7 @@ public final class AscensionApi {
     static void detach() { state = null; server = null; }
 
     /** The running server, for library code that must reach online players from a reflected call. */
-    static net.minecraft.server.MinecraftServer server() { return server; }
+    public static net.minecraft.server.MinecraftServer server() { return server; }
 
     /** The progression service, or empty when there is no running world or progression is disabled for it. */
     public static Optional<ProfileService> service() {

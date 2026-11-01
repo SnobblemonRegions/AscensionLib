@@ -13,6 +13,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 
+RARITIES = ["common", "uncommon", "rare", "epic", "legendary", "mythical"]
+
+
 def load(folder, days):
     files = sorted(Path(folder).glob("events-*.jsonl"))
     for path in files[-days:] if days else files:
@@ -48,6 +51,7 @@ def main(argv):
     days = int(argv[argv.index("--days") + 1]) if "--days" in argv else 0
     income, spending = defaultdict(Counter), defaultdict(Counter)
     crafts, refused, acquires, settlements = defaultdict(list), Counter(), Counter(), defaultdict(Counter)
+    by_team = defaultdict(Counter)  # (kind, team rarity) -> encounters seen, from encounter events with teamRarity
     perf, supply, sessions, players = {}, [], [], set()
     total = 0
     for e in load(argv[0], days):
@@ -66,6 +70,8 @@ def main(argv):
             refused[(e["kind"], e["reason"])] += 1
         elif kind == "acquire":
             acquires[(e["origin"], e["tier"], e["rarity"])] += 1
+        elif kind == "encounter" and "teamRarity" in e:
+            by_team[(e["kind"], RARITIES[min(5, round(e["teamRarity"]))])][e.get("outcome", "settled")] += 1
         elif kind == "settlement":
             for status in e["players"].values():
                 settlements[e["kind"]][(e["outcome"], status)] += 1
@@ -90,6 +96,7 @@ def main(argv):
     table("refused crafts", [[k, r, n] for (k, r), n in refused.most_common(15)], ["kind", "reason", "count"])
     table("new profiles", [[o, t, r, n] for (o, t, r), n in sorted(acquires.items())], ["origin", "tier", "rarity", "count"])
     table("encounters (outcome, status per player)", [[k, o, s, n] for k, c in sorted(settlements.items()) for (o, s), n in sorted(c.items())], ["kind", "outcome", "status", "count"])
+    table("encounters by team rarity (mean party rarity, rounded)", [[k, r, sum(c.values()), dict(c)] for (k, r), c in sorted(by_team.items(), key=lambda kv: (kv[0][0], RARITIES.index(kv[0][1])))], ["kind", "team rarity", "count", "by outcome"])
     if supply:
         first, last = supply[0], supply[-1]
         table("money supply (first and last snapshot)", [[m, first["supply"].get(m, 0), last["supply"].get(m, 0), last["supply"].get(m, 0) - first["supply"].get(m, 0)]

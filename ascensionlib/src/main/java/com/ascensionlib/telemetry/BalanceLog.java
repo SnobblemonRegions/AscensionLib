@@ -203,15 +203,61 @@ public final class BalanceLog {
 
     /** The parameters of an encounter a reward was settled for (the tier, floor, cycle or arena count it was worth). */
     public static void encounter(String rewardKind, UUID encounterId, Map<String, Object> parameters) {
+        encounter(rewardKind, encounterId.toString(), parameters, List.of());
+    }
+
+    /**
+     * An encounter with the team's strength attached (balance phase 0): {@code teamRarity} is the mean rarity (0 Common to
+     * 5 Mythic) of every profiled party Pokemon of the online participants, {@code teamRarityMax} the best one. Win rate
+     * by team rarity and tier is what the Threat bands are tuned from.
+     */
+    public static void encounter(String rewardKind, UUID encounterId, Map<String, Object> parameters, java.util.Collection<UUID> players) {
+        encounter(rewardKind, encounterId.toString(), parameters, players);
+    }
+
+    /** As above, for encounters whose ID is not a UUID (a raid's is its boss Pokemon's). */
+    public static void encounter(String rewardKind, String encounterId, Map<String, Object> parameters, java.util.Collection<UUID> players) {
+        double[] rarity = teamRarity(players);
         Telemetry.log("encounter", e -> {
             e.addProperty("kind", rewardKind);
-            e.addProperty("id", encounterId.toString());
+            e.addProperty("id", encounterId);
+            if (rarity != null) {
+                e.addProperty("teamRarity", Math.round(rarity[0] * 100.0) / 100.0);
+                e.addProperty("teamRarityMax", (int) rarity[1]);
+            }
             parameters.forEach((key, value) -> {
                 if (value instanceof Boolean b) e.addProperty(key, b);
                 else if (value instanceof Number n) e.addProperty(key, n);
                 else e.addProperty(key, String.valueOf(value));
             });
         });
+    }
+
+    /** {mean, max} rarity ordinal of the participants' profiled party Pokemon, or null when none is online or profiled. Never throws. */
+    private static double[] teamRarity(java.util.Collection<UUID> players) {
+        if (players == null || players.isEmpty()) return null;
+        var service = AscensionApi.service().orElse(null);
+        MinecraftServer server = AscensionApi.server();
+        if (service == null || server == null) return null;
+        try {
+            int count = 0, sum = 0, max = 0;
+            for (UUID id : players) {
+                ServerPlayer player = server.getPlayerList().getPlayer(id);
+                if (player == null) continue;
+                for (var pokemon : Cobblemon.INSTANCE.getStorage().getParty(player)) {
+                    var profile = service.canonical(pokemon);
+                    if (profile.isEmpty()) continue;
+                    int ordinal = profile.get().rarity().ordinal();
+                    sum += ordinal;
+                    max = Math.max(max, ordinal);
+                    count++;
+                }
+            }
+            return count == 0 ? null : new double[] {(double) sum / count, max};
+        } catch (RuntimeException exception) {
+            LOG.debug("Team rarity skipped: {}", exception.toString());
+            return null;
+        }
     }
 
     /** How a reward settlement ended for each participant. A defeat is logged too: the share of victories is the point. */

@@ -45,7 +45,7 @@ public final class AscensionRewards {
                     .forEach((material, amount) -> amounts.put(material.id(), amount));
             payouts.put(player, amounts);
         }
-        BalanceLog.encounter("tower_boss", encounterId, Map.of("fromFloor", fromFloor, "bossFloor", bossFloor, "players", players.size()));
+        BalanceLog.encounter("tower_boss", encounterId, Map.of("fromFloor", fromFloor, "bossFloor", bossFloor, "players", players.size()), players);
         var result = settleBudgeted(encounterId, outcome, "tower_boss", payouts);
         var paid = paidPlayers(result);
         awardAttunement("tower_boss:" + encounterId, paid);
@@ -84,7 +84,7 @@ public final class AscensionRewards {
             payouts.put(player, amounts);
         }
         BalanceLog.encounter("tower_completion", encounterId, Map.of("bossFloor", bossFloor, "cycle", cycle, "cards", challengeCards,
-                "flawless", flawless, "players", players.size()));
+                "flawless", flawless, "players", players.size()), players);
         var result = settleBudgeted(encounterId, outcome, "tower_completion", payouts);
         var paid = paidPlayers(result);
         int attunement = bands.tierFor(TowerCompletionBands.score(challengeCards, cycle, flawless)).attunement();
@@ -212,7 +212,7 @@ public final class AscensionRewards {
                     .forEach((material, amount) -> amounts.put(material.id(), amount));
             payouts.put(player, amounts);
         }
-        BalanceLog.encounter("dungeon_run", runId, Map.of("tier", tier, "arenaWins", arenaWins, "boss", bossDefeated, "players", players.size()));
+        BalanceLog.encounter("dungeon_run", runId, Map.of("tier", tier, "arenaWins", arenaWins, "boss", bossDefeated, "players", players.size()), players);
         var result = settleBudgeted(runId, outcome, "dungeon_run", payouts);
         var paid = paidPlayers(result);
         awardAttunement("dungeon:" + runId, paid);
@@ -243,7 +243,7 @@ public final class AscensionRewards {
         com.cobbleascend.domain.v1.TrialRewardBands.payout(rank).forEach((material, amount) -> amounts.put(material.id(), amount));
         var payouts = new LinkedHashMap<UUID, Map<String, Long>>();
         for (var player : players) payouts.put(player, amounts);
-        BalanceLog.encounter("trial_rank_" + rank, encounterId, Map.of("rank", rank, "players", players.size()));
+        BalanceLog.encounter("trial_rank_" + rank, encounterId, Map.of("rank", rank, "players", players.size()), players);
         var result = settleBudgeted(encounterId, outcome, "trial_rank_" + rank, payouts);
         var paid = paidPlayers(result);
         awardAttunement("trial:" + encounterId, paid);
@@ -260,9 +260,11 @@ public final class AscensionRewards {
      * @return how many players' parties were handled; 0 when the library is disabled or the outcome is not a victory
      */
     public static int settleRaidAttunement(String encounterId, String outcome, java.util.Collection<UUID> players) {
+        boolean validId = encounterId != null && !encounterId.isBlank() && !encounterId.contains("|");
+        // Balance phase 0: each raid settled here is an encounter event, so raid results by team rarity can be measured.
+        if (validId) BalanceLog.encounter("raid", encounterId, Map.of("outcome", String.valueOf(outcome), "players", players.size()), players);
         if (!"VICTORY".equals(outcome)) return 0;
-        if (encounterId == null || encounterId.isBlank() || encounterId.contains("|"))
-            throw new IllegalArgumentException("Invalid encounter ID");
+        if (!validId) throw new IllegalArgumentException("Invalid encounter ID");
         return awardAttunement("raid:" + encounterId, players);
     }
 
