@@ -233,6 +233,12 @@ public final class BalanceLog {
         });
     }
 
+    /** The mean rarity ordinal (0 Common to 5 Mythic) of the players' profiled party Pokemon, or -1 when none is online or profiled. Never throws. */
+    public static double meanTeamRarity(java.util.Collection<UUID> players) {
+        double[] rarity = teamRarity(players);
+        return rarity == null ? -1 : rarity[0];
+    }
+
     /** {mean, max} rarity ordinal of the participants' profiled party Pokemon, or null when none is online or profiled. Never throws. */
     private static double[] teamRarity(java.util.Collection<UUID> players) {
         if (players == null || players.isEmpty()) return null;

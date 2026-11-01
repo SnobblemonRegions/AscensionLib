@@ -61,6 +61,19 @@ class ContractSignaturesTest {
                 String.class, String.class, Collection.class);
     }
 
+    /** Balance phase 1: what CobbleTowers 1.1 and CobbleRaids 0.9 look up for the Threat system (each falls back to the older calls when absent). */
+    @Test void threatContractsMatchWhatTowersAndRaidsLookUp() throws Exception {
+        assertContract(AscensionRewards.class, "settleTowerCompletion", Map.class,
+                UUID.class, String.class, int.class, int.class, int.class, boolean.class, Collection.class, int.class);
+        assertContract(AscensionRewards.class, "settleTowerBoss", Map.class,
+                UUID.class, String.class, int.class, int.class, Collection.class, int.class);
+        assertContract(AscensionRewards.class, "towerCompletionExtras", Map.class,
+                UUID.class, UUID.class, int.class, int.class, boolean.class, int.class);
+        assertContract(AscensionRewards.class, "settleRaid", Map.class, String.class, String.class, String.class, Map.class);
+        assertContract(AscensionEncounters.class, "threatEnabled", boolean.class);
+        assertContract(AscensionEncounters.class, "recommendedThreat", int.class, Collection.class);
+    }
+
     @Test void scoutingContractMatchesWhatTowersLooksUp() throws Exception {
         assertContract(AscensionEncounters.class, "declareEnemy", String.class,
                 String.class, Collection.class, int.class, String.class, boolean.class, String.class, String.class,

@@ -95,6 +95,134 @@ public final class AscensionRewards {
         return result;
     }
 
+    // ---- Threat (balance phase 1, docs/BALANCE-THREAT.md) ---------------------------------------------------------------------------------
+
+    /** The daily Threat counters in the store: tower completions that rolled a Core at full odds, and raid wins paid Apex in full. */
+    static final String CORE_COUNTER = "core_roll";
+    static final String APEX_COUNTER = "apex";
+
+    private static int usedToday(UUID player, String counter) {
+        return AscensionApi.store().map(store -> store.threatUsedToday(player, counter)).orElse(0);
+    }
+
+    /**
+     * {@link #settleTowerCompletion(UUID, String, int, int, int, boolean, java.util.Collection)} for a run fought at a Threat band. With the
+     * {@code threat.enabled} setting on, the pile's dust and facets come from the band and Cores from one roll at the band's chance (see
+     * {@code TowerCompletionBands.payoutThreat}), at a reduced chance after the player's full-odds rolls for the UTC day; with it off this is exactly the
+     * call without {@code threat}. Read CobbleTowers' own crown items with {@link #towerCompletionExtras(UUID, UUID, int, int, boolean, int)}.
+     *
+     * @param threat the band the champion was fought at, 1 to 7
+     */
+    public static Map<UUID, String> settleTowerCompletion(UUID encounterId, String outcome, int bossFloor, int cycle, int challengeCards,
+                                                          boolean flawless, java.util.Collection<UUID> players, int threat) {
+        var settings = com.cobbleascend.domain.v1.Tunables.current().threat();
+        if (!settings.enabled()) return settleTowerCompletion(encounterId, outcome, bossFloor, cycle, challengeCards, flawless, players);
+        if (bossFloor < 1) throw new IllegalArgumentException("Boss floor must be at least 1");
+        if (threat < 1 || threat > 7) throw new IllegalArgumentException("Threat must be 1-7");
+        var bands = com.cobbleascend.domain.v1.Tunables.current().towerCompletion();
+        var payouts = new LinkedHashMap<UUID, Map<String, Long>>();
+        var completions = new LinkedHashMap<UUID, TowerCompletionBands.Completion>();
+        for (var player : players) {
+            boolean capped = usedToday(player, CORE_COUNTER) >= settings.fullCoreRollsPerDay();
+            var completion = bands.payoutThreat(encounterId.toString(), player, threat, challengeCards, cycle, flawless, capped, settings.reducedPercent());
+            completions.put(player, completion);
+            var amounts = new LinkedHashMap<String, Long>();
+            completion.materials().forEach((material, amount) -> amounts.put(material.id(), amount));
+            payouts.put(player, amounts);
+        }
+        BalanceLog.encounter("tower_completion", encounterId, Map.of("bossFloor", bossFloor, "cycle", cycle, "cards", challengeCards,
+                "flawless", flawless, "players", players.size(), "threat", threat), players);
+        var result = settleBudgeted(encounterId, outcome, "tower_completion", payouts, CORE_COUNTER);
+        var paid = paidPlayers(result);
+        int attunement = bands.tierFor(TowerCompletionBands.score(challengeCards, cycle, flawless)).attunement();
+        awardAttunement("tower_completion:" + encounterId, paid, attunement);
+        var fresh = new java.util.ArrayList<UUID>();
+        result.forEach((player, status) -> { if (status.equals("GRANTED")) fresh.add(player); });
+        reveal(fresh, completions, cycle, challengeCards, flawless, attunement, players);
+        return result;
+    }
+
+    /** {@link #towerCompletionExtras(UUID, UUID, int, int, boolean)} for a Threat completion; the crown is the same whether the Core roll was capped. */
+    public static Map<String, Integer> towerCompletionExtras(UUID encounterId, UUID player, int cycle, int challengeCards, boolean flawless, int threat) {
+        if (!com.cobbleascend.domain.v1.Tunables.current().threat().enabled()) return towerCompletionExtras(encounterId, player, cycle, challengeCards, flawless);
+        var completion = com.cobbleascend.domain.v1.Tunables.current().towerCompletion()
+                .payoutThreat(encounterId.toString(), player, threat, challengeCards, cycle, flawless, false, 100);
+        var extras = new LinkedHashMap<String, Integer>();
+        extras.put("armor", completion.armorPieces());
+        extras.put("tickets", completion.tickets());
+        extras.put("tier", completion.tier().ordinal());
+        return extras;
+    }
+
+    /**
+     * {@link #settleTowerBoss(UUID, String, int, int, java.util.Collection)} for a run fought at a Threat band. The F5 mini chest is the same at every
+     * band; the band is only recorded in the telemetry, so CobbleTowers can call one signature whether or not Threat is on.
+     */
+    public static Map<UUID, String> settleTowerBoss(UUID encounterId, String outcome, int fromFloor, int bossFloor,
+                                                    java.util.Collection<UUID> players, int threat) {
+        if (com.cobbleascend.domain.v1.Tunables.current().threat().enabled())
+            BalanceLog.encounter("tower_boss_threat", encounterId, Map.of("bossFloor", bossFloor, "threat", threat, "players", players.size()), players);
+        return settleTowerBoss(encounterId, outcome, fromFloor, bossFloor, players);
+    }
+
+    /**
+     * Pays a finished raid while the Threat system is on: Apex Shards (raids are their only source), attunement and dust by the raid's tier, each scaled by
+     * the player's share of the damage ({@code share x players}, clamped to 0.5-1.5; see {@code RaidRewardBands}). A player under a quarter of an even
+     * split is paid nothing ({@code TOO_SMALL}). After a player's full-pay raids for the UTC day, Apex is cut to the reduced share. Each player is paid
+     * once per encounter; a retry replays. With Threat off it awards the old flat attunement ({@link #settleRaidAttunement}) and pays no materials,
+     * answering {@code THREAT_OFF} for each player. CobbleRaids keeps its own loot and Raid Points either way.
+     *
+     * @param encounterId the raid's encounter ID, as for {@link #settleRaidAttunement}
+     * @param outcome     {@code VICTORY}, {@code DEFEAT} or {@code ABORTED}
+     * @param raidTier    {@code starter}, {@code powerhouse}, {@code legendary}, {@code mythical} or {@code world_boss}
+     * @param shares      every participant with their share of the boss's damage, 0 to 1 (an absent or invalid share counts as an even split)
+     * @return per player: {@code GRANTED}, {@code ALREADY_GRANTED}, {@code NOT_PAID}, {@code TOO_SMALL}, {@code CONFLICT}, {@code REFUSED},
+     *         {@code DISABLED} or {@code THREAT_OFF}
+     */
+    public static Map<UUID, String> settleRaid(String encounterId, String outcome, String raidTier, Map<UUID, Double> shares) {
+        if (encounterId == null || encounterId.isBlank() || encounterId.contains("|")) throw new IllegalArgumentException("Invalid encounter ID");
+        var tier = com.cobbleascend.domain.v1.RaidRewardBands.Tier.fromId(raidTier);
+        var settings = com.cobbleascend.domain.v1.Tunables.current().threat();
+        var players = new java.util.ArrayList<>(shares.keySet());
+        if (!settings.enabled()) {
+            settleRaidAttunement(encounterId, outcome, players);
+            var off = new LinkedHashMap<UUID, String>();
+            players.forEach(player -> off.put(player, "THREAT_OFF"));
+            return off;
+        }
+        BalanceLog.encounter("raid_threat", encounterId, Map.of("outcome", String.valueOf(outcome), "tier", tier.name().toLowerCase(java.util.Locale.ROOT),
+                "players", players.size()), players);
+        int n = players.size();
+        var payouts = new LinkedHashMap<UUID, Map<String, Long>>();
+        var attunement = new LinkedHashMap<UUID, Integer>();
+        var skipped = new LinkedHashMap<UUID, String>();
+        for (var player : players) {
+            double share = shares.get(player) == null ? -1 : shares.get(player);
+            if (com.cobbleascend.domain.v1.RaidRewardBands.tooSmall(share, n)) { skipped.put(player, "TOO_SMALL"); continue; }
+            boolean capped = usedToday(player, APEX_COUNTER) >= settings.fullApexPayoutsPerDay();
+            var pay = com.cobbleascend.domain.v1.RaidRewardBands.pay(encounterId, player, tier, share, n, capped, settings.reducedPercent());
+            var amounts = new LinkedHashMap<String, Long>();
+            pay.materials().forEach((material, amount) -> amounts.put(material.id(), amount));
+            payouts.put(player, amounts);
+            attunement.put(player, pay.attunement());
+        }
+        var result = new LinkedHashMap<UUID, String>();
+        if (!payouts.isEmpty()) {
+            var settled = settleBudgeted(raidEncounterUuid(encounterId), outcome, "raid_" + tier.name().toLowerCase(java.util.Locale.ROOT), payouts, APEX_COUNTER);
+            result.putAll(settled);
+            settled.forEach((player, status) -> {
+                if (status.equals("GRANTED")) awardAttunement("raid:" + encounterId, java.util.List.of(player), attunement.get(player));
+            });
+        }
+        result.putAll(skipped);
+        return result;
+    }
+
+    /** A raid's string encounter ID as the UUID the store keys settlements by: name-based, so a retry finds the same settlement. */
+    static UUID raidEncounterUuid(String encounterId) {
+        return UUID.nameUUIDFromBytes(("ascensionlib:raid|" + encounterId).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
     /**
      * The parts of a completion chest that CobbleTowers hands over itself, computed from the same seed as {@link #settleTowerCompletion} so they agree:
      * {@code armor} (Tower armor pieces), {@code tickets} (CobbleCards tickets) and {@code tier} (0 Bronze, 1 Silver, 2 Gold, 3 Mythic). Pure: it pays
@@ -333,12 +461,17 @@ public final class AscensionRewards {
      * budget ({@code DailyRewardBudget}: 20 full chests a UTC day, then dust at 25 percent). A player whose chest was cut is told in chat.
      */
     static Map<UUID, String> settleBudgeted(UUID encounterId, String outcome, String rewardKind, Map<UUID, Map<String, Long>> payouts) {
+        return settleBudgeted(encounterId, outcome, rewardKind, payouts, null);
+    }
+
+    /** As above, also counting each paid player's use of a daily Threat counter ({@link #CORE_COUNTER}, {@link #APEX_COUNTER}); null counts nothing. */
+    static Map<UUID, String> settleBudgeted(UUID encounterId, String outcome, String rewardKind, Map<UUID, Map<String, Long>> payouts, String threatCounter) {
         var settlement = settlement(encounterId, outcome, rewardKind, payouts);
         var rewards = AscensionApi.encounterRewards();
         if (rewards.isEmpty()) return disabled(settlement);
         var result = new LinkedHashMap<UUID, String>();
         var budget = com.cobbleascend.domain.v1.Tunables.current().budget();
-        rewards.get().settleBudgeted(settlement, budget).forEach((player, answer) -> {
+        rewards.get().settleBudgeted(settlement, budget, threatCounter).forEach((player, answer) -> {
             result.put(player, answer.status().name());
             if (answer.reduced() && answer.status() == EncounterRewards.Status.GRANTED) tellReduced(player, budget);
         });

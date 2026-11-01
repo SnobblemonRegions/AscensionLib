@@ -173,6 +173,68 @@ public record TowerCompletionBands(int dust, int facets, int fragments, int scou
         return new Completion(spec.tier(), score, pile, Collections.unmodifiableMap(materials), List.copyOf(crowns), armor, tickets);
     }
 
+    // ---- Threat (balance phase 1, docs/BALANCE-THREAT.md) ---------------------------------------------------------------------------------
+
+    /** Core chance of a Threat completion in percent: 20 + 12 per band, at most 95 (Threat I 32%, Threat VII 95%). */
+    public static int threatCorePercent(int threat) { return Math.min(95, 20 + 12 * clampThreat(threat)); }
+
+    /** Dust a Threat completion's pile pays at Silver quality (the F5 mini chest's 200 come on top): 100 at Threat I, +75 a band. */
+    public static int threatDust(int threat) { return 100 + 75 * (clampThreat(threat) - 1); }
+
+    /** Facets a Threat completion's pile pays at Silver quality (the mini chest's 1 comes on top): 4 at Threat I up to 13 at Threat VII. */
+    public static int threatFacets(int threat) { return (int) Math.round(1.5 * (2 + clampThreat(threat))) - 1; }
+
+    private static int clampThreat(int threat) { return Math.max(1, Math.min(7, threat)); }
+
+    /**
+     * A completion while the Threat system is on. The quality tier, the rest of the pile and the crown work as in {@link #payout}, with three changes:
+     * the pile's dust and facets come from the Threat band ({@link #threatDust}, {@link #threatFacets}, times the tier's pile percent); the crown never
+     * rolls a Core (its weight is dropped); and Cores come from one separate roll at {@link #threatCorePercent}, cut to {@code reducedPercent} of that
+     * chance once the player has had their full-odds rolls for the day ({@code coreCapped}). Seeded like {@link #payout}, so a retry recomputes the same.
+     */
+    public Completion payoutThreat(String encounterId, UUID player, int threat, int challengeCards, int cycle, boolean flawless,
+                                   boolean coreCapped, int reducedPercent) {
+        int score = score(challengeCards, cycle, flawless);
+        var spec = tierFor(score);
+        var random = new Random(RewardSeed.of("tower-completion-threat", encounterId, player));
+        var base = pileFor(spec);
+        var materials = new EnumMap<MaterialId, Long>(MaterialId.class);
+        materials.putAll(base);
+        materials.remove(MaterialId.RESONANCE_DUST);
+        materials.remove(MaterialId.FACET);
+        add(materials, MaterialId.RESONANCE_DUST, scaled(threatDust(threat), spec.multiplierPercent()));
+        add(materials, MaterialId.FACET, scaled(threatFacets(threat), spec.multiplierPercent()));
+        var pile = Collections.unmodifiableMap(new EnumMap<>(materials));
+        int[] weights = spec.weights().clone();
+        weights[Crown.CORE.ordinal()] = 0;
+        boolean anyLeft = false;
+        for (int w : weights) anyLeft |= w > 0;
+        var crowns = new ArrayList<Crown>();
+        int armor = 0, tickets = 0;
+        for (int slot = 0; anyLeft && slot < spec.crownSlots(); slot++) {
+            var crown = pick(weights, random);
+            crowns.add(crown);
+            switch (crown) {
+                case CORE -> { }
+                case FRAGMENT_BUNDLE -> add(materials, MaterialId.UNIQUE_FRAGMENT, fragmentBundle);
+                case SIGIL -> add(materials, MaterialId.ASCENSION_SIGIL, 1);
+                case CATALYST -> add(materials, MaterialId.UNIQUE_CATALYST, 1);
+                case ARMOR -> armor++;
+                case TICKET -> tickets++;
+                case RESPEC_RANK -> add(materials, MaterialId.RANK_RESPEC, 1);
+                case RESPEC_UNIQUE -> add(materials, MaterialId.UNIQUE_RESPEC, 1);
+            }
+        }
+        // The Core roll in permille, so a capped chance keeps its fraction (32% at 25% is 8.0%, not 8).
+        int permille = threatCorePercent(threat) * 10;
+        if (coreCapped) permille = permille * Math.max(0, Math.min(100, reducedPercent)) / 100;
+        if (random.nextInt(1000) < permille) {
+            add(materials, MaterialId.ASCENSION_CORE, 1);
+            crowns.add(Crown.CORE);
+        }
+        return new Completion(spec.tier(), score, pile, Collections.unmodifiableMap(materials), List.copyOf(crowns), armor, tickets);
+    }
+
     private static long scaled(int base, int percent) { return Math.round(base * percent / 100.0); }
 
     private static void add(Map<MaterialId, Long> into, MaterialId material, long amount) {

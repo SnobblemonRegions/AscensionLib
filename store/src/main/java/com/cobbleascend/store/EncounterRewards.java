@@ -102,6 +102,14 @@ public final class EncounterRewards {
      * is cut (see {@link ProgressionStore#grantBudgeted}). A retry replays the first payment and uses no more budget.
      */
     public synchronized Map<UUID, Budgeted> settleBudgeted(Settlement settlement, DailyRewardBudget budget) {
+        return settleBudgeted(settlement, budget, null);
+    }
+
+    /**
+     * {@link #settleBudgeted(Settlement, DailyRewardBudget)} that also counts each paid player's use of a daily Threat counter ({@code core_roll} or
+     * {@code apex}, balance phase 1); {@code null} counts nothing. The amounts were already decided from {@link ProgressionStore#threatUsedToday}.
+     */
+    public synchronized Map<UUID, Budgeted> settleBudgeted(Settlement settlement, DailyRewardBudget budget, String threatCounter) {
         var result = new LinkedHashMap<UUID, Budgeted>();
         for (var payout : settlement.payouts()) {
             if (settlement.outcome() != EncounterOutcome.VICTORY) {
@@ -110,7 +118,7 @@ public final class EncounterRewards {
             }
             try {
                 var outcome = store.grantBudgeted(operationId(settlement.encounterId(), payout.playerId(), settlement.rewardKind()),
-                        payout.playerId(), payout.materials(), "encounter " + settlement.encounterId() + " " + settlement.rewardKind(), budget);
+                        payout.playerId(), payout.materials(), "encounter " + settlement.encounterId() + " " + settlement.rewardKind(), budget, threatCounter);
                 long asked = payout.materials().getOrDefault(MaterialId.RESONANCE_DUST, 0L);
                 long paid = outcome.cost().getOrDefault(MaterialId.RESONANCE_DUST, 0L);
                 result.put(payout.playerId(), new Budgeted(outcome.replayed() ? Status.ALREADY_GRANTED : Status.GRANTED, paid < asked));

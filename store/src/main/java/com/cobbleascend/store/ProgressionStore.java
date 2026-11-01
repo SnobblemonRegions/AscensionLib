@@ -242,6 +242,9 @@ public final class ProgressionStore implements AutoCloseable {
                 if (!Integer.toString(rules.catalogVersion()).equals(meta("catalog_version")))
                     throw new StoreException(Code.CATALOG_MISMATCH, "Store content version requires an explicit migration");
             }
+            // Balance phase 1's daily Threat counters: an extra table, created when missing, with no schema version bump, so an older build
+            // still opens this store (it simply never reads the table) and a downgrade stays possible.
+            createThreatTable();
             if (meta("wild_secret") == null) {
                 byte[] secret = new byte[32];
                 new SecureRandom().nextBytes(secret);
@@ -293,6 +296,18 @@ public final class ProgressionStore implements AutoCloseable {
                         day INTEGER NOT NULL,
                         used INTEGER NOT NULL CHECK(used >= 0),
                         PRIMARY KEY(player_id, day)) STRICT""");
+        }
+    }
+
+    private void createThreatTable() throws SQLException {
+        try (var statement = db.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS threat_daily(
+                        player_id TEXT NOT NULL,
+                        day INTEGER NOT NULL,
+                        counter TEXT NOT NULL,
+                        used INTEGER NOT NULL CHECK(used >= 0),
+                        PRIMARY KEY(player_id, day, counter)) STRICT""");
         }
     }
 
@@ -551,6 +566,48 @@ public final class ProgressionStore implements AutoCloseable {
         });
     }
 
+    /** How many times a player has used a daily Threat counter today (UTC): {@code core_roll} for tower Core rolls, {@code apex} for raid Apex pay. */
+    public synchronized int threatUsedToday(UUID playerId, String counter) {
+        Objects.requireNonNull(counter);
+        return read(() -> {
+            try (var statement = db.prepareStatement("SELECT used FROM threat_daily WHERE player_id = ? AND day = ? AND counter = ?")) {
+                statement.setString(1, playerId.toString());
+                statement.setLong(2, budgetDay());
+                statement.setString(3, counter);
+                try (var rows = statement.executeQuery()) { return rows.next() ? rows.getInt(1) : 0; }
+            }
+        });
+    }
+
+    /**
+     * {@link #grantBudgeted} that also counts one use of a daily Threat counter in the same transaction (balance phase 1). The caller decides the amounts
+     * from {@link #threatUsedToday} before calling; a retry replays the first payment and counts nothing more.
+     */
+    public synchronized Outcome grantBudgeted(UUID operationId, UUID playerId, Map<MaterialId, Long> materials, String reason,
+                                              com.cobbleascend.domain.v1.DailyRewardBudget budget, String threatCounter) {
+        if (threatCounter == null) return grantBudgeted(operationId, playerId, materials, reason, budget);
+        Objects.requireNonNull(reason);
+        var canonical = new TreeMap<String, Long>();
+        materials.forEach((id, amount) -> canonical.put(id.id(), amount));
+        return run(operationId, "GRANT_BUDGETED|" + playerId + "|" + canonical + "|" + reason + "|" + threatCounter, () -> {
+            var outcome = budgetedGrant(playerId, materials, reason, budget);
+            long day = budgetDay();
+            try (var statement = db.prepareStatement("""
+                    INSERT INTO threat_daily(player_id, day, counter, used) VALUES(?, ?, ?, 1)
+                    ON CONFLICT(player_id, day, counter) DO UPDATE SET used = used + 1""")) {
+                statement.setString(1, playerId.toString());
+                statement.setLong(2, day);
+                statement.setString(3, threatCounter);
+                statement.executeUpdate();
+            }
+            try (var statement = db.prepareStatement("DELETE FROM threat_daily WHERE day < ?")) {
+                statement.setLong(1, day - 7);
+                statement.executeUpdate();
+            }
+            return outcome;
+        });
+    }
+
     /**
      * Credits a chest against the daily budget: once the player has been paid {@code budget.fullPerDay()} chests today, this one pays with its dust cut to
      * {@code budget.reducedDustPercent()} percent. The request is hashed with the amounts the caller asked for, so a retry (same operation ID, same amounts)
@@ -562,7 +619,13 @@ public final class ProgressionStore implements AutoCloseable {
         Objects.requireNonNull(reason);
         var canonical = new TreeMap<String, Long>();
         materials.forEach((id, amount) -> canonical.put(id.id(), amount));
-        return run(operationId, "GRANT_BUDGETED|" + playerId + "|" + canonical + "|" + reason, () -> {
+        return run(operationId, "GRANT_BUDGETED|" + playerId + "|" + canonical + "|" + reason, () -> budgetedGrant(playerId, materials, reason, budget));
+    }
+
+    /** The body of a budgeted grant, run inside an operation by the two public forms. */
+    private Fresh budgetedGrant(UUID playerId, Map<MaterialId, Long> materials, String reason,
+                                com.cobbleascend.domain.v1.DailyRewardBudget budget) throws SQLException {
+        {
             long day = budgetDay();
             int used = 0;
             try (var statement = db.prepareStatement("SELECT used FROM daily_budget WHERE player_id = ? AND day = ?")) {
@@ -587,7 +650,7 @@ public final class ProgressionStore implements AutoCloseable {
                 statement.executeUpdate();
             }
             return new Fresh(Kind.GRANT, playerId, null, null, after, Map.copyOf(paid), 0).moved(Map.of(), paid, paid == materials ? reason : reason + " (reduced)");
-        });
+        }
     }
 
     /** Debits materials for a non-craft use (e.g. a Scouter). Idempotent per operation ID; refuses overdrafts. */

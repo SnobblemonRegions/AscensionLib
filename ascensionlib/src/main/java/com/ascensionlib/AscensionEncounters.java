@@ -61,6 +61,20 @@ public final class AscensionEncounters {
     }
 
     /** The encounter is over (any outcome): forgets its enemies and every reveal. Safe to call twice. */
+    /** Whether the Threat system is on ({@code threat.enabled} in config/ascensionlib.json), so a caller knows whether to offer Threat bands. */
+    public static boolean threatEnabled() {
+        return com.cobbleascend.domain.v1.Tunables.current().threat().enabled();
+    }
+
+    /**
+     * The tower door's advice (balance phase 1): the Threat band (1-6) these players' teams are built for, from the mean rarity of the profiled Pokemon in
+     * the online players' parties ({@code ThreatAdvice}). 1 when nobody is online or nothing is profiled. Advice only: no band is ever locked.
+     */
+    public static int recommendedThreat(java.util.Collection<java.util.UUID> players) {
+        double mean = com.ascensionlib.telemetry.BalanceLog.meanTeamRarity(players);
+        return com.cobbleascend.domain.v1.ThreatAdvice.recommended(mean);
+    }
+
     public static void end(String encounterId) {
         ScoutEncounters.end(encounterId);
     }

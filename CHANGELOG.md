@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased (balance/phase-1): the Threat system, off by default
+
+- **Threat bands.** `threat_1` to `threat_7` enemy tiers. With the new `threat.enabled` setting on, legacy tiers fight as their bands. Bosses get bonus rank credits, and from Threat V a Unique. Threat VII enemies are Perfected, and each has a Unique. Owners can override the tiers with `config/ascensionlib-enemy-tiers.json`.
+- **Rarity aura.** With Threat on, every profiled Pokemon fights with +0 to +26% Atk, SpA, Def and SpD by rarity, applied after the affix caps.
+- **Apex Shard.** A new tradable material, earned only from raids. With Threat on, the two top promotions, Overreach and Fusion also cost Apex Shards.
+- **Threat rewards.** Tower completions pay by band, with one Core roll each. Raids pay Apex Shards, attunement and dust by tier and damage share. Daily caps apply to Core rolls and Apex payouts.
+- **New API** for CobbleTowers and CobbleRaids: `settleTowerCompletion(..., threat)`, `settleTowerBoss(..., threat)`, `towerCompletionExtras(..., threat)`, `settleRaid`, `threatEnabled` and `recommendedThreat`. Older callers are unaffected.
+- **Telemetry.** Encounter events carry the team's rarity, and raids log an encounter event.
+- See `docs/BALANCE-THREAT.md`. With Threat off, every encounter fights and pays as in 1.0.0.
+
 ## 1.0.0+fabric
 
 The first full release (Fabric build). Server-side Fabric mod for Minecraft 1.21.1 with Cobblemon 1.8.1 or 1.8.2; clients need WebGUI.
