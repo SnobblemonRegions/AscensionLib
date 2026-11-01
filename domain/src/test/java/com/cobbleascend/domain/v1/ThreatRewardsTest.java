@@ -68,7 +68,7 @@ class ThreatRewardsTest {
         long capped = 0;
         for (int i = 0; i < samples; i++)
             capped += RaidRewardBands.pay("c-" + i, new UUID(77, i), RaidRewardBands.Tier.MYTHICAL, 0.25, 4, true, 25).materials().getOrDefault(MaterialId.APEX_SHARD, 0L);
-        assertEquals(1.8 * 0.25, capped / (double) samples, 0.02, "past the daily full raids Apex is cut to a quarter");
+        assertEquals(0.9 * 0.25, capped / (double) samples, 0.02, "past the daily full raids Apex is cut to a quarter");
         assertTrue(RaidRewardBands.tooSmall(0.02, 8), "2% of an 8-player raid is under a quarter of an even split");
         assertFalse(RaidRewardBands.tooSmall(0.05, 8), "5% of an 8-player raid is 0.4 of an even split");
         assertFalse(RaidRewardBands.tooSmall(0.05, 1), "a solo raider is never too small");

@@ -23,7 +23,7 @@ The full design (power curve, pacing simulation, modifier pass, 8-player duel ra
 | --- | --- |
 | Enemy tiers | `trial_rank_1`-`3` fight as `threat_1`-`3`, `boss` as `threat_6` (`design/enemy-tiers.json`, `threatAliases`) |
 | Battle | Every profiled Pokemon fights with its rarity aura: +0/4/8/13/19/26% Atk, SpA, Def, SpD, Common to Mythic (`balance.json` `auraPercent`), applied after the affix caps |
-| Promotions | Priced from `balance.json` `threatPromotions`: Epic to Legendary needs 4 Apex Shards, Legendary to Mythic 10 |
+| Promotions | Priced from `balance.json` `threatPromotions`: Epic to Legendary needs 2 Cores and 4 Apex Shards, Legendary to Mythic 4 Cores and 10 |
 | Overreach, Fusion | +1 and +12 Apex Shards |
 | Tower completion | Paid by Threat band (when CobbleTowers passes one), Cores from one roll per completion |
 | Raids | Paid Apex Shards, attunement and dust by tier and damage share (when CobbleRaids calls `settleRaid`) |

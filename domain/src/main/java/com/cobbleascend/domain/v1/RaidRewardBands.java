@@ -18,15 +18,17 @@ import java.util.UUID;
  */
 public final class RaidRewardBands {
     public enum Tier {
-        STARTER(30, 3, 60), POWERHOUSE(60, 5, 60), LEGENDARY(120, 8, 60), MYTHICAL(180, 12, 60), WORLD_BOSS(300, 15, 120);
+        // Balance sim fixes: Apex halved (raids minted 5.5 Apex per Core); a small Core chance so raid-focused players are not gated.
+        STARTER(15, 3, 60, 0), POWERHOUSE(30, 5, 60, 40), LEGENDARY(60, 8, 60, 80), MYTHICAL(90, 12, 60, 120), WORLD_BOSS(150, 15, 120, 200);
 
-        /** Expected Apex Shards in hundredths, attunement, dust, all for a full share. */
-        final int apexHundredths, attunement, dust;
+        /** Expected Apex Shards in hundredths, attunement, dust, all for a full share; Core chance in permille. */
+        final int apexHundredths, attunement, dust, corePermille;
 
-        Tier(int apexHundredths, int attunement, int dust) {
+        Tier(int apexHundredths, int attunement, int dust, int corePermille) {
             this.apexHundredths = apexHundredths;
             this.attunement = attunement;
             this.dust = dust;
+            this.corePermille = corePermille;
         }
 
         public int attunement() { return attunement; }
@@ -67,6 +69,10 @@ public final class RaidRewardBands {
         if (random.nextDouble() < apex - whole) whole++;
         var materials = new EnumMap<MaterialId, Long>(MaterialId.class);
         if (whole > 0) materials.put(MaterialId.APEX_SHARD, whole);
+        // The Core roll comes after the Apex roll, so the Apex a seed pays is unchanged. Scaled by share and cut like Apex past the cap.
+        double core = tier.corePermille / 1000.0 * Math.min(1.0, m);
+        if (apexCapped) core = core * Math.max(0, Math.min(100, reducedPercent)) / 100.0;
+        if (random.nextDouble() < core) materials.put(MaterialId.ASCENSION_CORE, 1L);
         long dust = Math.round(tier.dust * m);
         if (dust > 0) materials.put(MaterialId.RESONANCE_DUST, dust);
         int attunement = Math.max(1, (int) Math.round(tier.attunement * m));
