@@ -27,6 +27,9 @@ class ContractSignaturesTest {
         assertContract(AscensionGrants.class, "upgradeRandomly", AscensionGrants.Result.class, com.cobblemon.mod.common.pokemon.Pokemon.class);
         assertContract(AscensionGrants.class, "grantWithRarity", AscensionGrants.Result.class, com.cobblemon.mod.common.pokemon.Pokemon.class, String.class);
         // Balance phase 3: the captured raid boss's rarity floor (CobbleRaids RaidCaptureSessionService).
+        // Balance phase 3: the raid shop's Scouters and dust (CobbleRaids AscensionShopHook).
+        assertContract(AscensionGrants.class, "grantMaterial", AscensionGrants.Result.class, java.util.UUID.class, java.util.UUID.class,
+                String.class, long.class, String.class);
         assertContract(AscensionGrants.class, "grantWithRarityFloor", AscensionGrants.Result.class, com.cobblemon.mod.common.pokemon.Pokemon.class, String.class);
     }
 

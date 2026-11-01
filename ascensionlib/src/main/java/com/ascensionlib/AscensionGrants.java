@@ -49,6 +49,29 @@ public final class AscensionGrants {
         }
     }
 
+    /** Balance phase 3: what another mod may sell for its own currency through {@link #grantMaterial}. Never Cores or Apex Shards. */
+    public static final java.util.Set<String> SELLABLE = java.util.Set.of("scouter", "resonance_dust");
+
+    /**
+     * Balance phase 3, for CobbleRaids' raid shop: credits {@code amount} of a {@link #SELLABLE} material to a player's wallet.
+     * {@code operationId} makes a retry safe (the same purchase is never credited twice). {@link Result#UNKNOWN_RARITY} answers
+     * a material that is not sellable (the enum is the contract, so no new constant). Online or offline players alike.
+     */
+    public static Result grantMaterial(java.util.UUID operationId, java.util.UUID player, String materialId, long amount, String reason) {
+        String key = materialId == null ? "" : materialId.trim().toLowerCase(Locale.ROOT);
+        if (!SELLABLE.contains(key) || amount <= 0 || amount > 100_000) return Result.UNKNOWN_RARITY;
+        var service = AscensionApi.service();
+        if (service.isEmpty()) return Result.DISABLED;
+        try {
+            service.get().store().grant(operationId, player, java.util.Map.of(com.cobbleascend.domain.v1.MaterialId.fromId(key), amount),
+                    reason == null ? "external_shop" : reason);
+            return Result.GRANTED;
+        } catch (RuntimeException exception) {
+            LOG.error("Could not credit {} x{} to {}", key, amount, player, exception);
+            return Result.FAILED;
+        }
+    }
+
     /**
      * Balance phase 3, for a captured raid boss: gives an owned Pokemon a profile whose rarity is rolled from the normal
      * table but is at least {@code floorRarityId}. Call right after the Pokemon is added to the player's party or PC, on
