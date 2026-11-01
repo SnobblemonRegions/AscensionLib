@@ -10,7 +10,7 @@ import java.util.List;
  * the mod reads; the defaults are the owner-approved numbers.
  */
 public record Tunables(DailyRewardBudget budget, int withdrawalFeePercent, int respecMarksPrice, int attunementPerVictory,
-                       TowerCompletionBands towerCompletion, MiniChest miniChest, ZoneSettings zones) {
+                       TowerCompletionBands towerCompletion, MiniChest miniChest, ZoneSettings zones, ThreatSettings threat) {
     public static final int DEFAULT_FEE_PERCENT = 3;
     public static final int DEFAULT_RESPEC_MARKS_PRICE = 90;
     public static final int DEFAULT_ATTUNEMENT_PER_VICTORY = 3;
@@ -31,9 +31,15 @@ public record Tunables(DailyRewardBudget budget, int withdrawalFeePercent, int r
         if (attunementPerVictory < 0 || attunementPerVictory > 50) throw new IllegalArgumentException("Attunement per victory is 0-50");
     }
 
+    /** Every setting before the Threat system, with Threat at its defaults (off). */
+    public Tunables(DailyRewardBudget budget, int withdrawalFeePercent, int respecMarksPrice, int attunementPerVictory,
+                    TowerCompletionBands towerCompletion, MiniChest miniChest, ZoneSettings zones) {
+        this(budget, withdrawalFeePercent, respecMarksPrice, attunementPerVictory, towerCompletion, miniChest, zones, ThreatSettings.DEFAULTS);
+    }
+
     public static Tunables defaults() {
         return new Tunables(DailyRewardBudget.DEFAULTS, DEFAULT_FEE_PERCENT, DEFAULT_RESPEC_MARKS_PRICE, DEFAULT_ATTUNEMENT_PER_VICTORY,
-                TowerCompletionBands.DEFAULTS, MiniChest.DEFAULTS, ZoneSettings.DEFAULTS);
+                TowerCompletionBands.DEFAULTS, MiniChest.DEFAULTS, ZoneSettings.DEFAULTS, ThreatSettings.DEFAULTS);
     }
 
     private static volatile Tunables current = defaults();
@@ -66,6 +72,7 @@ public record Tunables(DailyRewardBudget budget, int withdrawalFeePercent, int r
         mini.addProperty("corePermille", miniChest.corePermille());
         root.add("towerMiniChest", mini);
         root.add("zones", zones.toJson());
+        root.add("threat", threat.toJson());
         return root;
     }
 
@@ -116,11 +123,20 @@ public record Tunables(DailyRewardBudget budget, int withdrawalFeePercent, int r
                 problems.add("zones: " + bad.getMessage() + " (using the default)");
             }
         }
+        ThreatSettings threatSettings = base.threat;
+        var th = obj(root, "threat");
+        if (th != null) {
+            try {
+                threatSettings = ThreatSettings.fromJson(th, base.threat);
+            } catch (RuntimeException bad) {
+                problems.add("threat: " + bad.getMessage() + " (using the default)");
+            }
+        }
         for (var key : root.keySet()) {
-            if (!List.of("dailyBudget", "withdrawalFeePercent", "hourglassMarksPrice", "attunementPerVictory", "towerCompletion", "towerMiniChest", "zones").contains(key) && !key.startsWith("_"))
+            if (!List.of("dailyBudget", "withdrawalFeePercent", "hourglassMarksPrice", "attunementPerVictory", "towerCompletion", "towerMiniChest", "zones", "threat").contains(key) && !key.startsWith("_"))
                 problems.add("unknown setting \"" + key + "\" (ignored)");
         }
-        return new Tunables(budget, fee, price, attunement, towers, mini, zoneSettings);
+        return new Tunables(budget, fee, price, attunement, towers, mini, zoneSettings, threatSettings);
     }
 
     static JsonObject obj(JsonObject parent, String key) {

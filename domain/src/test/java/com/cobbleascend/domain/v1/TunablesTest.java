@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -116,5 +117,25 @@ class TunablesTest {
         assertTrue(zones.dimensions().isEmpty());
         assertEquals(0.30, zones.rarityTilt());
         assertTrue(zones.rarityWeights().isEmpty());
+    }
+
+    @Test void threatIsOffByDefaultAndReadsBack() {
+        assertFalse(Tunables.defaults().threat().enabled(), "Threat ships dark");
+        var problems = new ArrayList<String>();
+        var t = Tunables.parse(json("{\"threat\": {\"enabled\": true, \"fullCoreRollsPerDay\": 5}}"), problems);
+        assertTrue(problems.isEmpty(), problems.toString());
+        assertTrue(t.threat().enabled());
+        assertEquals(5, t.threat().fullCoreRollsPerDay());
+        assertEquals(ThreatSettings.DEFAULTS.fullApexPayoutsPerDay(), t.threat().fullApexPayoutsPerDay(), "an absent value keeps its default");
+        assertEquals(t.threat(), Tunables.parse(t.toJson(), new ArrayList<>()).threat());
+    }
+
+    @Test void aBadThreatSectionFallsBackWhole() {
+        for (var bad : List.of("{\"enabled\": \"yes\"}", "{\"reducedPercent\": 150}", "{\"fullCoreRollsPerDay\": -1}", "{\"enable\": true}")) {
+            var problems = new ArrayList<String>();
+            var t = Tunables.parse(json("{\"threat\": " + bad + "}"), problems);
+            assertEquals(ThreatSettings.DEFAULTS, t.threat(), bad);
+            assertEquals(1, problems.size(), bad + " -> " + problems);
+        }
     }
 }

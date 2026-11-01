@@ -715,6 +715,7 @@ final class AscendWiring {
     private int reloadConfig(CommandSourceStack source) {
         var before = com.cobbleascend.domain.v1.Tunables.current();
         var result = TunablesConfig.loadAndUse(TunablesConfig.file());
+        com.ascensionlib.scout.ScoutEncounters.reloadTiers();
         var changed = TunablesConfig.differences(before, result.tunables());
         source.sendSuccess(() -> Component.literal("[Ascend] Reloaded config/ascensionlib.json: " + (changed.isEmpty() ? "nothing changed." : changed.size() + " setting(s) changed.")), true);
         changed.forEach(line -> source.sendSuccess(() -> Component.literal("  " + line), false));

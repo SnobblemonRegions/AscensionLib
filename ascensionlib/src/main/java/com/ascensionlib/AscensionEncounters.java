@@ -25,8 +25,9 @@ public final class AscensionEncounters {
      * @param encounterId  the encounter's own ID
      * @param participants who may scout it (and see a shared reveal)
      * @param enemyIndex   0-based and unique within the encounter
-     * @param tierId       a tier of {@code enemy-tiers.json}: {@code trial_rank_1}, {@code trial_rank_2},
-     *                     {@code trial_rank_3} or {@code boss}
+     * @param tierId       a tier of {@code enemy-tiers.json}: {@code threat_1} to {@code threat_7}, or a legacy
+     *                     {@code trial_rank_1}, {@code trial_rank_2}, {@code trial_rank_3} or {@code boss}, which fights as
+     *                     its Threat band when the {@code threat.enabled} setting is on
      * @param boss         whether its reveal is shared with every participant (otherwise personal to the one who scouts)
      * @param uniqueId     a boss's fixed Unique, or null/empty for none
      * @param speciesId    a Cobblemon species id such as {@code cobblemon:charizard}

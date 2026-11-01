@@ -1,10 +1,19 @@
 {
   "schemaVersion":1,
-  "status":"provisional-requires-balance-approval",
+  "status":"threat-bands-balance-phase-1",
   "tiers":[
     {"id":"trial_rank_1","rankCredits":1,"rarities":{"common":60,"uncommon":30,"rare":10}},
     {"id":"trial_rank_2","rankCredits":4,"rarities":{"uncommon":30,"rare":50,"epic":20}},
     {"id":"trial_rank_3","rankCredits":8,"rarities":{"rare":20,"epic":55,"legendary":25}},
-    {"id":"boss","rankCredits":10,"rarities":{"legendary":70,"mythical":30}}
-  ]
+    {"id":"boss","rankCredits":10,"rarities":{"legendary":70,"mythical":30}},
+    {"id":"threat_1","rankCredits":1,"bossBonusCredits":2,"rarities":{"common":70,"uncommon":30}},
+    {"id":"threat_2","rankCredits":3,"bossBonusCredits":2,"rarities":{"uncommon":60,"rare":40}},
+    {"id":"threat_3","rankCredits":5,"bossBonusCredits":2,"rarities":{"rare":60,"epic":40}},
+    {"id":"threat_4","rankCredits":7,"bossBonusCredits":2,"rarities":{"epic":70,"legendary":30}},
+    {"id":"threat_5","rankCredits":9,"bossBonusCredits":2,"bossUnique":true,"rarities":{"legendary":75,"mythical":25}},
+    {"id":"threat_6","rankCredits":10,"bossUnique":true,"rarities":{"mythical":100}},
+    {"id":"threat_7","rankCredits":10,"bossUnique":true,"unique":true,"perfected":true,"rarities":{"mythical":100}}
+  ],
+  "threatAliases":{"trial_rank_1":"threat_1","trial_rank_2":"threat_2","trial_rank_3":"threat_3","boss":"threat_6"},
+  "enemyUniqueExclusions":["triple_seven"]
 }

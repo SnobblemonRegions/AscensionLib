@@ -70,6 +70,19 @@ public final class ScoutEncounters {
         server = started;
     }
 
+    /** Drops the cached enemy tiers, so the next declaration reads the override file again ({@code /ascend admin reload}). */
+    public static synchronized void reloadTiers() { tiers = null; }
+
+    /** The enemy tiers in force: {@code config/ascensionlib-enemy-tiers.json} when present and valid, else the shipped ones. */
+    private static EnemyTiers tiers() {
+        if (tiers == null) {
+            var problems = new ArrayList<String>();
+            tiers = EnemyTiers.loadOrDefaults(net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().resolve("ascensionlib-enemy-tiers.json"), problems);
+            problems.forEach(problem -> LOG.warn("Enemy tiers: {}", problem));
+        }
+        return tiers;
+    }
+
     public static synchronized void detach() {
         server = null;
         ACTIVE.clear();
@@ -99,9 +112,11 @@ public final class ScoutEncounters {
         encounter.participants.addAll(participants);
         if (!encounter.enemies.containsKey(enemyIndex)) {
             try {
-                if (tiers == null) tiers = EnemyTiers.defaults();
-                var spec = new EnemySpec(tiers.tier(tierId), boss, uniqueId == null || uniqueId.isBlank() ? null : uniqueId);
-                var snapshot = new EnemyGenerator(service.get().rules()).generate(encounterId, enemyIndex, spec, types);
+                var all = tiers();
+                // With Threat on, a legacy tier ID (trial_rank_N, boss) fights as its Threat band; with it off, as before.
+                var tier = all.resolve(tierId, com.cobbleascend.domain.v1.Tunables.current().threat().enabled());
+                var spec = new EnemySpec(tier, boss, uniqueId == null || uniqueId.isBlank() ? null : uniqueId);
+                var snapshot = new EnemyGenerator(service.get().rules(), all.uniqueExclusions()).generate(encounterId, enemyIndex, spec, types);
                 encounter.enemies.put(enemyIndex, new Enemy(snapshot, species.getName(), species.getResourceIdentifier().toString(), level,
                         List.copyOf(types), baseStats(species), boss));
             } catch (RuntimeException exception) {

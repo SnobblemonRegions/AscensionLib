@@ -16,7 +16,7 @@ class EnemyGeneratorTest {
     private static EnemyTiers parse(String json) { return EnemyTiers.parse(JsonParser.parseString(json).getAsJsonObject()); }
 
     @Test void defaultTiersLoadAndAreValid() {
-        assertEquals(4, tiers.all().size());
+        assertEquals(11, tiers.all().size(), "four legacy tiers and seven Threat bands");
         assertEquals(8, tiers.tier("trial_rank_3").rankCredits());
         assertEquals(List.of(Rarity.LEGENDARY, Rarity.MYTHICAL),
                 tiers.tier("boss").rarities().stream().map(EnemyTier.RarityWeight::rarity).toList());
@@ -75,7 +75,7 @@ class EnemyGeneratorTest {
                 int capacity = enemy.slots().size() * (RankedAffix.RANKS - 1);
                 int invested = enemy.slots().stream().mapToInt(s -> s.rank() - 1).sum();
                 assertEquals(Math.min(tier.rankCredits(), capacity), invested, "Credits are spent exactly, up to capacity");
-                assertNull(enemy.uniqueId(), "Regular enemies never get a Unique");
+                if (!tier.unique()) assertNull(enemy.uniqueId(), "Regular enemies never get a Unique unless their tier grants one");
                 for (var slot : enemy.slots()) {
                     assertTrue(rules.affix(slot.affixId()).band(slot.rank()).contains(slot.rolledValue()));
                     if (slot.affixId().equals("type_focus") || slot.affixId().equals("type_mastery"))
@@ -180,5 +180,94 @@ class EnemyGeneratorTest {
                 CombatSnapshot.Source.ENEMY, "tamper#1", Rarity.COMMON, 1, enemy.slots(), null)), "Slots do not match rarity");
         assertThrows(IllegalArgumentException.class, () -> rules.validate(new CombatSnapshot(
                 CombatSnapshot.Source.ENEMY, "tamper#1", enemy.rarity(), 1, enemy.slots(), "unknown_power")));
+    }
+
+    // ---- Threat bands (balance phase 1) ----
+
+    @Test void threatBandsClimbInRarityAndCredits() {
+        int lastCredits = -1;
+        double lastRarity = -1;
+        for (int band = 1; band <= 7; band++) {
+            var tier = tiers.threat(band);
+            assertEquals("threat_" + band, tier.id());
+            assertTrue(tier.rankCredits() >= lastCredits, "credits never fall from one band to the next");
+            double meanRarity = tier.rarities().stream().mapToDouble(w -> w.rarity().ordinal() * w.weight()).sum() / tier.totalWeight();
+            assertTrue(meanRarity >= lastRarity, "rarity never falls from one band to the next");
+            lastCredits = tier.rankCredits();
+            lastRarity = meanRarity;
+        }
+        assertEquals("threat_1", tiers.threat(0).id(), "bands clamp low");
+        assertEquals("threat_7", tiers.threat(12).id(), "bands clamp high");
+    }
+
+    @Test void legacyIdsMapToThreatOnlyWhenSwitchedOn() {
+        assertEquals("boss", tiers.resolve("boss", false).id());
+        assertEquals("trial_rank_2", tiers.resolve("trial_rank_2", false).id());
+        assertEquals("threat_6", tiers.resolve("boss", true).id());
+        assertEquals("threat_2", tiers.resolve("trial_rank_2", true).id());
+        assertEquals("threat_4", tiers.resolve("threat_4", true).id(), "a Threat ID is itself");
+        assertThrows(IllegalArgumentException.class, () -> parse(
+                "{\"schemaVersion\":1,\"tiers\":[{\"id\":\"a\",\"rankCredits\":1,\"rarities\":{\"common\":1}}],\"threatAliases\":{\"a\":\"missing\"}}"),
+                "an alias to an unknown tier is rejected");
+    }
+
+    @Test void bossesSpendTheirBonusButNeverMoreThanTen() {
+        var band3 = tiers.threat(3);
+        var band6 = tiers.threat(6);
+        assertEquals(7, band3.creditsFor(true));
+        assertEquals(5, band3.creditsFor(false));
+        assertEquals(10, band6.creditsFor(true), "already at a player's ten");
+        for (int i = 0; i < 300; i++) {
+            var boss = generator.generate("boss-credits", i, EnemySpec.boss(band3, null), types);
+            int capacity = boss.slots().size() * (RankedAffix.RANKS - 1);
+            assertEquals(Math.min(7, capacity), boss.slots().stream().mapToInt(s -> s.rank() - 1).sum());
+            rules.validate(boss);
+        }
+    }
+
+    @Test void uniquesComeFromTheTierAndSkipExcludedOnes() {
+        var excluding = new EnemyGenerator(rules, tiers.uniqueExclusions());
+        var band4 = tiers.threat(4);
+        var band5 = tiers.threat(5);
+        var band7 = tiers.threat(7);
+        var seen = new HashSet<String>();
+        for (int i = 0; i < 400; i++) {
+            assertNull(excluding.generate("u", i, EnemySpec.boss(band4, null), types).uniqueId(), "below Threat V a boss has no Unique");
+            assertNull(excluding.generate("u", i, EnemySpec.regular(band5), types).uniqueId(), "a regular Threat V enemy has no Unique");
+            var boss = excluding.generate("u", i, EnemySpec.boss(band5, null), types);
+            assertNotNull(boss.uniqueId(), "a Threat V boss has a Unique");
+            assertFalse(tiers.uniqueExclusions().contains(boss.uniqueId()), "777 is never drawn for an enemy");
+            seen.add(boss.uniqueId());
+            assertNotNull(excluding.generate("u", i, EnemySpec.regular(band7), types).uniqueId(), "every Threat VII enemy has a Unique");
+        }
+        assertEquals(rules.uniques().size() - tiers.uniqueExclusions().size(), seen.size(), "every other Unique turns up");
+        assertEquals("rupture", excluding.generate("u", 1, EnemySpec.boss(band5, "rupture"), types).uniqueId(),
+                "a Unique the encounter names wins over the tier's draw");
+    }
+
+    @Test void threatSevenEnemiesArePerfected() {
+        var band7 = tiers.threat(7);
+        for (int i = 0; i < 200; i++) {
+            var enemy = generator.generate("perfect", i, EnemySpec.regular(band7), types);
+            rules.validate(enemy);
+            for (var slot : enemy.slots()) {
+                int top = rules.affix(slot.affixId()).band(slot.rank()).max();
+                assertEquals(top, slot.rolledValue());
+                assertEquals(slot.rank() == RankedAffix.RANKS ? top : 0, slot.floor(), "only a rank V slot carries a floor");
+            }
+        }
+    }
+
+    @Test void anOverrideFileReplacesTheShippedTiersOrFallsBackWhole() throws Exception {
+        var dir = java.nio.file.Files.createTempDirectory("tiers");
+        var file = dir.resolve("ascensionlib-enemy-tiers.json");
+        var problems = new ArrayList<String>();
+        assertEquals(11, EnemyTiers.loadOrDefaults(file, problems).all().size(), "no file: the shipped tiers");
+        java.nio.file.Files.writeString(file, "{\"schemaVersion\":1,\"tiers\":[{\"id\":\"threat_1\",\"rankCredits\":2,\"rarities\":{\"common\":1}}]}");
+        assertEquals(2, EnemyTiers.loadOrDefaults(file, problems).tier("threat_1").rankCredits(), "a valid file wins");
+        assertTrue(problems.isEmpty());
+        java.nio.file.Files.writeString(file, "{\"schemaVersion\":1,\"tiers\":[{\"id\":\"threat_1\",\"rankCredits\":99,\"rarities\":{\"common\":1}}]}");
+        assertEquals(11, EnemyTiers.loadOrDefaults(file, problems).all().size(), "a bad file falls back to the shipped tiers");
+        assertEquals(1, problems.size());
     }
 }
