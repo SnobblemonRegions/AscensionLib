@@ -69,3 +69,18 @@ All are static methods looked up by reflection, as today; each caller falls back
 ## Tests
 
 Domain (`RarityAuraTest`, `ThreatCostsTest`, `ThreatRewardsTest`, `EnemyGeneratorTest`, `TunablesTest`) and store (`ThreatCountersTest`, `ProgressionStoreTest`) cover the rules. `validation/showdown/aura_upstream_test.js` checks the aura in the real upstream Showdown simulator.
+
+## Physical rewards
+
+With `threat.physicalRewards` on (the default, whether or not Threat itself is on), every encounter payout (Tower chests, raids, World Boss,
+trials, dungeons) reaches the player as voucher items instead of going straight into the wallet. The items carry the material's name,
+rarity line and lore, and say how to deposit them:
+
+- **Right-click** a voucher to deposit that stack, or use **Deposit** in the Wallet tab of the AscensionDex.
+- Vouchers are tradable and can be stored. A batch redeems only up to what it was minted with, so a duplicated stack credits nothing.
+- No withdrawal fee: depositing a reward gives back all of it.
+- Items arrive within a few seconds of the payout, or at the next login for an offline player. A full inventory drops them at the player's feet.
+- Bound materials (Tower Marks) still go straight into the wallet.
+
+The store pays the wallet first and then moves the payout into vouchers in a second transaction, so a crash in between leaves the reward in the
+wallet: never lost, never doubled. Set `"physicalRewards": false` to go back to direct wallet credit.

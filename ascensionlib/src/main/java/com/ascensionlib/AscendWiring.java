@@ -71,6 +71,18 @@ final class AscendWiring {
             safely("voucher delivery", () -> com.ascensionlib.wallet.WalletItems.deliverPending(handler.getPlayer()));
         }));
         ServerTickEvents.END_SERVER_TICK.register(com.ascensionlib.wallet.WalletItems::tick);
+        // Physical rewards: right-clicking a voucher deposits it (before the base item's own use, so a Catalyst's knowledge book is never opened).
+        net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
+            var stack = player.getItemInHand(hand);
+            if (!(player instanceof net.minecraft.server.level.ServerPlayer serverPlayer)) {
+                return com.ascensionlib.wallet.WalletItems.parse(stack).filter(p -> p.batch() != null).isPresent()
+                        ? net.minecraft.world.InteractionResultHolder.success(stack) : net.minecraft.world.InteractionResultHolder.pass(stack);
+            }
+            var result = com.ascensionlib.wallet.WalletItems.depositHeld(serverPlayer, hand);
+            if (result.isEmpty()) return net.minecraft.world.InteractionResultHolder.pass(stack);
+            serverPlayer.displayClientMessage(Component.literal(result.get().message()), true);
+            return net.minecraft.world.InteractionResultHolder.success(serverPlayer.getItemInHand(hand));
+        });
         com.ascensionlib.dex.DexItem.install();
         ServerTickEvents.END_SERVER_TICK.register(com.ascensionlib.battle.BleedWatch::tick);
         ServerTickEvents.END_SERVER_TICK.register(com.ascensionlib.battle.Participation::tick);
