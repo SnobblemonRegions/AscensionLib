@@ -73,6 +73,38 @@ public final class AscensionGrants {
     }
 
     /**
+     * For a prize another mod hands out (CobbleTowers' Mystery Bag): the materials are credited to the player's wallet and moved into voucher items the
+     * player right-clicks to deposit (or trades); a material that cannot be a voucher (the bound Tower Mark) stays in the wallet. The items reach the
+     * player within a few seconds (the library hands waiting vouchers over every few seconds, and at login). {@code prizeId} makes a retry safe: the same
+     * prize is never paid twice. {@link Result#UNKNOWN_RARITY} answers an unknown material id or an amount outside 1 to 2304 (it names no rarity here).
+     * New method; the contract of {@link #grantMaterial} is unchanged.
+     * @param materials material id (such as {@code resonance_dust}) to amount
+     */
+    public static Result grantAsVouchers(java.util.UUID prizeId, java.util.UUID player, java.util.Map<String, Long> materials) {
+        if (prizeId == null || player == null || materials == null || materials.isEmpty()) return Result.UNKNOWN_RARITY;
+        var paid = new java.util.EnumMap<com.cobbleascend.domain.v1.MaterialId, Long>(com.cobbleascend.domain.v1.MaterialId.class);
+        for (var entry : materials.entrySet()) {
+            String key = entry.getKey() == null ? "" : entry.getKey().trim().toLowerCase(Locale.ROOT);
+            Long amount = entry.getValue();
+            if (amount == null || amount <= 0 || amount > com.cobbleascend.store.ProgressionStore.MAX_MINT) return Result.UNKNOWN_RARITY;
+            try {
+                paid.merge(com.cobbleascend.domain.v1.MaterialId.fromId(key), amount, Long::sum);
+            } catch (IllegalArgumentException unknown) {
+                return Result.UNKNOWN_RARITY;
+            }
+        }
+        var service = AscensionApi.service();
+        if (service.isEmpty()) return Result.DISABLED;
+        try {
+            com.cobbleascend.store.PrizeVouchers.grantAsVouchers(service.get().store(), prizeId.toString(), player, paid);
+            return Result.GRANTED;
+        } catch (RuntimeException exception) {
+            LOG.error("Could not pay prize {} to {} as vouchers", prizeId, player, exception);
+            return Result.FAILED;
+        }
+    }
+
+    /**
      * Balance phase 3, for a captured raid boss: gives an owned Pokemon a profile whose rarity is rolled from the normal
      * table but is at least {@code floorRarityId}. Call right after the Pokemon is added to the player's party or PC, on
      * the server thread, so it is profiled before the ordinary gift path would roll it. Safe to repeat: a Pokemon that
