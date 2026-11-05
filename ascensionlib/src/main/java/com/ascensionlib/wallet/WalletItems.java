@@ -74,8 +74,12 @@ public final class WalletItems {
         var lore = new ArrayList<Component>();
         lore.add(rarityLine(spec.rarity(), spec.kind()));
         for (var line : spec.lore()) lore.add(Component.literal(line).withStyle(plain.withColor(net.minecraft.ChatFormatting.GRAY)));
-        lore.add(Component.literal(batch == null ? "Joins your wallet when you carry it." : "Voucher: redeem it in the Wallet tab of your AscensionDex.")
-                .withStyle(plain.withColor(net.minecraft.ChatFormatting.DARK_GRAY)));
+        if (batch == null) {
+            lore.add(Component.literal("Joins your wallet when you carry it.").withStyle(plain.withColor(net.minecraft.ChatFormatting.DARK_GRAY)));
+        } else {
+            lore.add(Component.literal("Right-click to deposit into your wallet,").withStyle(plain.withColor(net.minecraft.ChatFormatting.YELLOW)));
+            lore.add(Component.literal("or use the Wallet tab of your AscensionDex. Tradable.").withStyle(plain.withColor(net.minecraft.ChatFormatting.DARK_GRAY)));
+        }
         stack.set(DataComponents.LORE, new ItemLore(lore));
         return stack;
     }
@@ -111,17 +115,52 @@ public final class WalletItems {
 
     // ---- loot form: carried items join the wallet -----------------------------------------------------------
 
-    /** Called every server tick; once a second it absorbs loot-form currency from each online player's inventory. */
+    /** Physical rewards are handed over this often, in ticks: a reward reaches the player within a few seconds of its payout. */
+    private static final int DELIVERY_INTERVAL = 60;
+
+    /**
+     * Called every server tick; once a second it absorbs loot-form currency from each online player's inventory, and every few seconds it hands
+     * over voucher batches still waiting for them (physical rewards, and any interrupted withdrawal).
+     */
     public static void tick(MinecraftServer server) {
         if (server.getTickCount() % SCAN_INTERVAL != 0) return;
         var service = AscensionApi.service().orElse(null);
         if (service == null) return;
+        boolean deliver = server.getTickCount() % DELIVERY_INTERVAL == 0;
         for (var player : server.getPlayerList().getPlayers()) {
             try {
                 absorb(player, service.store());
+                if (deliver) deliverPending(player);
             } catch (RuntimeException exception) {
-                LOG.error("Absorbing loot currency failed for {}", player.getGameProfile().getName(), exception);
+                LOG.error("Absorbing or delivering currency failed for {}", player.getGameProfile().getName(), exception);
             }
+        }
+    }
+
+    /**
+     * Right-click with a voucher: deposits that one stack (what its batch has outstanding) and removes it. Returns the line for the player, or
+     * empty when the stack is not a voucher (the click then does what it normally would).
+     */
+    public static Optional<Result> depositHeld(ServerPlayer player, net.minecraft.world.InteractionHand hand) {
+        var stack = player.getItemInHand(hand);
+        var parsed = parse(stack);
+        if (parsed.isEmpty() || parsed.get().batch() == null) return Optional.empty();
+        var service = AscensionApi.service().orElse(null);
+        if (service == null) return Optional.of(new Result(false, "Progression is unavailable."));
+        try {
+            var outcome = service.store().redeemVoucher(UUID.randomUUID(), player.getUUID(), parsed.get().batch(), stack.getCount());
+            long got = outcome.cost().getOrDefault(parsed.get().material(), 0L);
+            long discarded = stack.getCount() - got;
+            player.setItemInHand(hand, ItemStack.EMPTY);
+            String name = CurrencyItems.spec(parsed.get().material()).name();
+            return Optional.of(new Result(true, got > 0 ? "Deposited " + got + " " + name + "." + (discarded > 0 ? " " + discarded + " already redeemed." : "")
+                    : "That voucher was already redeemed."));
+        } catch (StoreException exception) {
+            if (exception.code() == StoreException.Code.UNKNOWN_VOUCHER) return Optional.of(new Result(false, "This voucher is not recognised and was left alone."));
+            LOG.warn("Redeeming a held voucher failed for {}: {}", player.getGameProfile().getName(), exception.getMessage());
+            return Optional.of(new Result(false, "The wallet could not be changed right now. Your voucher is unchanged."));
+        } catch (CraftException exception) {
+            return Optional.of(new Result(false, "That voucher cannot be deposited: " + exception.getMessage()));
         }
     }
 
@@ -210,8 +249,8 @@ public final class WalletItems {
             service.store().markVoucherDelivered(voucher.batchId());
             LOG.info("Delivered voucher batch {} ({} {}) to {} after an interrupted hand-over", voucher.batchId(), voucher.outstanding(), voucher.material().id(),
                     player.getGameProfile().getName());
-            player.sendSystemMessage(Component.literal("[Wallet] Your unfinished withdrawal of " + voucher.outstanding() + " "
-                    + CurrencyItems.spec(voucher.material()).name() + " has been delivered."));
+            player.sendSystemMessage(Component.literal("[Wallet] " + voucher.outstanding() + " " + CurrencyItems.spec(voucher.material()).name()
+                    + " delivered as items. Right-click to deposit, or keep them to trade."));
         }
     }
 

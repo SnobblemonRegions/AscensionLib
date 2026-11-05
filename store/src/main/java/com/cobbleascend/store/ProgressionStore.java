@@ -808,6 +808,49 @@ public final class ProgressionStore implements AutoCloseable {
         });
     }
 
+    /** The batch id the reward-voucher issue with this operation ID gives one material. */
+    public static UUID rewardBatchId(UUID operationId, MaterialId material) {
+        return UUID.nameUUIDFromBytes(("reward_voucher|" + operationId + "|" + material.id()).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Physical rewards: moves a reward the wallet was just paid into voucher batches, so it reaches the player as items to read and deposit. One
+     * transaction: the wallet is debited exactly these amounts (no withdrawal fee, it is not a withdrawal) and one undelivered batch per material is
+     * opened; delivery then works like a withdrawal's ({@link #undeliveredVouchers}). Bound materials (Tower Marks) are skipped and stay in the wallet,
+     * as do amounts over {@link #MAX_MINT}. Idempotent per operation ID. A crash before this commits leaves the reward in the wallet, never lost or doubled.
+     *
+     * @return the materials actually turned into vouchers
+     */
+    public synchronized Map<MaterialId, Long> issueRewardVouchers(UUID operationId, UUID playerId, Map<MaterialId, Long> paid) {
+        var issued = new java.util.EnumMap<MaterialId, Long>(MaterialId.class);
+        paid.forEach((material, amount) -> {
+            if (amount != null && amount > 0 && amount <= MAX_MINT && CurrencyItems.spec(material).tradable()) issued.put(material, amount);
+        });
+        if (issued.isEmpty()) return Map.of();
+        var canonical = new TreeMap<String, Long>();
+        issued.forEach((id, amount) -> canonical.put(id.id(), amount));
+        run(operationId, "REWARD_VOUCHERS|" + playerId + "|" + canonical, () -> {
+            var before = loadWallet(playerId);
+            var after = before.debit(issued);
+            options.faults().at(Faults.Point.AFTER_VALIDATION);
+            saveWallet(playerId, before, after);
+            for (var entry : issued.entrySet()) {
+                try (var statement = db.prepareStatement(
+                        "INSERT INTO vouchers(batch_id, player_id, material_id, minted, outstanding, delivered, created_at) VALUES(?, ?, ?, ?, ?, 0, ?)")) {
+                    statement.setString(1, rewardBatchId(operationId, entry.getKey()).toString());
+                    statement.setString(2, playerId.toString());
+                    statement.setString(3, entry.getKey().id());
+                    statement.setLong(4, entry.getValue());
+                    statement.setLong(5, entry.getValue());
+                    statement.setLong(6, options.clock().millis());
+                    statement.executeUpdate();
+                }
+            }
+            return new Fresh(Kind.MINT_VOUCHER, playerId, null, null, after, Map.copyOf(issued), 0).moved(Map.copyOf(issued), Map.of(), "reward_voucher");
+        });
+        return Map.copyOf(issued);
+    }
+
     /** Records that the items of a batch reached the player. Safe to repeat. */
     public synchronized void markVoucherDelivered(UUID batchId) {
         transaction(() -> {
