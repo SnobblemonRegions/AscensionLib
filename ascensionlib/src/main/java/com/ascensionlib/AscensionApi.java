@@ -28,7 +28,13 @@ public final class AscensionApi {
     static void attach(AscensionRuntime runtime, ProfileService service, net.minecraft.server.MinecraftServer running) {
         server = running;
         state = service == null ? new State(runtime, null, null, null)
-                : new State(runtime, service, new ScoutingService(service.store()), new EncounterRewards(service.store()));
+                : new State(runtime, service, new ScoutingService(service.store()), physical(new EncounterRewards(service.store())));
+    }
+
+    /** Encounter rewards arrive as voucher items while {@code threat.physicalRewards} is on (read per payout, so a reload applies). */
+    private static EncounterRewards physical(EncounterRewards rewards) {
+        rewards.physicalRewards(() -> com.cobbleascend.domain.v1.Tunables.current().threat().physicalRewards());
+        return rewards;
     }
 
     static void detach() { state = null; server = null; }

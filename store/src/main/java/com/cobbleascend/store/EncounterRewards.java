@@ -78,6 +78,26 @@ public final class EncounterRewards {
 
     public EncounterRewards(ProgressionStore store) { this.store = Objects.requireNonNull(store); }
 
+    /**
+     * Physical rewards (ThreatSettings.physicalRewards): after a payout commits, it is moved into undelivered voucher batches, which the mod hands
+     * over as items (now, or at the player's next login). Read per payout, so a config reload applies to the next one.
+     */
+    private volatile java.util.function.BooleanSupplier physical = () -> false;
+
+    public void physicalRewards(java.util.function.BooleanSupplier physical) { this.physical = Objects.requireNonNull(physical); }
+
+    /** After a fresh payout: its materials become vouchers. A replay issues nothing more (the issue is idempotent on its own id). */
+    private void toVouchers(UUID operationId, UUID playerId, Map<MaterialId, Long> paid) {
+        if (!physical.getAsBoolean()) return;
+        var issue = UUID.nameUUIDFromBytes(("reward_voucher_issue|" + operationId).getBytes(StandardCharsets.UTF_8));
+        try {
+            store.issueRewardVouchers(issue, playerId, paid);
+        } catch (RuntimeException exception) {
+            // The reward is already in the wallet: it is not lost, only not physical.
+            java.util.logging.Logger.getLogger("ascensionlib").warning("Reward stayed in the wallet of " + playerId + ": " + exception.getMessage());
+        }
+    }
+
     /** Deterministic, so a repeated settlement resolves the operation the first one committed. */
     static UUID operationId(String encounterId, UUID playerId, String rewardKind) {
         return UUID.nameUUIDFromBytes(("encounter_reward|" + encounterId + "|" + playerId + "|" + rewardKind)
@@ -117,8 +137,10 @@ public final class EncounterRewards {
                 continue;
             }
             try {
-                var outcome = store.grantBudgeted(operationId(settlement.encounterId(), payout.playerId(), settlement.rewardKind()),
+                var op = operationId(settlement.encounterId(), payout.playerId(), settlement.rewardKind());
+                var outcome = store.grantBudgeted(op,
                         payout.playerId(), payout.materials(), "encounter " + settlement.encounterId() + " " + settlement.rewardKind(), budget, threatCounter);
+                if (!outcome.replayed()) toVouchers(op, payout.playerId(), outcome.cost());
                 long asked = payout.materials().getOrDefault(MaterialId.RESONANCE_DUST, 0L);
                 long paid = outcome.cost().getOrDefault(MaterialId.RESONANCE_DUST, 0L);
                 result.put(payout.playerId(), new Budgeted(outcome.replayed() ? Status.ALREADY_GRANTED : Status.GRANTED, paid < asked));
@@ -134,9 +156,10 @@ public final class EncounterRewards {
 
     private Status pay(Settlement settlement, Payout payout) {
         try {
-            var outcome = store.grant(operationId(settlement.encounterId(), payout.playerId(), settlement.rewardKind()),
-                    payout.playerId(), payout.materials(),
+            var op = operationId(settlement.encounterId(), payout.playerId(), settlement.rewardKind());
+            var outcome = store.grant(op, payout.playerId(), payout.materials(),
                     "encounter " + settlement.encounterId() + " " + settlement.rewardKind());
+            if (!outcome.replayed()) toVouchers(op, payout.playerId(), payout.materials());
             return outcome.replayed() ? Status.ALREADY_GRANTED : Status.GRANTED;
         } catch (StoreException exception) {
             // Only the same key arriving with different amounts is a verdict about this payout. Anything else (the
