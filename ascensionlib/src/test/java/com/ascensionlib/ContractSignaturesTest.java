@@ -31,6 +31,8 @@ class ContractSignaturesTest {
         assertContract(AscensionGrants.class, "grantMaterial", AscensionGrants.Result.class, java.util.UUID.class, java.util.UUID.class,
                 String.class, long.class, String.class);
         assertContract(AscensionGrants.class, "grantWithRarityFloor", AscensionGrants.Result.class, com.cobblemon.mod.common.pokemon.Pokemon.class, String.class);
+        // CobbleTowers' Mystery Bag pays its prize as vouchers.
+        assertContract(AscensionGrants.class, "grantAsVouchers", AscensionGrants.Result.class, java.util.UUID.class, java.util.UUID.class, Map.class);
     }
 
     /** CobbleTowers asks this before opening a page of its own, so it never covers the completion reveal. */
