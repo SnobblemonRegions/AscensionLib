@@ -83,6 +83,16 @@ public final class ScoutEncounters {
         return tiers;
     }
 
+    /** See {@link com.ascensionlib.AscensionEncounters#threatBands}. */
+    public static synchronized String threatBandsJson() {
+        try {
+            return com.cobbleascend.domain.v1.ThreatBands.describe(tiers()).toString();
+        } catch (RuntimeException broken) {
+            LOG.warn("Threat bands could not be described: {}", broken.toString());
+            return "[]";
+        }
+    }
+
     public static synchronized void detach() {
         server = null;
         ACTIVE.clear();

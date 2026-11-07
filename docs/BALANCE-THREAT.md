@@ -70,6 +70,7 @@ All are static methods looked up by reflection, as today; each caller falls back
 | --- | --- | --- |
 | `AscensionEncounters.threatEnabled()` | Towers, Raids | Show Threat UI only when true |
 | `AscensionEncounters.recommendedThreat(Collection<UUID>)` | Towers door | 1-6 from the party's mean rarity; advice, never a lock |
+| `AscensionEncounters.threatBands()` | Towers door | JSON array of the bands 1-6: enemy rarity mix, rank credits (and the boss's), Uniques, and a Silver completion's dust, facets, Core % and Apex Shards. Read from the tiers in force, so an owner's override shows; `[]` when it cannot say |
 | `AscensionEncounters.declareEnemy(..., "threat_N", ...)` | Towers, Raids | Threat tier IDs are ordinary tier IDs |
 | `AscensionRewards.settleTowerBoss(..., int threat)` | Towers | Same mini chest; records the band |
 | `AscensionRewards.settleTowerCompletion(..., int threat)` | Towers | Threat chest when on, the old chest when off |

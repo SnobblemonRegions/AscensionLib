@@ -75,6 +75,16 @@ public final class AscensionEncounters {
         return com.cobbleascend.domain.v1.ThreatAdvice.recommended(mean);
     }
 
+    /**
+     * What each Threat band an entry door offers (1-6) is, as a JSON array for a screen that lets a player pick one: {@code band}, {@code mix} (the enemy
+     * rarities as {@code {rarity, percent}}), {@code credits}, {@code bossCredits}, {@code unique}, {@code bossUnique}, and a Silver completion's {@code dust},
+     * {@code facets}, {@code corePercent} and {@code apex}. It reads the enemy tiers in force and the payout's own methods, so it shows what the game does,
+     * including an owner's override file. {@code "[]"} when it cannot say. Read-only; call on the server thread.
+     */
+    public static String threatBands() {
+        return ScoutEncounters.threatBandsJson();
+    }
+
     public static void end(String encounterId) {
         ScoutEncounters.end(encounterId);
     }

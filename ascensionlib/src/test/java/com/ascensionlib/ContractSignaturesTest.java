@@ -77,6 +77,7 @@ class ContractSignaturesTest {
         assertContract(AscensionRewards.class, "settleRaid", Map.class, String.class, String.class, String.class, Map.class);
         assertContract(AscensionEncounters.class, "threatEnabled", boolean.class);
         assertContract(AscensionEncounters.class, "recommendedThreat", int.class, Collection.class);
+        assertContract(AscensionEncounters.class, "threatBands", String.class);
     }
 
     @Test void scoutingContractMatchesWhatTowersLooksUp() throws Exception {
