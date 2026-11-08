@@ -60,6 +60,14 @@ public final class AscensionEncounters {
         ScoutEncounters.disarmBattle(players);
     }
 
+    /**
+     * One player leaves an encounter that carries on for the others (withdrew, died, was dropped): they stop being a participant, are no longer armed for
+     * it and their scouting panel clears. The encounter itself is ended, for everyone, by the call that ends it. Safe to call for a player who is not in it.
+     */
+    public static void leaveEncounter(String encounterId, java.util.UUID player) {
+        ScoutEncounters.leave(encounterId, player);
+    }
+
     /** The encounter is over (any outcome): forgets its enemies and every reveal. Safe to call twice. */
     /** Whether the Threat system is on ({@code threat.enabled} in config/ascensionlib.json), so a caller knows whether to offer Threat bands. */
     public static boolean threatEnabled() {
