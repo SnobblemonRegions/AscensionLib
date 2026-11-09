@@ -89,6 +89,7 @@ class ContractSignaturesTest {
         assertContract(AscensionEncounters.class, "end", void.class, String.class);
         assertContract(AscensionEncounters.class, "armBattle", void.class, Collection.class, String.class);
         assertContract(AscensionEncounters.class, "disarmBattle", void.class, Collection.class);
+        assertContract(AscensionEncounters.class, "leaveEncounter", void.class, String.class, UUID.class);
     }
 
     @Test void dungeonContractsMatchWhatAscensionDungeonsLooksUp() throws Exception {

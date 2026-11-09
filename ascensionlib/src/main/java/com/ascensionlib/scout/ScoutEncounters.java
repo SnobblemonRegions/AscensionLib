@@ -174,6 +174,17 @@ public final class ScoutEncounters {
         if (ended != null) ended.participants.forEach(ScoutEncounters::push);
     }
 
+    /**
+     * One participant leaves an encounter that goes on for the others (they withdrew, died or were dropped): the encounter stays, but this player stops
+     * being one of its participants, is no longer armed for it, and their panel goes back to nothing. Safe to call for a player who is not in it.
+     */
+    public static synchronized void leave(String encounterId, UUID player) {
+        Encounter encounter = ACTIVE.get(encounterId);
+        if (encounter == null || !encounter.participants.remove(player)) return;
+        ARMED.remove(player, encounterId);
+        push(player);
+    }
+
     public static synchronized int active() {
         return ACTIVE.size();
     }
