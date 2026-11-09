@@ -11,7 +11,7 @@ import java.time.Instant;
  */
 public final class HalloweenEvent {
     public static final Instant START = Instant.parse("2026-10-31T04:00:00Z");
-    public static final Instant END = Instant.parse("2026-11-03T05:00:00Z");
+    public static final Instant END = Instant.parse("2026-11-12T05:00:00Z");
     private static final String OVERRIDE = "ascensionlib.halloween";
 
     private HalloweenEvent() {}

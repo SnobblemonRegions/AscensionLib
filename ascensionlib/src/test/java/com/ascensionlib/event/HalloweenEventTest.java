@@ -7,11 +7,11 @@ import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 class HalloweenEventTest {
-    @Test void theWindowOpensAtMidnightEasternOnHalloweenAndClosesAtTheEndOfTheSecondOfNovember() {
+    @Test void theWindowOpensAtMidnightEasternOnHalloweenAndClosesAtTheEndOfTheEleventhOfNovember() {
         assertFalse(HalloweenEvent.isOpen(Instant.parse("2026-10-31T03:59:59Z")));
         assertTrue(HalloweenEvent.isOpen(Instant.parse("2026-10-31T04:00:00Z")));
-        assertTrue(HalloweenEvent.isOpen(Instant.parse("2026-11-03T04:59:59Z")));
-        assertFalse(HalloweenEvent.isOpen(Instant.parse("2026-11-03T05:00:00Z")));
+        assertTrue(HalloweenEvent.isOpen(Instant.parse("2026-11-12T04:59:59Z")));
+        assertFalse(HalloweenEvent.isOpen(Instant.parse("2026-11-12T05:00:00Z")));
     }
 
     @Test void theHauntingRowShowsDuringTheEvent() {
