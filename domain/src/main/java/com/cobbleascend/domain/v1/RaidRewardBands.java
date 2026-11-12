@@ -19,7 +19,9 @@ import java.util.UUID;
 public final class RaidRewardBands {
     public enum Tier {
         // Balance sim fixes: Apex halved (raids minted 5.5 Apex per Core); a small Core chance so raid-focused players are not gated.
-        STARTER(30, 3, 100, 450, 250), POWERHOUSE(60, 5, 120, 420, 250), LEGENDARY(120, 8, 150, 450, 250), MYTHICAL(180, 12, 200, 660, 300), WORLD_BOSS(300, 15, 350, 1000, 500);
+        // Tier pay (live data, 12 Nov 2026): a Legendary win paid about what a Starter win did (dust 150 vs 100, the same 45% Core), so 66% of
+        // wins were Starters. Dust, Cores and Facets now climb about 1 : 1.8 : 2.8 : 4 by tier, and Starter is cut to slow dust inflation.
+        STARTER(30, 3, 60, 250, 150), POWERHOUSE(60, 5, 110, 400, 250), LEGENDARY(120, 8, 170, 650, 400), MYTHICAL(180, 12, 240, 900, 500), WORLD_BOSS(300, 15, 350, 1000, 500);
 
         /** Expected Apex Shards in hundredths, attunement, dust, all for a full share; Core chance in permille; expected Facets in hundredths. */
         final int apexHundredths, attunement, dust, corePermille, facetHundredths;
