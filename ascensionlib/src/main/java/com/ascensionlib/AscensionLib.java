@@ -36,6 +36,9 @@ public final class AscensionLib implements ModInitializer {
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("polymer-resource-pack")) com.ascensionlib.wallet.PolymerPack.register();
         ServerLifecycleEvents.SERVER_STARTING.register(this::start);
         ServerLifecycleEvents.SERVER_STOPPING.register(this::stop);
+        // Closed only once the server has stopped: players are disconnected and other mods end their raids and runs after STOPPING,
+        // and those endings (leave, raid_end server_stop, interrupted tower floors) must still reach the log.
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> Telemetry.close());
         // A player who leaves keeps neither their request throttles nor an "armed" battle: the encounter owner re-arms at the next battle.
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
             var id = handler.getPlayer().getUUID();
@@ -68,7 +71,6 @@ public final class AscensionLib implements ModInitializer {
 
     private void stop(MinecraftServer server) {
         BalanceLog.serverStopping(server);
-        Telemetry.close();
         com.ascensionlib.net.RateLimit.clear();
         com.ascensionlib.scout.ScoutEncounters.detach();
         AscensionApi.detach();

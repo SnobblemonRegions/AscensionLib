@@ -33,6 +33,8 @@ import org.slf4j.LoggerFactory;
  * <li>{@code settlement} / {@code encounter}: how each raid, tower boss, trial and dungeon run ended and what it was worth (win rates by tier).</li>
  * <li>{@code join} / {@code leave}: a player's wallet and party at both ends of a session, and how long it lasted.</li>
  * <li>{@code economy}: the total of each material across all wallets every half hour (inflation).</li>
+ * <li>{@code raid_*}, {@code tower_*}: written by CobbleRaids and CobbleTowers through {@link com.ascensionlib.AscensionTelemetry} (how each raid
+ * and tower run ended, waits, refused starts); the list is in {@code docs/telemetry-events.md}.</li>
  * <li>{@code perf}: once a minute, the server tick, store transactions, page requests and the pages' own render times (see {@link Profiler}).</li>
  * </ul>
  */

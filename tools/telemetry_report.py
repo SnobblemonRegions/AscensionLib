@@ -4,7 +4,8 @@ usage: python -I tools/telemetry_report.py <world>/cobbleascend/telemetry [--day
 
 Reads every events-YYYY-MM-DD.jsonl in the folder (or only the newest N days) and prints: material income by source and spending by use,
 craft outcomes by kind, refusals, how new profiles roll by origin and tier, win rate by encounter kind, the money supply over time, and the
-slowest performance metrics. The event list is documented in BalanceLog.java.
+slowest performance metrics, and the raid and tower events CobbleRaids and CobbleTowers write (docs/telemetry-events.md):
+raid endings by tier, tower run endings by Threat, floors and arena waits. The event list is documented in BalanceLog.java.
 """
 import json
 import re
@@ -53,6 +54,9 @@ def main(argv):
     crafts, refused, acquires, settlements = defaultdict(list), Counter(), Counter(), defaultdict(Counter)
     by_team = defaultdict(Counter)  # (kind, team rarity) -> encounters seen, from encounter events with teamRarity
     perf, supply, sessions, players = {}, [], [], set()
+    raid_ends, raid_left = defaultdict(Counter), Counter()  # (mode, tier) -> outcome:reason; (tier, reason) -> leavers
+    raid_hp = defaultdict(list)  # tier -> boss HP left on each defeat
+    tower_ends, tower_floors, waits = Counter(), defaultdict(list), []
     total = 0
     for e in load(argv[0], days):
         total += 1
@@ -79,6 +83,18 @@ def main(argv):
             supply.append(e)
         elif kind == "leave" and "seconds" in e:
             sessions.append(e["seconds"])
+        elif kind == "raid_end":
+            raid_ends[(e.get("mode", "?"), e.get("tier", "?"))][e.get("reason", "?")] += 1
+            if e.get("outcome") == "defeat" and "bossHpLeft" in e:
+                raid_hp[(e.get("mode", "?"), e.get("tier", "?"))].append(e["bossHpLeft"])
+        elif kind == "raid_left":
+            raid_left[(e.get("tier", "?"), e.get("reason", "?"))] += 1
+        elif kind == "tower_run_end":
+            tower_ends[(e.get("threat", 0), e.get("state", "?"), e.get("cause", "?"))] += 1
+        elif kind == "tower_floor":
+            tower_floors[(e.get("floor", 0), e.get("result", "?"))].append(e.get("seconds"))
+        elif kind == "tower_arena_wait":
+            waits.append(e)
         elif kind == "perf":
             for label, m in e["metrics"].items():
                 p = perf.setdefault(label, {"n": 0, "sum": 0.0, "p95": 0.0, "max": 0.0, "unit": m.get("unit", "ms")})
@@ -101,6 +117,22 @@ def main(argv):
         first, last = supply[0], supply[-1]
         table("money supply (first and last snapshot)", [[m, first["supply"].get(m, 0), last["supply"].get(m, 0), last["supply"].get(m, 0) - first["supply"].get(m, 0)]
                                                           for m in sorted(set(first["supply"]) | set(last["supply"]))], ["material", "first", "last", "change"])
+    rows = []
+    for (mode, tier), reasons in sorted(raid_ends.items()):
+        total_r = sum(reasons.values())
+        won = reasons.get("victory", 0)
+        hp = sorted(raid_hp.get((mode, tier), []))
+        rows.append([mode, tier, total_r, f"{100 * won / total_r:.0f}%", f"{hp[len(hp) // 2]:.2f}" if hp else "-", dict(reasons)])
+    table("raid endings (win rate, median boss HP left on a defeat)", rows, ["mode", "tier", "raids", "won", "hp left", "by reason"])
+    table("players leaving a raid early", [[t, r, n] for (t, r), n in sorted(raid_left.items())], ["tier", "reason", "count"])
+    table("tower run endings by entry Threat", [[t, s, c, n] for (t, s, c), n in sorted(tower_ends.items())], ["threat", "state", "cause", "runs"])
+    table("tower floors (count, median seconds)", [[f, r, len(v), sorted(x for x in v if x is not None)[len([x for x in v if x is not None]) // 2] if any(x is not None for x in v) else "-"]
+                                                   for (f, r), v in sorted(tower_floors.items())], ["floor", "result", "count", "median s"])
+    if waits:
+        table("arena waits (\"being prepared\")", [["first floor" if first else "next floor", len(g), f"{sorted(x['ms'] for x in g)[len(g) // 2] / 1000:.1f}", max(x["ms"] for x in g) / 1000,
+                                                  sum(1 for x in g if x.get("outcome") == "ended")]
+                                                 for first, g in ((True, [w for w in waits if w.get("first")]), (False, [w for w in waits if not w.get("first")])) if g],
+              ["wait", "count", "median s", "max s", "left while waiting"])
     slow = sorted(perf.items(), key=lambda kv: -kv[1]["p95"])[:20]
     table("performance (worst p95 first; ms, or characters for emit.*)", [[k, v["n"], f"{v['sum'] / v['n']:.2f}", v["p95"], v["max"]] for k, v in slow], ["metric", "n", "avg", "worst p95", "max"])
     return 0
