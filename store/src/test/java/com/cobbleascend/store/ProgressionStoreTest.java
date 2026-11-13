@@ -227,7 +227,7 @@ class ProgressionStoreTest {
         long revision = store.wallet(player).revision();
         var op = UUID.randomUUID();
         var assembled = store.assembleCatalyst(op, player, revision);
-        assertEquals(150, assembled.wallet().balance(MaterialId.UNIQUE_FRAGMENT));
+        assertEquals(250 - StoreConfig.defaults().catalystFragments(), assembled.wallet().balance(MaterialId.UNIQUE_FRAGMENT));
         assertEquals(1, assembled.wallet().balance(MaterialId.UNIQUE_CATALYST));
         assertEquals(assembled.wallet(), store.assembleCatalyst(op, player, revision).wallet());
         assertEquals(1, store.wallet(player).balance(MaterialId.UNIQUE_CATALYST));

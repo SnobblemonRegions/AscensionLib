@@ -211,7 +211,7 @@ window.GUIDE = {
    "blocks": [
     {
      "type": "p",
-     "text": "A Unique is one powerful ability with a real drawback. It needs a Unique Catalyst, which you assemble from 100 Unique Fragments, and 1 Tower Mark. A Pokémon holds one Unique; installing a different one replaces it."
+     "text": "A Unique is one powerful ability with a real drawback. It needs a Unique Catalyst, which you assemble from 40 Unique Fragments, and 1 Tower Mark. A Pokémon holds one Unique; installing a different one replaces it."
     },
     {
      "type": "table",
