@@ -15,7 +15,11 @@ write nothing.
 | `raid_end` | every raid ending: victory, wipe, timeout, last player withdrew / fled / disconnected, operator abort, server stop, stranded | `id` (`raid:<boss>`, joins `encounter`/`settlement`), `mode` (`party`, `duel`, `owned`), `owner` (owned only), `raid`, `tier`, `threat`, `species`, `level`, `outcome` (`victory`/`defeat`/`aborted`), `reason`, `partySize`, `activeAtEnd`, `seconds`, `timeLimit`, `bossHpLeft` (0-1), `dealers`, `players` | loss rate and difficulty per tier and boss; how close losses were; timeouts vs wipes; party size vs success |
 | `raid_left` | a player leaves a raid that goes on | `id`, `mode`, `raid`, `tier`, `reason` (`withdrew`/`fled`/`disconnected`), `seconds`, `bossHpLeft`, `stillIn`, `player` | when in a fight players give up |
 
-`owned` raids are CobbleTowers boss floors fought as raids; leave them out of raid-tier loss rates.
+`owned` raids are fights another system runs as raids: CobbleTowers boss floors (`owner` `cobbletowers:floor`) and each player's
+copy inside a duel raid (`owner` `cobbleraids:duel_raid`). A duel raid writes one `owned` line per copy plus its own `mode: duel`
+line, so leave `owned` out of raid-tier loss rates. A duel raid that ends with nobody left takes the last player out's reason
+(`wipe` if they were knocked out, else `withdrew` / `fled` / `disconnect`). The log closes after the server has stopped, so
+endings during a shutdown (`server_stop`, interrupted floors, `leave`) are kept.
 
 ## CobbleTowers
 
