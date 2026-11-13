@@ -25,10 +25,10 @@ endings during a shutdown (`server_stop`, interrupted floors, `leave`) are kept.
 
 | type | when | fields | answers |
 |---|---|---|---|
-| `tower_run_end` | a run reaches completed, cashed out, failed or abandoned | `run`, `tower`, `floor`, `threat` (entry Threat, 0 = none), `state`, `cause` (`completed`, `wiped`, `cashed_out`, `abandoned`, `left`, `disconnect`, `restart`, `parked_abandoned`, `technical`, `start_failed`, `party_rejected`), `from`, `lastBankedFloor`, `kind`, `partySize`, `players`, `seconds`, `floorsCleared`, `avgFloorSeconds` | the floor runs end on and why; Threat chosen vs outcome |
+| `tower_run_end` | a run reaches completed, cashed out, failed or abandoned | `run`, `tower`, `floor`, `threat` (entry Threat, 0 = none), `state`, `cause` (`completed`, `wiped`, `cashed_out`, `abandoned`, `left`, `disconnect` (also a floor lost with nobody online), `restart` (a run a restart parked), `parked_abandoned` (a run a fault parked), `technical`, `start_failed`, `party_rejected`), `from`, `lastBankedFloor`, `kind`, `partySize`, `players`, `seconds`, `floorsCleared`, `avgFloorSeconds` | the floor runs end on and why; Threat chosen vs outcome |
 | `tower_floor` | a floor's fight ends | `run`, `tower`, `floor`, `threat`, `result` (`cleared`, `wiped`, `left`, `interrupted`), `seconds`, `partySize` | time per floor; which floors kill runs |
 | `tower_arena_wait` | the party's arena is ready, or the run ends while waiting | `run`, `tower`, `floor`, `threat`, `first` (first floor or next floor), `ms`, `outcome` (`ready`/`ended`), `busyRefusals` | time on "Your arena is being prepared"; quits during the wait |
-| `tower_run_parked` | a run is parked for recovery (technical park) | `run`, `tower`, `floor`, `threat`, `from`, `event` | how often and where runs break |
+| `tower_run_parked` | a run is parked for recovery | `run`, `tower`, `floor`, `threat`, `from`, `event`, `cause` (`restart` = boot-time recovery, `technical` = a fault during play) | how often and where runs break, and how many are faults rather than restarts |
 | `tower_alloc_refused` | an allocation is refused with `Reason.BUSY` | `run`, `tower`, `floor`, `reason`, `pendingReleases` | whether the cell-release backlog blocks starts |
 | `tower_cell_quarantined` | a cell is taken out of service | `cell`, `reason` | how often cells break, and why |
 
