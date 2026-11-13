@@ -52,11 +52,13 @@ No enemy spends more than the ten credits a player can earn, and 777 is never an
 
 | Tier | Apex | Facets | Core | Attunement | Dust |
 | --- | --- | --- | --- | --- | --- |
-| starter | 0.30 | 2.5 | 45% | 3 | 100 |
-| powerhouse | 0.60 | 2.5 | 42% | 5 | 120 |
-| legendary | 1.20 | 2.5 | 45% | 8 | 150 |
-| mythical | 1.80 | 3.0 | 66% | 12 | 200 |
+| starter | 0.30 | 1.5 | 25% | 3 | 60 |
+| powerhouse | 0.60 | 2.5 | 40% | 5 | 110 |
+| legendary | 1.20 | 4.0 | 65% | 8 | 170 |
+| mythical | 1.80 | 5.0 | 90% | 12 | 240 |
 | world boss | 3.00 | 5.0 | 100% | 15 | 350 |
+
+Tier pay was steepened on 12 Nov 2026: live data showed a Legendary win paying about what a Starter win did, and 66% of raid wins were Starters. Dust, Cores and Facets now climb about 1 : 1.8 : 2.8 : 4 by tier.
 
 A player's **first raid payout of the UTC day pays every material double** (not attunement): a catch-up for players who raid a few times a week. It reads the same daily Apex counter as the cap, so it needs no new storage. A fractional Apex or Facet amount is a seeded chance of one more. Raids pay Facets and Cores so a player who never runs a Tower can still promote. Everything scales by `share x players`, clamped to 0.5-1.5 (the Core chance by at most 1.0); a player under a quarter of an even split is paid nothing. After `fullApexPayoutsPerDay` raid wins in a UTC day, Apex, Facets and the Core chance are cut to `reducedPercent`.
 
