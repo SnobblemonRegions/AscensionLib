@@ -52,7 +52,7 @@ public final class AuctionGuard {
 
     public static void install() {
         ServerLifecycleEvents.SERVER_STARTED.register(AuctionGuard::started);
-        ServerLifecycleEvents.SERVER_STOPPING.register(server -> listingsFile = null);
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> { listingsFile = null; reportedUnremovable.clear(); });
         ServerTickEvents.END_SERVER_TICK.register(AuctionGuard::tick);
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             if (listingsFile != null) server.execute(() -> reconcile(server, handler.getPlayer().getUUID()));
@@ -148,18 +148,41 @@ public final class AuctionGuard {
         }
     }
 
+    /**
+     * The Pokemon with this UUID that sits in one of the store's slots, or null. Not {@code store.get(uuid)}: that reads Cobblemon's UUID index, which can keep
+     * an entry after the Pokemon left its slot. Such an entry is no copy (no player can see or use it), and {@code remove} refuses it, so acting on it made
+     * the guard back up and report the same listing on every check (live data, 12 Nov 2026: 75 listings, 1,413 reports, none removed).
+     */
+    static <P> P inSlot(Iterable<P> store, java.util.function.Function<P, UUID> uuidOf, UUID uuid) {
+        if (store == null) return null;
+        for (P mon : store) if (mon != null && uuid.equals(uuidOf.apply(mon))) return mon;
+        return null;
+    }
+
+    /** Listings whose copy could not be removed, reported once per server run rather than on every check. */
+    private static final java.util.Set<String> reportedUnremovable = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /** Whether a failed removal for this listing and Pokemon is new this run (and should be backed up and reported). */
+    static boolean firstFailure(java.util.Set<String> reported, AuctionListings.Held listing) {
+        return reported.add(listing.listingId() + "|" + listing.pokemon());
+    }
+
     private static void removeDuplicate(MinecraftServer server, AuctionListings.Held listing) {
         RegistryAccess registries = server.registryAccess();
         var storage = Cobblemon.INSTANCE.getStorage();
         var party = storage.getParty(listing.seller(), registries);
         var pc = storage.getPC(listing.seller(), registries);
-        Pokemon mon = party == null ? null : party.get(listing.pokemon());
+        Pokemon mon = inSlot(party, Pokemon::getUuid, listing.pokemon());
         PokemonStore<?> from = party;
-        if (mon == null && pc != null) { mon = pc.get(listing.pokemon()); from = pc; }
+        if (mon == null) { mon = inSlot(pc, Pokemon::getUuid, listing.pokemon()); from = pc; }
         if (mon == null) return;
+        // A copy that cannot be removed is saved and reported the first time only; checking again cannot change the outcome until the next restart.
+        String key = listing.listingId() + "|" + listing.pokemon();
+        if (reportedUnremovable.contains(key)) return;
         Path saved = backup(server, listing, mon, registries);
         boolean removed = from == party ? party.remove(mon) : pc.remove(mon);
         if (removed) flush(server, from);
+        else firstFailure(reportedUnremovable, listing);
         final Pokemon gone = mon;
         LOG.warn("Auction guard: listing {} ({}) owns Pokemon {} ({}) but its seller still held a copy; copy {} (saved to {})", listing.listingId(),
                 listing.state(), gone.getUuid(), gone.getSpecies().getName(), removed ? "removed" : "COULD NOT BE REMOVED", saved);
