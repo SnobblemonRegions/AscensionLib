@@ -165,7 +165,7 @@ public final class CraftNet {
             // The affixes this slot could become: its category, minus the families the other slots already hold (the same filter a reforge draws from).
             var others = profile.ordinarySlots().stream().filter(s -> !s.slotId().equals(slot.slotId())).map(s -> rules.affix(s.affixId()).family()).toList();
             int pool = (int) rules.affixes().stream().filter(a -> a.category() == slot.category() && !others.contains(a.family())).count();
-            String reforgeBlock = pool == 0 ? "No other affix can take this slot" : !canReforge ? "Needs " + describe(reforgeCost) : "";
+            String reforgeBlock = pool == 0 ? "No other trait can take this slot" : !canReforge ? "Needs " + describe(reforgeCost) : "";
             slots.add(new CraftPayloads.SlotView(slot.slotId(), slot.category().id(), slotName(service, slot),
                     affix.base().condition() == null ? "" : affix.base().condition(), slot.rank(), slot.rolledValue(), band.min(), band.max(),
                     next == null ? -1 : next.min(), next == null ? -1 : next.max(), upgradeBlock, refineBlock, reforgeBlock, pool,
@@ -355,7 +355,7 @@ public final class CraftNet {
                 case NOT_AT_BAND_MAX -> "The value must be at the band maximum first.";
                 case SLOT_SEALED -> "That slot is sealed: only a reforge can change it.";
                 case AT_BAND_MAX -> "That slot is already at the top of its band.";
-                case NO_ELIGIBLE_AFFIX -> "No other affix can take that slot.";
+                case NO_ELIGIBLE_AFFIX -> "No other trait can take that slot.";
                 case INSUFFICIENT_ATTUNEMENT -> "Not enough attunement to promote yet.";
                 case UNIQUE_PRESENT, NO_UNIQUE, SAME_UNIQUE, UNKNOWN_UNIQUE -> "That Unique cannot be set on this Pokémon: " + exception.getMessage();
                 case RESPEC_SEALED, NOTHING_TO_RESPEC -> exception.getMessage() + ". Nothing was spent.";
