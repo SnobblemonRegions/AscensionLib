@@ -389,7 +389,7 @@
     if (part === 'mode') { drawTabs(); drawList(); drawDetail(); return; }
     if (part === 'phase') { drawDetail(); drawDialog(); return; }
     A.text($('name'), view.name); A.text($('lvl'), 'Lv ' + view.level);
-    var gr = $('grade'); A.text(gr, (view.rarityId === 'mythical' ? 'MYTHIC' : view.rarityId.toUpperCase()) + (view.uniqueName ? ' · UNIQUE' : ''));
+    var gr = $('grade'); A.text(gr, A.rarityName(view.rarityId).toUpperCase() + (view.uniqueName ? ' · UNIQUE' : ''));
     gr.style.background = 'var(--' + (view.rarityId || 'common') + '-bg)'; gr.style.color = 'var(--' + (view.rarityId || 'common') + ')';
     var art = $('art');
     if (art.dataset.species !== view.speciesId) { art.dataset.species = view.speciesId; art.innerHTML = ''; art.appendChild(A.sprite(view.speciesId, 2)); }   // not on every click: it flashes the name

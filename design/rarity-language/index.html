@@ -1,0 +1,328 @@
+<title>Rarity in Cobblemon Terms</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one reading column for the audit, then each concept as a game-scale panel in the mod's own LCD tablet world (single dark look, by choice). */
+@font-face { font-family: "Monocraft"; src: url("fonts/Monocraft-latin.woff") format("woff"); font-display: swap; }
+:root {
+  color-scheme: dark;
+  --scr: #07131c; --panel: #0d2230; --head: #0a1b27; --row: #0c2231; --well: #0a2a3a;
+  --line: #1f6b86; --ink: #bdf1ff; --muted: #6fb2c8; --acc: #4ad8f6; --gold: #f2cf3a; --warn: #ff7a6b; --good: #62d06a;
+  --crimson: #8e1426; --outline: #1b120d;
+  --common: #c1c5cf; --uncommon: #1bd7e8; --rare: #38ccef; --epic: #af69ff; --legendary: #ffd437; --mythical: #ff3448;
+  --rare-bg: #103e79; --attack: #ff9a6b; --guard: #7fd8ff;
+  --pixel: "Monocraft", ui-monospace, "Cascadia Mono", monospace;
+  --read: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: #041019; }
+body { margin: 0; background: #041019; color: var(--ink); font: 15px/1.6 var(--read);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 72px; }
+::selection { background: var(--acc); color: #04222c; }
+a { color: var(--acc); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 56px; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--pixel); font-weight: 400; text-wrap: balance; letter-spacing: .02em; margin: 0; }
+h1 { font-size: clamp(26px, 4vw, 38px); line-height: 1.2; color: var(--acc); }
+h2 { font-size: 22px; color: var(--ink); margin-bottom: 14px; }
+h3 { font-size: 15px; color: var(--acc); margin: 0 0 8px; }
+p { margin: 0 0 12px; }
+.lede { font-size: 17px; color: var(--ink); }
+.note { color: var(--muted); font-size: 14px; }
+code { font-family: var(--pixel); font-size: 12px; background: var(--well); padding: 1px 5px; border: 1px solid var(--line); }
+
+/* audit table */
+.scroll { overflow-x: auto; border: 2px solid var(--line); background: var(--panel); scrollbar-color: var(--line) var(--head); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid #16485c; }
+th { font-family: var(--pixel); font-weight: 400; font-size: 11px; letter-spacing: .08em; color: var(--muted); background: var(--head); text-transform: uppercase; }
+tr:last-child td { border-bottom: 0; }
+td.now { color: var(--muted); }
+td.now q { font-family: var(--pixel); font-size: 12px; color: var(--ink); quotes: none; }
+.sev { font-family: var(--pixel); font-size: 11px; letter-spacing: .08em; padding: 3px 8px; border: 2px solid; white-space: nowrap; }
+.sev.h { color: var(--warn); } .sev.m { color: var(--gold); } .sev.l { color: var(--muted); }
+
+/* glossary */
+.gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px; background: var(--line); border: 2px solid var(--line); }
+.gloss div { background: var(--panel); padding: 14px; }
+.gloss .old { font-family: var(--pixel); font-size: 11px; color: var(--muted); text-decoration: line-through; text-decoration-color: #3d6d80; }
+.gloss .new { font-family: var(--pixel); font-size: 16px; color: var(--ink); margin: 4px 0 6px; }
+.gloss p { font-size: 14px; color: var(--muted); margin: 0; }
+
+/* concept rows: the mockup beside the reasoning */
+.concept { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 32px; align-items: start; }
+.concept .why { min-width: 0; }
+.concept .why ul { margin: 0; padding-left: 18px; } .concept .why li { margin-bottom: 8px; }
+.stagebox { overflow-x: auto; max-width: 100%; }
+@media (max-width: 880px) { .concept { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- the in-game LCD tablet (mockup only) ---------- */
+.lcd { font-family: var(--pixel); font-size: 12px; line-height: 1.4; background: var(--scr); color: var(--ink);
+  border: 2px solid var(--line); box-shadow: 0 0 0 6px #0b2533, 0 0 0 8px var(--line), 0 18px 40px -12px rgba(0,0,0,.8); position: relative; image-rendering: pixelated; }
+.lcd::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0,0,0,.16) 0 1px, transparent 1px 3px); }
+.bar-head { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--head); border-bottom: 2px solid var(--line); color: var(--acc); letter-spacing: .08em; font-size: 11px; }
+.lamp { width: 10px; height: 10px; background: var(--acc); box-shadow: 0 0 0 1px var(--outline), 0 0 0 2px #eef2f7, 0 0 0 3px var(--outline); margin-right: 4px; flex: none; }
+.bar-head .r { margin-left: auto; color: var(--muted); letter-spacing: 0; }
+.sprite { display: flex; align-items: center; justify-content: center; border: 2px solid var(--line); background: radial-gradient(circle at 50% 70%, #11405a, var(--scr) 72%); color: var(--muted); font-size: 11px; text-align: center; position: relative; }
+.sprite::before { content: ""; position: absolute; bottom: 16%; width: 52%; height: 8px; background: rgba(74,216,246,.16); }
+.sprite span { position: relative; border: 1px dashed #2a6a80; padding: 18px 12px; }
+.rarity { display: inline-flex; align-items: center; gap: 7px; padding: 3px 10px; border: 2px solid var(--rare); color: var(--rare); background: var(--rare-bg); letter-spacing: .14em; font-size: 11px; white-space: nowrap; }
+.rarity i { width: 7px; height: 7px; background: currentColor; transform: rotate(45deg); }
+.btn { font: inherit; font-size: 11px; padding: 9px 12px; border: 2px solid var(--line); background: #0f3347; color: var(--ink); box-shadow: inset 0 -4px 0 rgba(0,0,0,.3), inset 0 2px 0 rgba(255,255,255,.14); text-align: center; }
+.btn.primary { background: var(--crimson); border-color: #eef2f7; color: #fff; box-shadow: inset 0 -4px 0 #620512, inset 0 2px 0 rgba(255,255,255,.22); }
+.traits { border: 2px solid var(--line); background: var(--panel); }
+.trait { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; }
+.trait + .trait { border-top: 1px solid #16485c; }
+.trait img { width: 26px; height: 26px; image-rendering: pixelated; }
+.trait .n { font-size: 12px; } .trait .s { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+.trait .v { font-size: 18px; }
+.tag { font-size: 11px; letter-spacing: .08em; padding: 2px 6px; border: 1px solid; }
+.tag.atk { color: var(--attack); } .tag.grd { color: var(--guard); }
+.slots { display: flex; gap: 4px; } .slots b { width: 14px; height: 8px; background: var(--rare); font-weight: 400; } .slots b.off { background: #153444; }
+.explain { border: 2px solid #16485c; background: var(--head); padding: 8px 10px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+.explain em { font-style: normal; color: var(--ink); }
+
+/* concept 1: capture card */
+.cap { width: 420px; }
+.cap .name { display: flex; align-items: baseline; justify-content: space-between; padding: 10px 14px 6px; }
+.cap .name h4 { margin: 0; font-weight: 400; font-size: 21px; }
+.cap .name span { color: var(--muted); font-size: 11px; }
+.cap .sprite { margin: 0 12px; height: 140px; }
+.cap .rar-row { display: flex; justify-content: center; margin-top: -13px; position: relative; }
+.cap .rar-row .rarity { box-shadow: 0 0 0 3px var(--scr); }
+.cap .meaning { text-align: center; color: var(--muted); font-size: 11px; margin: 8px 0 0; }
+.cap .body { padding: 12px 14px 14px; display: grid; gap: 10px; }
+.cap .lbl { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; letter-spacing: .06em; }
+.cap .acts { display: grid; grid-template-columns: 1.6fr 1fr; gap: 8px; }
+
+/* concept 2: inspect */
+.ins { width: 640px; }
+.ins .main { display: grid; grid-template-columns: 236px 1fr; gap: 10px; padding: 10px; }
+.ins .box { border: 2px solid var(--line); background: var(--panel); padding: 10px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ins .id { display: grid; gap: 6px; }
+.ins .id .top { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+.ins .id h4 { margin: 0; font-weight: 400; font-size: 16px; }
+.ins .sprite { height: 104px; }
+.ins .sh { color: var(--muted); font-size: 11px; letter-spacing: .06em; display: flex; justify-content: space-between; }
+.stat { display: grid; grid-template-columns: 30px 1fr 26px; gap: 6px; align-items: center; font-size: 11px; }
+.stat .k { color: var(--muted); } .stat .v { text-align: right; }
+.seg { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; } .seg i { height: 7px; background: var(--well); } .seg i.on { background: var(--acc); }
+.ins .pointer { font-size: 11px; color: var(--muted); border-top: 1px solid #16485c; padding-top: 7px; line-height: 1.5; }
+.ins .pointer b { color: var(--ink); font-weight: 400; }
+.ins .group { color: var(--muted); font-size: 11px; letter-spacing: .06em; display: flex; justify-content: space-between; padding: 2px 2px 0; }
+.ins .strip { border: 2px solid #16485c; background: var(--head); padding: 8px 10px; font-size: 11px; min-height: 48px; }
+.ins .foot { display: flex; gap: 8px; padding: 0 10px 10px; justify-content: flex-end; }
+
+/* concept 3: guide page */
+.gd { width: 640px; }
+.gd .inner { padding: 14px; display: grid; gap: 12px; }
+.gd p { font-size: 12px; line-height: 1.7; margin: 0; }
+.gd table { min-width: 0; font-size: 11px; border: 2px solid var(--line); background: var(--panel); }
+.gd th { font-size: 11px; padding: 7px 8px; }
+.gd td { padding: 7px 8px; border-bottom: 1px solid #16485c; }
+.gd tr.ours td { background: #0f2c3d; color: var(--ink); }
+.gd tr.ours td:first-child { color: var(--acc); }
+.gd td:first-child { white-space: nowrap; }
+
+/* tier-name decision */
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; }
+.tier-opt { border: 2px solid var(--line); background: var(--panel); padding: 16px; display: grid; gap: 10px; align-content: start; }
+.tier-opt .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-family: var(--pixel); font-size: 11px; letter-spacing: .08em; padding: 4px 9px; border: 2px solid currentColor; }
+.tier-opt p { font-size: 14px; color: var(--muted); margin: 0; }
+.tier-opt .verdict { color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<main class="wrap">
+  <header class="prose">
+    <h1>Rarity in Cobblemon terms</h1>
+    <p class="lede">An audit of how the capture reveal, the inspect screen and the guide explain rarity and modifiers, with three concepts that present them in language a Cobblemon player already knows. The mechanics stay the same. Only the words and their placement change.</p>
+    <p class="note">Sources audited: <code>capture.js</code>, <code>inspect.html</code>, <code>guide-data.js</code>, <code>ui.js</code>. Mockups use sample data (a Rare Growlithe) and a placeholder where the in-game card sprite would sit.</p>
+  </header>
+
+  <section>
+    <h2>What gets in the way today</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Severity</th><th>Problem</th><th>Where, and what it says now</th><th>Proposed fix</th></tr></thead>
+        <tbody>
+          <tr><td><span class="sev h">HIGH</span></td><td>One concept has four names. A player can't tell that a "trait", a "modifier", an "affix" and a "prefix" are the same kind of thing.</td>
+            <td class="now">Capture: <q>ASCENSION TRAITS DISCOVERED</q>, then <q>MODIFIERS (3)</q> once there are 3+. Inspect header: <q>Affixes</q>. Guide: "modifier" throughout, "affix" in the Facet and Respec text.</td>
+            <td>Use one word everywhere: <b>Trait</b>. The capture card already uses it, and Cobblemon doesn't use the word for anything else.</td></tr>
+          <tr><td><span class="sev h">HIGH</span></td><td>Two tier names clash with Cobblemon's species categories. "Legendary" and "Mythical" already mean Mewtwo and Mew, so a "Legendary Rattata" or a "Common Mewtwo" reads as a contradiction.</td>
+            <td class="now">Rarity enum <code>LEGENDARY</code>, <code>MYTHICAL</code>. Shown as <q>Mythic</q> (<code>A.rarityName</code>), but stored and styled as <q>mythical</q>.</td>
+            <td>A decision for you (see the end of this page). Whatever you pick, use the same spelling everywhere.</td></tr>
+          <tr><td><span class="sev h">HIGH</span></td><td>Nothing connects rarity to what players already know. Cobblemon players think in IVs, nature and EVs. Neither screen says how rarity relates to them, or what rarity actually decides.</td>
+            <td class="now">Capture: <q>Every great partner starts with potential.</q> Guide intro: "a rarity and a few modifiers that change how it fights".</td>
+            <td>One sentence everywhere: <b>IVs are what it was born with. Rarity is how many traits it can hold.</b> Back it with a comparison table in the guide.</td></tr>
+          <tr><td><span class="sev m">MED</span></td><td>The inspect stat bars have no label, so they look like Cobblemon's stats or IV screen. They're actually species base stats, and the screen never shows IVs, so nothing tells players where their IVs are.</td>
+            <td class="now">Inspect left column: <q>HP Atk Def SpA SpD Spe</q> bars with no heading.</td>
+            <td>Label them "Base stats (species)". Add one line pointing to Cobblemon's Summary screen for IVs, EVs and nature.</td></tr>
+          <tr><td><span class="sev m">MED</span></td><td>Rarity sits at the bottom of the inspect column, far from the name. Cobblemon puts identity facts (level, gender, shiny, ball) right beside the name.</td>
+            <td class="now">Inspect: <q>RARE</q> grade bar under the stat bars.</td>
+            <td>Move the rarity badge onto the name row, with its slot count next to it.</td></tr>
+          <tr><td><span class="sev m">MED</span></td><td>"Prefix" and "suffix" are ARPG grammar. They name where a word sits, not what the trait does.</td>
+            <td class="now">Inspect: <q>Prefix 2/2 · Suffix 1/1</q>. Guide table: "2 prefix, 1 suffix".</td>
+            <td><b>Attack trait</b> and <b>Guard trait</b>, matching what the guide already says they do (offense, then defense and recovery).</td></tr>
+          <tr><td><span class="sev m">MED</span></td><td>Too many header labels on the capture card compete with the one thing that matters (what you caught and what it rolled), and the main button's verb is vague.</td>
+            <td class="now"><q>CAPTURE REGISTERED</q>, <q>NEW PARTNER</q>, <q>PROFILE SAVED</q>, <q>ASCENSION DEX</q>. Button: <q>Explore Ascension &gt;</q>.</td>
+            <td>Keep one header label. Name the button after the guide's own verb: <b>Inspect</b>.</td></tr>
+          <tr><td><span class="sev l">LOW</span></td><td>The rarity progress bar says how far up the ladder you are, but not what the next step gives you.</td>
+            <td class="now">Capture: 6-segment bar labelled <q>COMMON … MYTHIC</q>.</td>
+            <td>Show it as trait slots (3 of 6 filled), so promotion reads as "one more trait".</td></tr>
+          <tr><td><span class="sev l">LOW</span></td><td>Some descriptions use internal jargon.</td>
+            <td class="now">Inspect: <q>A Unique power: fixed tuning, no ordinary rank.</q> Fallbacks: <q>An offensive modifier.</q> / <q>A defensive or recovery modifier.</q></td>
+            <td>"A Unique power. It has no ranks and can't be upgraded." Fallbacks: "Boosts this Pokémon's attacks." / "Protects or heals this Pokémon."</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Proposed vocabulary</h2>
+    <div class="gloss">
+      <div><div class="old">affix · modifier</div><div class="new">Trait</div><p>A rolled bonus that works in battle. Cobblemon doesn't use the word, so it's free.</p></div>
+      <div><div class="old">prefix</div><div class="new">Attack trait</div><p>Boosts damage this Pokémon deals.</p></div>
+      <div><div class="old">suffix</div><div class="new">Guard trait</div><p>Reduces damage taken, or boosts healing.</p></div>
+      <div><div class="old">rarity (unexplained)</div><div class="new">Rarity = trait slots</div><p>Always shown with its slot count: "Rare · 3 trait slots".</p></div>
+      <div><div class="old">Explore Ascension</div><div class="new">Inspect</div><p>The same verb the guide and the AscensionDex use.</p></div>
+      <div><div class="old">Rank I–V</div><div class="new">Rank I–V (kept)</div><p>Already clear, and the pips match it.</p></div>
+    </div>
+  </section>
+
+  <section class="concept">
+    <div class="stagebox">
+      <div class="lcd cap" role="img" aria-label="Mockup: capture reveal card for a Rare Growlithe with three traits">
+        <div class="bar-head"><span class="lamp"></span>CAUGHT<span class="r">AscensionDex</span></div>
+        <div class="name"><h4>Growlithe</h4><span>Lv 24 · Fire</span></div>
+        <div class="sprite"><span>card sprite<br>(in game)</span></div>
+        <div class="rar-row"><span class="rarity"><i></i>RARE</span></div>
+        <p class="meaning">3 of 6 trait slots · every Pokémon can reach 6</p>
+        <div class="body">
+          <div class="lbl"><span>TRAITS</span><span>2 attack · 1 guard</span></div>
+          <div class="traits">
+            <div class="trait"><img src="icons/affix/keen_edge.png" alt=""><div><div class="n">Keen Edge</div><div class="s"><span class="tag atk">ATTACK</span>Rank II</div></div><span class="v">+14%</span></div>
+            <div class="trait"><img src="icons/affix/physical_force.png" alt=""><div><div class="n">Physical Force</div><div class="s"><span class="tag atk">ATTACK</span>Rank I</div></div><span class="v">+9%</span></div>
+            <div class="trait"><img src="icons/affix/healthy_guard.png" alt=""><div><div class="n">Healthy Guard</div><div class="s"><span class="tag grd">GUARD</span>Rank I</div></div><span class="v">+7%</span></div>
+          </div>
+          <div class="explain"><em>IVs</em> are what it was born with. <em>Rarity</em> is how many traits it can hold. Check IVs on the Summary screen as usual.</div>
+          <div class="acts"><span class="btn primary">Inspect</span><span class="btn">Continue</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="why">
+      <h3>1 · Capture reveal</h3>
+      <ul>
+        <li>One header word (<b>Caught</b>) instead of four labels. The name row reads like Cobblemon's: name, then level and type.</li>
+        <li>The rarity badge says what it means right under it: <b>3 of 6 trait slots</b>. That also answers "will I ever catch up?" without a slogan.</li>
+        <li>Every row says <b>Attack</b> or <b>Guard</b> in text, so meaning never depends on colour alone.</li>
+        <li>The IV line shows only on a player's first few catches (a client preference, like reveal verbosity), so it teaches once and then gets out of the way.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="concept">
+    <div class="stagebox">
+      <div class="lcd ins" role="img" aria-label="Mockup: inspect screen with rarity beside the name and labelled base stats">
+        <div class="bar-head"><span class="lamp"></span>ASCENSIONDEX<span class="r">×</span></div>
+        <div class="main">
+          <div class="box">
+            <div class="id">
+              <div class="top"><span>No. 058</span><span>Fire</span></div>
+              <h4>Growlithe <span style="color:var(--muted);font-size:11px">Lv 24</span></h4>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="rarity"><i></i>RARE</span><span class="slots" aria-label="3 of 6 trait slots"><b></b><b></b><b></b><b class="off"></b><b class="off"></b><b class="off"></b></span></div>
+            </div>
+            <div class="sprite"><span>sprite</span></div>
+            <div class="sh"><span>BASE STATS (SPECIES)</span></div>
+            <div class="stat"><span class="k">HP</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="v">55</span></div>
+            <div class="stat"><span class="k">Atk</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div><span class="v">70</span></div>
+            <div class="stat"><span class="k">Def</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="v">45</span></div>
+            <div class="stat"><span class="k">SpA</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div><span class="v">70</span></div>
+            <div class="stat"><span class="k">SpD</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="v">50</span></div>
+            <div class="stat"><span class="k">Spe</span><div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="v">60</span></div>
+            <div class="pointer"><b>IVs, EVs and nature</b> are on Cobblemon's Summary screen. Traits stack on top of them.</div>
+          </div>
+          <div class="box">
+            <div class="group"><span>ATTACK TRAITS</span><span>2 / 2</span></div>
+            <div class="traits">
+              <div class="trait"><img src="icons/affix/keen_edge.png" alt=""><div><div class="n">Keen Edge</div><div class="s">Rank II · rolls 12–16%</div></div><span class="v" style="color:var(--acc)">+14%</span></div>
+              <div class="trait"><img src="icons/affix/physical_force.png" alt=""><div><div class="n">Physical Force</div><div class="s">Rank I · rolls 6–12%</div></div><span class="v" style="color:var(--acc)">+9%</span></div>
+            </div>
+            <div class="group"><span>GUARD TRAITS</span><span>1 / 1</span></div>
+            <div class="traits">
+              <div class="trait"><img src="icons/affix/healthy_guard.png" alt=""><div><div class="n">Healthy Guard</div><div class="s">Rank I · rolls 5–10%</div></div><span class="v" style="color:var(--acc)">+7%</span></div>
+            </div>
+            <div class="strip">Keen Edge: critical hits deal 14% more damage.</div>
+          </div>
+        </div>
+        <div class="foot"><span class="btn">Close</span><span class="btn primary">Upgrade (2)</span></div>
+      </div>
+    </div>
+    <div class="why">
+      <h3>2 · Inspect screen</h3>
+      <ul>
+        <li>Rarity moves up to the name row with its slot pips, where Cobblemon players look for a Pokémon's identity.</li>
+        <li>The bars get a heading: <b>Base stats (species)</b>. Players stop mistaking them for their own Pokémon's stats.</li>
+        <li>One line points to the <b>Summary screen</b> for IVs. The payload still never carries IVs, so this is a pointer, not new data.</li>
+        <li>Traits are grouped under <b>Attack</b> and <b>Guard</b> headings with their own slot counts, replacing "Prefix 2/2 · Suffix 1/1".</li>
+      </ul>
+      <p class="note">Trait ranges and the Keen Edge text are sample values. The real strings come from the catalog.</p>
+    </div>
+  </section>
+
+  <section class="concept">
+    <div class="stagebox">
+      <div class="lcd gd" role="img" aria-label="Mockup: guide page comparing Cobblemon's systems with Ascension rarity and traits">
+        <div class="bar-head"><span class="lamp"></span>GUIDE<span class="r">How it fits with Cobblemon</span></div>
+        <div class="inner">
+          <p>Everything you know from Cobblemon still works. Ascension adds one more layer on top: rarity decides how many traits a Pokémon can hold, and traits are small battle bonuses you upgrade over time.</p>
+          <table>
+            <thead><tr><th>System</th><th>What it is</th><th>Set when</th><th>Can you change it?</th></tr></thead>
+            <tbody>
+              <tr><td>Nature</td><td>±10% to two stats</td><td>Caught or hatched</td><td>Mints</td></tr>
+              <tr><td>IVs</td><td>Its genes, 0–31 per stat</td><td>Caught or hatched</td><td>Bottle Caps (if your server has them)</td></tr>
+              <tr><td>EVs</td><td>Training, up to 510</td><td>Battling</td><td>Vitamins, EV-reducing berries</td></tr>
+              <tr class="ours"><td>Rarity</td><td>How many trait slots (1–6)</td><td>Caught in a zone, or a Sigil</td><td>Promote with attunement and materials. It never goes down</td></tr>
+              <tr class="ours"><td>Traits</td><td>Battle bonuses in those slots</td><td>Filled when a slot opens</td><td>Upgrade, Refine, Reforge in Craft</td></tr>
+            </tbody>
+          </table>
+          <p style="color:var(--muted)">Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way up.</p>
+        </div>
+      </div>
+    </div>
+    <div class="why">
+      <h3>3 · Guide: "How it fits with Cobblemon"</h3>
+      <ul>
+        <li>A new first guide page that teaches by comparison. The two highlighted rows are the only new ideas, and they sit inside a table players already understand.</li>
+        <li>The last line says outright what DESIGN.md decided: rarity is independent of IVs and shininess. That heads off the "why is my 6IV Pokémon Common?" question.</li>
+        <li>The Cobblemon rows need checking against the version your server runs before shipping (Mints, Bottle Caps and vitamins vary by version and config).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Your decision: the top two tier names</h2>
+    <p class="prose">This is the one finding I can't fix with wording alone, because the tier names are product terms. Here are three options:</p>
+    <div class="tiers">
+      <div class="tier-opt">
+        <h3>A · Keep them</h3>
+        <div class="chips"><span class="chip" style="color:var(--common)">COMMON</span><span class="chip" style="color:var(--uncommon)">UNCOMMON</span><span class="chip" style="color:var(--rare)">RARE</span><span class="chip" style="color:var(--epic)">EPIC</span><span class="chip" style="color:var(--legendary)">LEGENDARY</span><span class="chip" style="color:var(--mythical)">MYTHIC</span></div>
+        <p>No code or data changes. The guide's last line has to carry the "not the same as a Legendary Pokémon" message.</p>
+        <p class="verdict">Least work, and the confusion stays.</p>
+      </div>
+      <div class="tier-opt">
+        <h3>B · Rename the top two</h3>
+        <div class="chips"><span class="chip" style="color:var(--common)">COMMON</span><span class="chip" style="color:var(--uncommon)">UNCOMMON</span><span class="chip" style="color:var(--rare)">RARE</span><span class="chip" style="color:var(--epic)">EPIC</span><span class="chip" style="color:var(--legendary)">RADIANT</span><span class="chip" style="color:var(--mythical)">ASCENDED</span></div>
+        <p>Display names only. The stored ids (<code>legendary</code>, <code>mythical</code>) stay, so saved profiles are untouched. "Ascended" ties the top tier to the mod's name.</p>
+        <p class="verdict">My pick. It removes the clash and needs no save migration.</p>
+      </div>
+      <div class="tier-opt">
+        <h3>C · Stars instead of words</h3>
+        <div class="chips"><span class="chip" style="color:var(--common)">1 STAR</span><span class="chip" style="color:var(--uncommon)">2</span><span class="chip" style="color:var(--rare)">3</span><span class="chip" style="color:var(--epic)">4</span><span class="chip" style="color:var(--legendary)">5</span><span class="chip" style="color:var(--mythical)">6 STARS</span></div>
+        <p>Matches the slot count exactly (3 stars = 3 traits), like Tera Raid star ratings. But it loses the names players already use in chat, and it collides with raid difficulty stars if CobbleRaids shows them.</p>
+        <p class="verdict">Clearest number, weakest identity.</p>
+      </div>
+    </div>
+  </section>
+</main>

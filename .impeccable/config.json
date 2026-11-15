@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "design/rarity-language/index.html"
+        ],
+        "createdAt": "2026-11-15T14:56:24.090Z",
+        "reason": "Claude: detector measured text against #ffffff, but the page sets an explicit dark body background (#041019); a contrast pass on the rendered page found no text under 4.5:1"
+      }
+    ]
+  }
+}

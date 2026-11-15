@@ -49,6 +49,7 @@
 .capture-facets i:nth-child(5) { transform: translate(-50%, -91%) rotate(240deg); } .capture-facets i:nth-child(6) { transform: translate(-50%, -91%) rotate(300deg); }
 .capture-pixels { position: absolute; width: 4px; height: 4px; left: 25%; top: 35%; background: var(--capture-rarity); opacity: var(--aura-strength); box-shadow: 15px -24px var(--capture-rarity), -12px 69px var(--capture-rarity), 150px -8px var(--aura-secondary), 140px 79px var(--capture-rarity), 98px -33px var(--capture-rarity), 32px 125px var(--aura-secondary); }
 .capture-rarity { position: relative; z-index: 3; margin: -13px auto 0; width: max-content; max-width: 90%; padding: 3px 17px; text-align: center; background: var(--capture-rarity-bg); color: var(--capture-rarity); border: 2px solid var(--capture-rarity); box-shadow: 0 0 0 2px var(--scr); font-size: 12px; letter-spacing: 2px; }
+.capture-meaning { margin: 8px 0 0; text-align: center; color: var(--muted); font-size: 11px; }
 .capture-content { padding: 14px 16px 12px; }
 .capture-label { display: flex; justify-content: space-between; gap: 8px; align-items: center; color: var(--muted); font-size: 11px; letter-spacing: .5px; margin-bottom: 6px; }
 .capture-scroll-hint { color: var(--acc); letter-spacing: 0; white-space: nowrap; }

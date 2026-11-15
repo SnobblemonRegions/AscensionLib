@@ -56,7 +56,7 @@ const slots = [
 const craftView = {
   pokemonId: '00000000-0000-0000-0000-000000000001', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', aspects: [], level: 52, rarityId: 'mythical', uniqueName: '777',
   pending: 1, nextMilestone: 60, profileRevision: 7, walletRevision: 8, dust: 1234, facets: 40, cores: 3, scouters: 5, marks: 6, refine: price, reforge: price,
-  promotion: { toRarity: '', price, attunement: 90, attunementNeeded: 0, block: 'Already Mythical' },
+  promotion: { toRarity: '', price, attunement: 90, attunementNeeded: 0, block: 'Already Ascended' },
   unique: { currentId: '777', catalysts: 1, fragments: 3, fragmentsNeeded: 5, block: '', options: [
     { id: '777', name: '777', benefit: 'More item rewards.', drawback: 'Lower defence.', current: true },
     { id: 'fury', name: 'Fury', benefit: 'Hits harder.', drawback: 'Takes more damage.', current: false } ] },

@@ -139,24 +139,32 @@ def fill(text, facts, keep_live=False):
 
 
 
+# What players see for each stored rarity id. The ids stay (saved profiles use them); Legendary and Mythical were renamed on screen so they
+# cannot be confused with Cobblemon's Legendary and Mythical species. Keep in step with Rarity.displayName() and A.rarityName in ui.js.
+RARITY_NAMES = {'legendary': 'Radiant', 'mythical': 'Ascended'}
+SLOT_NAMES = {'prefix': 'Attack', 'suffix': 'Guard'}
+
+
+def rarity_name(rarity_id):
+    return RARITY_NAMES.get(rarity_id, rarity_id.capitalize())
+
+
 # ---- generated tables: each returns {head, rows} ---------------------------------------------------------------------------------------------
 
 def table_rarity(facts, towers, balance):
     total = sum(r['weight'] for r in balance['rarities'])
     rows = []
     for r in balance['rarities']:
-        label = 'Mythic' if r['id'] == 'mythical' else r['id'].capitalize()
         pct = r['weight'] * 100 / total
-        rows.append([label, str(r['prefixSlots'] + r['suffixSlots']), f"{r['prefixSlots']} prefix, {r['suffixSlots']} suffix", (f'{pct:.1f}%' if pct >= 1 else f'{pct:.2f}%') + ''])
-    return {'head': ['Rarity', 'Slots', 'Layout', 'Base chance'], 'rows': rows}
+        rows.append([rarity_name(r['id']), str(r['prefixSlots'] + r['suffixSlots']), f"{r['prefixSlots']} attack, {r['suffixSlots']} guard", (f'{pct:.1f}%' if pct >= 1 else f'{pct:.2f}%') + ''])
+    return {'head': ['Rarity', 'Trait slots', 'Layout', 'Base chance'], 'rows': rows}
 
 
 def table_promotion(facts, towers, balance):
     rows = []
     for p in balance['promotions']:
         cost = [f"{p['dust']} dust"] + ([f"{p['facets']} facets"] if p['facets'] else []) + ([f"{p['cores']} cores"] if p['cores'] else [])
-        name = lambda x: 'Mythic' if x == 'mythical' else x.capitalize()
-        rows.append([f"{name(p['from'])} to {name(p['to'])}", ', '.join(cost), str(p['attunement'])])
+        rows.append([f"{rarity_name(p['from'])} to {rarity_name(p['to'])}", ', '.join(cost), str(p['attunement'])])
     return {'head': ['Promotion', 'Cost', 'Attunement needed'], 'rows': rows}
 
 
@@ -194,8 +202,8 @@ def table_affix(facts, towers, balance):
     rows = []
     for a in affixes:
         bands = ranks[a['id']]
-        rows.append([a['name'], a['slot'].capitalize(), a['channel'], a['condition'], ' / '.join(f'{lo}-{hi}%' for lo, hi in bands)])
-    return {'head': ['Modifier', 'Slot', 'Channel', 'Effect', 'Values at ranks I / II / III / IV / V'], 'rows': rows}
+        rows.append([a['name'], SLOT_NAMES.get(a['slot'], a['slot'].capitalize()), a['channel'], a['condition'], ' / '.join(f'{lo}-{hi}%' for lo, hi in bands)])
+    return {'head': ['Trait', 'Slot', 'Channel', 'Effect', 'Values at ranks I / II / III / IV / V'], 'rows': rows}
 
 
 def table_transcendent(facts, towers, balance):
