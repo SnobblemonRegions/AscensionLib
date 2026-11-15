@@ -867,8 +867,7 @@ final class AscendWiring {
     }
 
     private static String title(ProfileV1 profile) {
-        String id = profile.rarity().id();
-        String name = id.equals("mythical") ? "Mythic" : Character.toUpperCase(id.charAt(0)) + id.substring(1);
+        String name = profile.rarity().displayName();
         return profile.unique() == null ? name : name + " · Unique";
     }
 }

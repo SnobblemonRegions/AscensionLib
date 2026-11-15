@@ -51,7 +51,7 @@ public final class FusionRules {
         if (hostIsTranscendent || donorIsTranscendent)
             throw new CraftException(CraftException.Reason.ALREADY_TRANSCENDENT, "A Transcendent can be neither host nor donor again");
         if (host.rarity() != Rarity.MYTHICAL)
-            throw new CraftException(CraftException.Reason.FUSION_HOST_RARITY, "The host must be Mythical");
+            throw new CraftException(CraftException.Reason.FUSION_HOST_RARITY, "The host must be Ascended");
         if (host.spentUpgradeCredits() < HOST_CREDITS)
             throw new CraftException(CraftException.Reason.FUSION_HOST_RANKS, "The host must have spent all " + HOST_CREDITS + " upgrade credits");
         if (donor.rarity().ordinal() < Rarity.EPIC.ordinal())

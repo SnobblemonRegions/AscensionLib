@@ -110,7 +110,7 @@
     $('upgrade').disabled = !(s && s.id && s.rarityId && !s.locked);
     $('upgrade').title = s && s.locked ? 'This Pokemon is on loan and cannot be upgraded.' : s && s.id && !s.rarityId ? 'It has no ascension profile yet: inspect it to use an Ascension Sigil.' : '';
     $('tabFuse').disabled = !(s && s.id);
-    $('tabFuse').title = s && s.id ? 'Fuse: open the fusion screen with ' + s.name + ' as the host (a Mythic with a Unique can be one; you can change it there).' : 'Pick a Pokemon first.';
+    $('tabFuse').title = s && s.id ? 'Fuse: open the fusion screen with ' + s.name + ' as the host (an Ascended Pokémon with a Unique can be one; you can change it there).' : 'Pick a Pokemon first.';
     partyInfo = s && s.id ? s.name + (s.rarityId ? '' : ' has no ascension profile') : 'Pick a Pokemon';
     if (tab === 'party') A.text($('info'), partyInfo);
   }

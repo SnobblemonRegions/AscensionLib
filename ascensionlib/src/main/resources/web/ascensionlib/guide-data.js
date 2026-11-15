@@ -24,17 +24,17 @@ window.GUIDE = {
    "blocks": [
     {
      "type": "p",
-     "text": "Every Pokémon you catch or hatch gets an ascension profile: a rarity and a few modifiers that change how it fights. You grow them instead of replacing them. Here is the short version."
+     "text": "Every Pokémon you catch or hatch gets an ascension profile: a rarity and a few traits that change how it fights. You grow them instead of replacing them. Here is the short version."
     },
     {
      "type": "steps",
      "items": [
-      "Catch or hatch a Pokémon. Right-click your AscensionDex (get one with /ascend dex), pick it and press Inspect to see its rarity and modifiers.",
-      "Level it up. Every 10 levels earns one upgrade credit (up to 10). Spend it in Craft, on the Upgrade tab: one modifier goes up a rank and rerolls its value. It never fails.",
+      "Catch or hatch a Pokémon. Right-click your AscensionDex (get one with /ascend dex), pick it and press Inspect to see its rarity and traits.",
+      "Level it up. Every 10 levels earns one upgrade credit (up to 10). Spend it in Craft, on the Upgrade tab: one trait goes up a rank and rerolls its value. It never fails.",
       "Earn materials. Tower runs, trials, dungeons and raids pay Resonance Dust, Facets, Cores and more into your wallet (the Wallet tab of the Dex).",
-      "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Mythic.",
-      "Scout enemies. A Scouter reveals an enemy's rarity and modifiers before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.",
-      "Go deep. At rank V you can Perfect and Overreach a modifier; a Catalyst installs a Unique power; two Mythics can be fused into a Transcendent."
+      "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Ascended.",
+      "Scout enemies. A Scouter reveals an enemy's rarity and traits before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.",
+      "Go deep. At rank V you can Perfect and Overreach a trait; a Catalyst installs a Unique power; two Ascended Pokémon can be fused into a Transcendent."
      ]
     },
     {
@@ -44,18 +44,73 @@ window.GUIDE = {
    ]
   },
   {
-   "id": "rarity",
-   "title": "Rarity and modifiers",
+   "id": "cobblemon",
+   "title": "How it fits with Cobblemon",
    "blocks": [
     {
      "type": "p",
-     "text": "Rarity decides how many modifier slots a Pokémon has. Prefixes boost offense; suffixes add defense and recovery. Every Pokémon can eventually reach Mythic."
+     "text": "Everything you know from Cobblemon still works. Ascension adds one layer on top: rarity decides how many traits a Pokémon can hold, and traits are battle bonuses you upgrade over time."
+    },
+    {
+     "type": "table",
+     "head": [
+      "System",
+      "What it is",
+      "Set when",
+      "How it changes"
+     ],
+     "rows": [
+      [
+       "Nature",
+       "Raises one stat and lowers another",
+       "Caught or hatched",
+       "Cobblemon's usual items"
+      ],
+      [
+       "IVs",
+       "Its genes, 0 to 31 per stat",
+       "Caught or hatched",
+       "Cobblemon's usual items"
+      ],
+      [
+       "EVs",
+       "Training from battles",
+       "Battling",
+       "Cobblemon's usual items"
+      ],
+      [
+       "Rarity",
+       "How many trait slots it has (1 to 6)",
+       "Caught in a profile zone, or an Ascension Sigil",
+       "Promote it with attunement and materials. It never goes down"
+      ],
+      [
+       "Traits",
+       "Battle bonuses in those slots",
+       "Filled when a slot opens",
+       "Upgrade, Refine and Reforge in Craft"
+      ]
+     ]
+    },
+    {
+     "type": "tip",
+     "text": "Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Ascended. Check IVs, EVs and nature on Cobblemon's Summary screen as usual."
+    }
+   ]
+  },
+  {
+   "id": "rarity",
+   "title": "Rarity and traits",
+   "blocks": [
+    {
+     "type": "p",
+     "text": "Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Ascended."
     },
     {
      "type": "table",
      "head": [
       "Rarity",
-      "Slots",
+      "Trait slots",
       "Layout",
       "Base chance"
      ],
@@ -63,44 +118,44 @@ window.GUIDE = {
       [
        "Common",
        "1",
-       "1 prefix, 0 suffix",
+       "1 attack, 0 guard",
        "55.0%"
       ],
       [
        "Uncommon",
        "2",
-       "1 prefix, 1 suffix",
+       "1 attack, 1 guard",
        "28.0%"
       ],
       [
        "Rare",
        "3",
-       "2 prefix, 1 suffix",
+       "2 attack, 1 guard",
        "12.0%"
       ],
       [
        "Epic",
        "4",
-       "2 prefix, 2 suffix",
+       "2 attack, 2 guard",
        "4.0%"
       ],
       [
-       "Legendary",
+       "Radiant",
        "5",
-       "3 prefix, 2 suffix",
+       "3 attack, 2 guard",
        "0.90%"
       ],
       [
-       "Mythic",
+       "Ascended",
        "6",
-       "3 prefix, 3 suffix",
+       "3 attack, 3 guard",
        "0.10%"
       ]
      ]
     },
     {
      "type": "p",
-     "text": "Each modifier has a rank from I to V. Rank I is its base range; every later rank starts one above the last and is about half as wide as rank I, so rank V tops out near three times rank I. A value is always a whole percent."
+     "text": "Each trait has a rank from I to V. Rank I is its base range; every later rank starts one above the last and is about half as wide as rank I, so rank V tops out near three times rank I. A value is always a whole percent."
     },
     {
      "type": "p",
@@ -108,7 +163,7 @@ window.GUIDE = {
     },
     {
      "type": "p",
-     "text": "Two modifiers of the same family never share a Pokémon. Themes (Tempo, Toxin, Predator, Bulwark, Vitality) strengthen each other: two modifiers of one theme give x1.15, three or more x1.30. The inspector shows the theme strip."
+     "text": "Two traits of the same family never share a Pokémon. Themes (Tempo, Toxin, Predator, Bulwark, Vitality) strengthen each other: two traits of one theme give x1.15, three or more x1.30. The inspector shows the theme strip."
     }
    ]
   },
@@ -130,32 +185,32 @@ window.GUIDE = {
      "rows": [
       [
        "Upgrade",
-       "Raise one modifier one rank and reroll its value in the new, higher range. Never fails.",
+       "Raise one trait one rank and reroll its value in the new, higher range. Never fails.",
        "1 upgrade credit (free)"
       ],
       [
        "Refine",
-       "Reroll one modifier's value inside its current rank. It can come out lower.",
+       "Reroll one trait's value inside its current rank. It can come out lower.",
        "12 dust"
       ],
       [
        "Reforge",
-       "Swap one modifier for a different one. The rank stays and the value rerolls.",
+       "Swap one trait for a different one. The rank stays and the value rerolls.",
        "24 dust + 1 facet"
       ],
       [
        "Perfect",
-       "Rank V only. Raise the lowest value the modifier can roll by one point, up to its range top. A Refine can never roll below the floor.",
+       "Rank V only. Raise the lowest value the trait can roll by one point, up to its range top. A Refine can never roll below the floor.",
        "30 dust, +10 for each step already bought on that slot"
       ],
       [
        "Overreach",
-       "Rank V at its range top only. One gamble per modifier: 45% for a permanent value 10 to 25% above the range top; otherwise the value drops into the lower half. Either way the slot is sealed (only a Reforge changes it).",
+       "Rank V at its range top only. One gamble per trait: 45% for a permanent value 10 to 25% above the range top; otherwise the value drops into the lower half. Either way the slot is sealed (only a Reforge changes it).",
        "60 dust + 2 facets + 1 Tower Mark"
       ],
       [
        "Promote",
-       "Move the whole Pokémon up one rarity and open one new modifier slot. All modifiers are kept.",
+       "Move the whole Pokémon up one rarity and open one new trait slot. All traits are kept.",
        "see the promotion table, plus attunement"
       ]
      ]
@@ -184,12 +239,12 @@ window.GUIDE = {
        "25"
       ],
       [
-       "Epic to Legendary",
+       "Epic to Radiant",
        "200 dust, 10 facets, 2 cores",
        "50"
       ],
       [
-       "Legendary to Mythic",
+       "Radiant to Ascended",
        "400 dust, 20 facets, 5 cores",
        "90"
       ]
@@ -260,12 +315,12 @@ window.GUIDE = {
     },
     {
      "type": "p",
-     "text": "Fusion makes a Transcendent: a Mythic host that holds a Unique and an Epic-or-better donor holding a different one become one Pokémon with a completely new power. The host is kept; the donor is consumed. It is permanent."
+     "text": "Fusion makes a Transcendent: a Ascended host that holds a Unique and an Epic-or-better donor holding a different one become one Pokémon with a completely new power. The host is kept; the donor is consumed. It is permanent."
     },
     {
      "type": "ul",
      "items": [
-      "Host: Mythic, every upgrade credit spent, at least 150 attunement, holding a Unique.",
+      "Host: Ascended, every upgrade credit spent, at least 150 attunement, holding a Unique.",
       "Donor: Epic or better, holding a different Unique, and not already a Transcendent.",
       "Price: 600 dust, 30 facets, 10 cores, 1 Catalyst and 5 Tower Marks.",
       "The Fuse button is on the Craft page. A Transcendent's power cannot be replaced."
@@ -322,7 +377,7 @@ window.GUIDE = {
       ],
       [
        "Unique Catalyst",
-       "Legendary",
+       "Radiant",
        "Installs or replaces a Unique power.",
        "Tradable"
       ],
@@ -352,7 +407,7 @@ window.GUIDE = {
       ],
       [
        "Unbinding Prism",
-       "Legendary",
+       "Radiant",
        "Swaps a Pokemon's Unique for another, with no Catalyst and no Tower Mark.",
        "Tradable"
       ],
@@ -455,13 +510,13 @@ window.GUIDE = {
    "blocks": [
     {
      "type": "p",
-     "text": "Modifiers act inside the battle simulator, so they follow the normal rules: immunities, abilities and caps all still apply. They take effect in Tower and raid fights and in every fight against a wild Pokémon or a trainer's Pokémon, which have modifiers of their own: the deeper the place (a dungeon, say), the rarer they tend to be. Fights between players are native for both sides. A Scouter reveals the wild Pokémon you are looking at. Battle effects need CobbleRaids installed."
+     "text": "Traits act inside the battle simulator, so they follow the normal rules: immunities, abilities and caps all still apply. They take effect in Tower and raid fights and in every fight against a wild Pokémon or a trainer's Pokémon, which have traits of their own: the deeper the place (a dungeon, say), the rarer they tend to be. Fights between players are native for both sides. A Scouter reveals the wild Pokémon you are looking at. Battle effects need CobbleRaids installed."
     },
     {
      "type": "ul",
      "items": [
-      "Scouter: reveals one enemy's rarity and modifiers, once per enemy per encounter. Use the opponent panel on the overlay (press WebGUI's interact key to click it) or run /ascend scout. Look at a wild Pokémon inside a zone and run /ascend scout look.",
-      "Bleed: some modifiers and Uniques cause bleeding, about 8% of max HP per stack each turn, up to 3 stacks for 3 turns. A red badge on the overlay shows who is bleeding, how many stacks and how many turns are left.",
+      "Scouter: reveals one enemy's rarity and traits, once per enemy per encounter. Use the opponent panel on the overlay (press WebGUI's interact key to click it) or run /ascend scout. Look at a wild Pokémon inside a zone and run /ascend scout look.",
+      "Bleed: some traits and Uniques cause bleeding, about 8% of max HP per stack each turn, up to 3 stacks for 3 turns. A red badge on the overlay shows who is bleeding, how many stacks and how many turns are left.",
       "Cobblemon's own statuses (burn, poison and the rest) work as normal; Smoldering and Venomous strengthen your own burns and poison."
      ]
     }
@@ -485,7 +540,7 @@ window.GUIDE = {
      "rows": [
       [
        "Hourglass of Undoing",
-       "Every modifier goes back to rank I with a fresh value and its perfected floor cleared, and every upgrade credit comes back to spend again. Affixes, Unique, rarity and attunement stay. No materials are refunded.",
+       "Every trait goes back to rank I with a fresh value and its perfected floor cleared, and every upgrade credit comes back to spend again. Traits, Unique, rarity and attunement stay. No materials are refunded.",
        "About 1 in {respec.rankOneIn} completions, or {respec.price} Tower Marks"
       ],
       [

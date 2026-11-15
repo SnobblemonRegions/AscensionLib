@@ -73,10 +73,9 @@
     var disable = append(card, 'button', 'capture-disable', 'Disable'); disable.type = 'button'; disable.title = 'Disable future capture reveals. Re-enable with /ascend reveals on.';
     disable.addEventListener('click', function () { disabled = true; clear(); if (A.captureReveal.onDisable) A.captureReveal.onDisable(); });
     for (var i = 0; i < 4; i++) append(lamps, 'i');
-    append(head, 'span', 'capture-head-label', 'CAPTURE REGISTERED');
+    append(head, 'span', 'capture-head-label', 'CAUGHT');
     append(lcd, 'h2', 'capture-name', r.name);
     var portrait = append(lcd, 'div', 'capture-portrait');
-    append(portrait, 'span', 'capture-stage-label', 'NEW PARTNER');
     ['tl','tr','bl','br'].forEach(function (corner) { decorative(append(portrait, 'i', 'capture-corner ' + corner)); });
     decorative(append(portrait, 'div', 'capture-aura'));
     var facets = decorative(append(portrait, 'div', 'capture-facets'));
@@ -89,15 +88,17 @@
     }));
     sprite.appendChild(prism);
     append(lcd, 'div', 'capture-rarity', A.rarityName(d.rarityId).toUpperCase());
+    // Rarity means trait slots (Common 1 to Ascended 6): say so where the badge is, in words a Cobblemon player can place.
+    append(lcd, 'p', 'capture-meaning', (index + 1) + ' of 6 trait slots' + (index === 5 ? '' : ' · every Pokémon can reach 6'));
     var content = append(lcd, 'div', 'capture-content');
-    var label = append(content, 'div', 'capture-label', 'ASCENSION TRAITS DISCOVERED');
+    var label = append(content, 'div', 'capture-label', 'TRAITS');
     var traits = append(content, 'div', 'capture-traits'), rows = Object.create(null);
-    function trait(name, value, rank, unique, condition) {
+    function trait(name, value, rank, unique, condition, category) {
       var row = append(traits, 'div', 'capture-trait');
       row.appendChild(A.affixIcon(name, unique));
       var copy = append(row, 'div');
       append(copy, 'div', 'capture-trait-name', name);
-      append(copy, 'div', 'capture-trait-rank', unique ? 'Unique power' : 'Rank ' + (A.roman[rank] || rank));
+      append(copy, 'div', 'capture-trait-rank', unique ? 'Unique power' : (category === 'prefix' ? 'Attack' : 'Guard') + ' · Rank ' + (A.roman[rank] || rank));
       if (condition) row.title = condition;
       if (!unique) append(row, 'span', 'capture-trait-value', '+' + value + '%');
     }
@@ -105,25 +106,24 @@
     d.slots.forEach(function (s) {
       var id = s.category + ':' + s.name;
       if (rows[id]) return;
-      rows[id] = true; trait(s.name, s.value, s.rank, false, s.condition);
+      rows[id] = true; trait(s.name, s.value, s.rank, false, s.condition, s.category);
     });
-    if (traits.childElementCount === 1) label.textContent = 'ASCENSION TRAIT DISCOVERED';
     if (traits.childElementCount > 2) {
-      label.textContent = 'MODIFIERS (' + traits.childElementCount + ')';
+      label.textContent = 'TRAITS (' + traits.childElementCount + ')';
       append(label, 'span', 'capture-scroll-hint', 'SCROLL \u2193');
       traits.tabIndex = 0;
       traits.setAttribute('role', 'region');
-      traits.setAttribute('aria-label', 'Pokémon modifiers. Scroll to view all ' + traits.childElementCount + '.');
+      traits.setAttribute('aria-label', 'Pokémon traits. Scroll to view all ' + traits.childElementCount + '.');
     }
     var promise = append(content, 'div', 'capture-promise'), quote = append(promise, 'p', 'quote');
-    quote.appendChild(document.createTextNode('Every great partner starts with ')); append(quote, 'span', '', 'potential.');
-    append(promise, 'p', 'sub', index === 5 ? 'A Mythic partner. Make it your own.' : 'Every Pokémon can reach Mythic.');
+    quote.appendChild(document.createTextNode('IVs are what it was born with. ')); append(quote, 'span', '', 'Rarity is how many traits it can hold.');
+    append(promise, 'p', 'sub', index === 5 ? 'An Ascended partner. Make it your own.' : 'Check IVs on the Summary screen as usual.');
     var path = append(content, 'div', 'capture-path');
     path.setAttribute('aria-label', A.rarityName(d.rarityId) + ' rarity, ' + (index + 1) + ' of 6');
     for (i = 0; i < 6; i++) decorative(append(path, 'i', i <= index ? 'on' : ''));
-    var labels = append(content, 'div', 'capture-path-labels'); append(labels, 'span', '', 'COMMON'); append(labels, 'span', '', 'MYTHIC');
+    var labels = append(content, 'div', 'capture-path-labels'); append(labels, 'span', '', 'COMMON'); append(labels, 'span', '', 'ASCENDED');
     var actions = append(content, 'div', 'capture-actions');
-    var open = append(actions, 'button', 'primary', 'Explore Ascension >'); open.type = 'button'; open.addEventListener('click', explore);
+    var open = append(actions, 'button', 'primary', 'Inspect'); open.type = 'button'; open.addEventListener('click', explore);
     var keep = append(actions, 'button', 'capture-continue', 'Continue'); keep.type = 'button'; keep.addEventListener('click', dismiss);
     var foot = append(lcd, 'div', 'capture-foot'), brand = append(foot, 'span'), dex = append(brand, 'img'); dex.src = 'icons/ascension_dex.png'; dex.alt = '';
     brand.appendChild(document.createTextNode('ASCENSION DEX')); append(foot, 'span', '', 'PROFILE SAVED');

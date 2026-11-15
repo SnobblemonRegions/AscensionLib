@@ -42,7 +42,7 @@ public final class InspectWeb {
                 if (pokemon.isEmpty() || service.isEmpty()) throw new IllegalArgumentException("That Pokemon is not yours");
                 var profile = service.get().useSigil(player, pokemon.get());
                 player.displayClientMessage(Component.literal("[Ascend] " + pokemon.get().getDisplayName(false).getString() + " is now "
-                        + (profile.rarity().id().equals("mythical") ? "Mythic" : profile.rarity().id().substring(0, 1).toUpperCase() + profile.rarity().id().substring(1))
+                        + profile.rarity().displayName()
                         + "."), false);
             } catch (IllegalArgumentException | IllegalStateException refused) {
                 player.displayClientMessage(Component.literal("[Ascend] " + refused.getMessage()), true);

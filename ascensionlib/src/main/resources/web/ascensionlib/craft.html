@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Modifiers</title>
+<title>Traits</title>
 <meta name="color-scheme" content="dark">
 <style>html, body { background: transparent; }</style>
 <link rel="stylesheet" href="ascension.css">
@@ -50,7 +50,7 @@
 </head>
 <body>
 <div class="frame">
-  <div class="head"><span>MODIFIERS</span><button class="x" id="close" title="Close">&times;</button></div>
+  <div class="head"><span>TRAITS</span><button class="x" id="close" title="Close">&times;</button></div>
   <div class="top">
     <div id="art" class="stage"></div>
     <div><div class="nm" id="name"></div><div><span class="muted" id="lvl"></span> <span class="grade" id="grade"></span></div></div>
@@ -178,13 +178,13 @@
     if (mode === 'promote') {
       box.appendChild(A.el('div', 'row', 'Promotion applies to the whole Pokémon.'));
     }
-    if (!view.slots.length) box.appendChild(A.el('div', 'row muted', 'No affixes to change.'));
+    if (!view.slots.length) box.appendChild(A.el('div', 'row muted', 'No traits to change.'));
     view.slots.forEach(function (s) {
       var prefix = s.category === 'prefix';
       var r = A.el('div', 'row' + (s.slotId === slotId ? ' sel' : '') + (mode !== 'promote' && blockFor(s) ? ' off' : ''));
       r.appendChild(A.affixIcon(s.name, false));
       var col = A.el('div'); col.appendChild(A.el('div', 't1', s.name));
-      col.appendChild(A.el('div', 't2', (prefix ? 'Offense' : 'Defense') + ' · ' + A.roman[Math.max(1, Math.min(5, s.rank))] + (s.sealed ? ' · sealed' : ''))); r.appendChild(col);
+      col.appendChild(A.el('div', 't2', (prefix ? 'Attack' : 'Guard') + ' · ' + A.roman[Math.max(1, Math.min(5, s.rank))] + (s.sealed ? ' · sealed' : ''))); r.appendChild(col);
       r.appendChild(A.el('div', 'v', '+' + s.value + '%'));
       r.dataset.k = s.slotId;
       r.addEventListener('click', function () { if (slotId === s.slotId) return; slotId = s.slotId; render('sel'); });
@@ -225,7 +225,7 @@
     nm.appendChild(h.id ? hauntIcon(h.id) : essenceIcon());
     var t = A.el('div'), line = A.el('div', 'nm', h.id ? h.name : 'Not haunted');
     if (h.id) line.appendChild(A.el('span', 'tag' + (h.rare ? ' rare' : ''), h.rare ? 'RARE' : 'COMMON'));
-    t.appendChild(line); t.appendChild(A.el('div', 'muted', h.id ? h.effect : 'An event power in a slot of its own, apart from the affixes.')); nm.appendChild(t); box.appendChild(nm);
+    t.appendChild(line); t.appendChild(A.el('div', 'muted', h.id ? h.effect : 'An event power in a slot of its own, apart from the traits.')); nm.appendChild(t); box.appendChild(nm);
     box.appendChild(A.el('div', 'muted', (h.id ? 'Re-roll: one of ' : 'Roll: one of ') + h.all.length + ' Hauntings · ' + h.rolls + (h.rolls === 1 ? ' roll so far' : ' rolls so far')));
     var odds = A.el('div', 'odds');
     h.all.forEach(function (o) {
@@ -245,7 +245,7 @@
       box.appendChild(A.el('div', 'label', 'Promote'));
       if (!p.toRarity) { box.appendChild(A.el('div', '', 'Already the highest rarity.')); return; }
       box.appendChild(A.el('div', '', A.rarityName(view.rarityId) + ' → ' + A.rarityName(p.toRarity)));
-      pair(box, vbox('Now', A.rarityName(view.rarityId), 'keeps all modifiers', false), vbox('Promote to', A.rarityName(p.toRarity), '+1 modifier slot', true));
+      pair(box, vbox('Now', A.rarityName(view.rarityId), 'keeps all traits', false), vbox('Promote to', A.rarityName(p.toRarity), '+1 trait slot', true));
       box.appendChild(A.el('div', '', 'Attunement ' + p.attunement + ' / ' + p.attunementNeeded));
       var m = A.el('div', 'meter'); var f = A.el('i'); f.style.width = (p.attunementNeeded <= 0 ? 100 : Math.min(100, 100 * p.attunement / p.attunementNeeded)) + '%'; m.appendChild(f); box.appendChild(m);
       box.appendChild(A.el('div', 'muted', 'Attunement grows when this Pokémon is in your party for a Tower boss clear.'));
@@ -254,9 +254,9 @@
     if (mode === 'respec') {
       var rs = view.respec;
       box.appendChild(A.el('div', 'label', 'Hourglass of Undoing'));
-      box.appendChild(A.el('div', '', 'Every modifier goes back to rank I, its perfected floor is cleared, and all ' + rs.spent + (rs.spent === 1 ? ' upgrade credit comes' : ' upgrade credits come') + ' back to spend again.'));
-      pair(box, vbox('Now', rs.spent + ' spent', rs.resets.length + ' modifiers', false), vbox('After', '0 spent', rs.spent + ' to spend again', true));
-      box.appendChild(A.el('div', 'muted', 'Kept: the affixes themselves, the Unique, the rarity and attunement. Not returned: any dust or facets already spent. A Pokémon that has Overreached is sealed for good and can never be respecced.'));
+      box.appendChild(A.el('div', '', 'Every trait goes back to rank I, its perfected floor is cleared, and all ' + rs.spent + (rs.spent === 1 ? ' upgrade credit comes' : ' upgrade credits come') + ' back to spend again.'));
+      pair(box, vbox('Now', rs.spent + ' spent', rs.resets.length + ' traits', false), vbox('After', '0 spent', rs.spent + ' to spend again', true));
+      box.appendChild(A.el('div', 'muted', 'Kept: the traits themselves, the Unique, the rarity and attunement. Not returned: any dust or facets already spent. A Pokémon that has Overreached is sealed for good and can never be respecced.'));
       var held = A.el('div', 'cost');
       held.appendChild(A.el('div', 'c muted', 'You hold ' + rs.hourglasses + (rs.hourglasses === 1 ? ' Hourglass' : ' Hourglasses') + ' · ' + rs.marks + ' Tower Marks'));
       var buy = A.el('button', '', 'Buy for ' + rs.price + ' Marks');
@@ -292,9 +292,9 @@
     }
     if (isHaunt()) { drawHaunt(box); return; }
     var s = slot();
-    if (!s) { box.appendChild(A.el('div', 'muted', 'Choose an affix on the left.')); return; }
+    if (!s) { box.appendChild(A.el('div', 'muted', 'Choose a trait on the left.')); return; }
     var prefix = s.category === 'prefix';
-    box.appendChild(A.el('div', 'label', A.cap(mode) + ' · ' + (prefix ? 'Offense' : 'Defense')));
+    box.appendChild(A.el('div', 'label', A.cap(mode) + ' · ' + (prefix ? 'Attack trait' : 'Guard trait')));
     box.appendChild(A.el('div', '', s.name));
     box.appendChild(A.el('div', 'muted', s.condition || (prefix ? 'Boosts your damage.' : 'Protects or heals you.')));
     var cur = vbox('Current · ' + A.roman[Math.max(1, Math.min(5, s.rank))], '+' + s.value + '%', 'Range ' + s.floor + '–' + s.bandMax + '%', false), nxt;
@@ -312,17 +312,17 @@
       nxt = vbox(capped ? 'Not available' : 'New floor', capped ? '—' : '+' + (s.floor + 1) + '%', capped ? 'Band top ' + s.bandMax + '%' : 'value → +' + Math.max(s.value, s.floor + 1) + '%', true);
     } else {
       cur = vbox('Current · ' + A.roman[Math.max(1, Math.min(5, s.rank))], s.name, '+' + s.value + '% · rank ' + A.roman[Math.max(1, Math.min(5, s.rank))], false);
-      nxt = vbox('New affix', '?', s.reforgePool + ' eligible', true);
+      nxt = vbox('New trait', '?', s.reforgePool + ' eligible', true);
     }
     pair(box, cur, nxt);
     var bar = A.el('div', 'bar');
     for (var i = 0; i < 5; i++) bar.appendChild(A.el('i', i < s.rank ? 'on' : (mode === 'upgrade' && i === s.rank && s.nextMin >= 0 ? 'next' : '')));
     box.appendChild(bar);
-    box.appendChild(A.el('div', 'muted', mode === 'upgrade' ? 'Raises this affix one rank and rerolls its value. Never fails.'
+    box.appendChild(A.el('div', 'muted', mode === 'upgrade' ? 'Raises this trait one rank and rerolls its value. Never fails.'
       : mode === 'refine' ? "Rerolls the value inside this rank's range. It can go lower."
-      : mode === 'perfect' ? 'Raises the lowest value this rank V affix can roll by one point, up to the band top. A Refine can never roll below it. Each step costs more dust; a Reforge clears it.'
-      : mode === 'overreach' ? 'A gamble for a rank V affix at its band top, one attempt per affix. Win: a permanent value above the band top. Lose: the value drops into the lower half of the band, ignoring your floor. Win or lose the slot is sealed: only a Reforge can change it.'
-      : 'Swaps this affix for a different one. Rank stays, value rerolls.'));
+      : mode === 'perfect' ? 'Raises the lowest value this rank V trait can roll by one point, up to the band top. A Refine can never roll below it. Each step costs more dust; a Reforge clears it.'
+      : mode === 'overreach' ? 'A gamble for a rank V trait at its band top, one attempt per trait. Win: a permanent value above the band top. Lose: the value drops into the lower half of the band, ignoring your floor. Win or lose the slot is sealed: only a Reforge can change it.'
+      : 'Swaps this trait for a different one. Rank stays, value rerolls.'));
     box.appendChild(A.el('div', 'spacer'));
     costRow(box, blockFor(s));
   }
@@ -352,12 +352,12 @@
     else if (mode === 'refine' && s) change = s.name + ' +' + s.value + '%  →  a new value in ' + s.bandMin + '–' + s.bandMax + '%';
     else if (mode === 'overreach' && s) change = s.name + ' +' + s.value + '%  →  ' + s.overreachChance + '% chance of +' + s.overreachMin + '–' + s.overreachMax + '%; otherwise it falls to the lower half of the band. Either way the slot is sealed.';
     else if (mode === 'perfect' && s) change = s.name + ' floor +' + s.floor + '%  →  +' + (s.floor + 1) + '% (band top ' + s.bandMax + '%), value +' + s.value + '% → +' + Math.max(s.value, s.floor + 1) + '%';
-    else if (mode === 'promote') change = A.rarityName(view.rarityId) + '  →  ' + A.rarityName(view.promotion.toRarity) + ', and one new rank I modifier';
+    else if (mode === 'promote') change = A.rarityName(view.rarityId) + '  →  ' + A.rarityName(view.promotion.toRarity) + ', and one new rank I trait';
     else if (action === 'buy') change = 'Trade ' + view.respec.price + ' Tower Marks for one Hourglass of Undoing.';
     else if (action === 'prism') { var po = uniqueOpt(); change = po ? 'Swap ' + view.uniqueName + ' for ' + po.name + '. Drawback: ' + po.drawback : ''; }
-    else if (mode === 'respec') change = 'Reset ' + view.respec.resets.length + ' modifiers to rank I and return ' + view.respec.spent + (view.respec.spent === 1 ? ' upgrade credit' : ' upgrade credits') + '. Perfected floors are cleared.';
+    else if (mode === 'respec') change = 'Reset ' + view.respec.resets.length + ' traits to rank I and return ' + view.respec.spent + (view.respec.spent === 1 ? ' upgrade credit' : ' upgrade credits') + '. Perfected floors are cleared.';
     else if (mode === 'unique') { var o = uniqueOpt(); change = o ? (view.unique.currentId ? 'Replace with ' : 'Install ') + o.name + '. Drawback: ' + o.drawback : ''; }
-    else if (s) change = s.name + ' +' + s.value + '%  →  another affix (' + s.reforgePool + ' eligible), rank ' + A.roman[s.rank];
+    else if (s) change = s.name + ' +' + s.value + '%  →  another trait (' + s.reforgePool + ' eligible), rank ' + A.roman[s.rank];
     body.appendChild(A.el('p', '', change));
     body.appendChild(A.el('p', 'gold', 'Cost: ' + (isHaunt() ? costText() : action === 'prism' ? '1 Unbinding Prism (no Catalyst, no Tower Mark)' : action === 'buy' ? view.respec.price + ' Tower Marks (you have ' + view.respec.marks + ')' : costText())));
     body.appendChild(A.el('p', 'muted', isHaunt() ? 'The roll is random and cannot be undone. A re-roll loses the Haunting it replaces for good.' : action === 'prism' ? 'Uses one Unbinding Prism. The Unique you hold now is lost. It cannot be undone.'
@@ -367,7 +367,7 @@
       : mode === 'refine' ? 'The result can be lower than now. It cannot be undone.'
       : mode === 'perfect' ? 'Always works. Each step costs 10 more dust than the last on this slot. A Refine keeps the floor; a Reforge clears it.'
       : mode === 'overreach' ? 'RISKY. The materials are spent win or lose. A lost attempt lowers the roll and seals the slot for good (a Reforge is the only way out). This cannot be undone.'
-      : mode === 'promote' ? 'No failure chance. Existing modifiers are kept. It cannot be undone.'
+      : mode === 'promote' ? 'No failure chance. Existing traits are kept. It cannot be undone.'
       : mode === 'unique' ? 'Uses one Catalyst. A Unique already set is lost. It cannot be undone.' : 'The result is random and cannot be undone.'));
     if (phase === 'waiting') body.appendChild(A.el('p', 'muted', 'Waiting for the server…'));
     $('dOk').disabled = phase === 'waiting'; $('dCancel').disabled = phase === 'waiting';
@@ -389,7 +389,7 @@
     if (part === 'mode') { drawTabs(); drawList(); drawDetail(); return; }
     if (part === 'phase') { drawDetail(); drawDialog(); return; }
     A.text($('name'), view.name); A.text($('lvl'), 'Lv ' + view.level);
-    var gr = $('grade'); A.text(gr, (view.rarityId === 'mythical' ? 'MYTHIC' : view.rarityId.toUpperCase()) + (view.uniqueName ? ' · UNIQUE' : ''));
+    var gr = $('grade'); A.text(gr, A.rarityName(view.rarityId).toUpperCase() + (view.uniqueName ? ' · UNIQUE' : ''));
     gr.style.background = 'var(--' + (view.rarityId || 'common') + '-bg)'; gr.style.color = 'var(--' + (view.rarityId || 'common') + ')';
     var art = $('art');
     if (art.dataset.species !== view.speciesId) { art.dataset.species = view.speciesId; art.innerHTML = ''; art.appendChild(A.sprite(view.speciesId, 2)); }   // not on every click: it flashes the name
@@ -450,7 +450,7 @@
         : mode === 'perfect' ? 'Floor raised: +' + d.oldValue + '% → +' + d.newValue + '%'
         : mode === 'overreach' ? (d.newValue > d.oldValue ? 'Overreached! +' + d.oldValue + '% → +' + d.newValue + '%' : 'The gamble failed: +' + d.oldValue + '% → +' + d.newValue + '%, and the slot is sealed')
         : mode === 'reforge' ? 'Now ' + d.newName + ' +' + d.newValue + '%'
-        : mode === 'promote' ? 'Promoted to ' + A.rarityName(d.newName) + ': a new modifier slot opened'
+        : mode === 'promote' ? 'Promoted to ' + A.rarityName(d.newName) + ': a new trait slot opened'
         : (d.newName === 'Unique Catalyst' ? 'Assembled a Unique Catalyst' : 'Unique set: ' + d.newName);
       if (d.replayed) banner += ' (already done)';
     } else banner = d.message;

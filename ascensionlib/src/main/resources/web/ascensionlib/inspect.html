@@ -36,6 +36,7 @@
   .strip { margin-top: 8px; padding: 8px 10px; background: var(--head); border: 2px solid var(--line); min-height: 52px; }
   .bottom { padding: 2px 16px 6px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .empty { padding: 14px; color: var(--muted); }
+  .ivnote { margin-top: 6px; font-size: 11px; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -47,14 +48,16 @@
       <div class="art stage" id="art"></div>
       <div class="nm" id="name"></div>
       <div class="sub" id="sub"></div>
-      <div id="stats" style="margin-top:8px"></div>
+      <div class="label" style="margin:8px 0 0">Base stats (species)</div>
+      <div id="stats"></div>
+      <div class="ivnote muted">IVs, EVs and nature are on Cobblemon's Summary screen.</div>
       <div class="grade" id="grade">RARITY ?</div>
     </div>
     <div class="box right">
-      <div class="rhead"><span>Affixes</span><span class="muted" id="count"></span></div>
+      <div class="rhead"><span>Traits</span><span class="muted" id="count"></span></div>
       <div class="rows" id="rows"></div>
       <div class="reso" id="reso" style="display:none"></div>
-      <div class="strip" id="strip">Click a modifier to see what it does.</div>
+      <div class="strip" id="strip">Click a trait to see what it does.</div>
     </div>
   </div>
   <div class="bottom muted" id="bottom"></div>
@@ -82,7 +85,7 @@
   function rowsOf(d) {
     var rows = [];
     if (!d) return rows;
-    if (d.uniqueName) rows.push({ unique: true, name: d.uniqueName, value: '', rank: 0, min: -1, max: -1, condition: 'A Unique power: fixed tuning, no ordinary rank.', prefix: false });
+    if (d.uniqueName) rows.push({ unique: true, name: d.uniqueName, value: '', rank: 0, min: -1, max: -1, condition: 'A Unique power. It has no ranks and cannot be upgraded.', prefix: false });
     d.slots.forEach(function (s) { rows.push({ unique: false, name: s.name, value: s.value + '%', rank: s.rank, min: s.min, max: s.max, condition: s.condition, prefix: s.category === 'prefix', theme: s.theme || '', perfected: s.rank === 5 && s.max >= 0 && s.value >= s.max && !s.sealed, sealed: !!s.sealed, over: !!s.sealed && s.max >= 0 && s.value > s.max }); });
     return rows;
   }
@@ -113,7 +116,7 @@
       row.appendChild(A.el('span', 'v', v == null ? '?' : v)); st.appendChild(row);
     }
     var gr = $('grade');
-    if (d) { A.text(gr, (d.rarityId === 'mythical' ? 'MYTHIC' : d.rarityId.toUpperCase()) + (d.uniqueName ? ' · UNIQUE' : '')); gr.style.background = 'var(--' + d.rarityId + '-bg)'; gr.style.color = 'var(--' + d.rarityId + ')'; A.setBezel(d.rarityId); }
+    if (d) { A.text(gr, A.rarityName(d.rarityId).toUpperCase() + (d.uniqueName ? ' · UNIQUE' : '')); gr.style.background = 'var(--' + d.rarityId + '-bg)'; gr.style.color = 'var(--' + d.rarityId + ')'; A.setBezel(d.rarityId); }
     else { A.text(gr, 'RARITY ?'); gr.style.background = '#16303f'; gr.style.color = 'var(--muted)'; A.setBezel(''); }
     drawRows(d);
     drawBottom(d);
@@ -124,14 +127,14 @@
     var box = $('rows'); box.innerHTML = '';
     var rows = rowsOf(d); rowEls = [];
     if (!d) {
-      box.appendChild(A.el('div', 'empty', mode === 'owned' ? (owned ? 'This Pokémon has no ascension profile.' : 'Loading server data…') : 'Scout to reveal rarity and modifiers.'));
-      A.text($('count'), '? / ?'); A.text($('strip'), 'Click a modifier to see what it does.'); return;
+      box.appendChild(A.el('div', 'empty', mode === 'owned' ? (owned ? 'This Pokémon has no ascension profile.' : 'Loading server data…') : 'Scout to reveal rarity and traits.'));
+      A.text($('count'), '? / ?'); A.text($('strip'), 'Click a trait to see what it does.'); return;
     }
     if (mode === 'owned' && owned) {
       var pre = d.slots.filter(function (s) { return s.category === 'prefix'; }).length;
-      A.text($('count'), 'Prefix ' + pre + '/' + owned.extra.prefixCap + ' · Suffix ' + (d.slots.length - pre) + '/' + owned.extra.suffixCap);
+      A.text($('count'), 'Attack ' + pre + '/' + owned.extra.prefixCap + ' · Guard ' + (d.slots.length - pre) + '/' + owned.extra.suffixCap);
     } else A.text($('count'), rows.length + ' / ' + rows.length);
-    if (!rows.length) box.appendChild(A.el('div', 'empty', 'No modifiers rolled.'));
+    if (!rows.length) box.appendChild(A.el('div', 'empty', 'No traits rolled.'));
     sel = Math.max(0, Math.min(sel, rows.length - 1));
     rows.forEach(function (r, i) {
       var el = A.el('div', 'row' + (r.unique ? ' uniq' : '') + (i === sel ? ' sel' : ''));
@@ -159,7 +162,7 @@
     if (rows.length) A.text($('strip'), describe(rows[sel]));
   }
 
-  function describe(r) { return r.condition || (r.prefix ? 'An offensive modifier.' : 'A defensive or recovery modifier.'); }
+  function describe(r) { return r.condition || (r.prefix ? 'An Attack trait: boosts the damage this Pokémon deals.' : 'A Guard trait: protects or heals this Pokémon.'); }
 
   function drawResonance(d) {
     var box = $('reso'); box.innerHTML = '';
@@ -170,7 +173,7 @@
     tiers.forEach(function (t) {
       var on = t.bonusPercent > 0;
       var chip = A.el('span', 'tier' + (on ? ' on' : ''), t.theme.toUpperCase() + ' ' + t.pieces + (on ? ' · +' + t.bonusPercent + '%' : '/2'));
-      chip.title = on ? t.pieces + ' ' + t.theme + ' affixes: their values count ' + t.bonusPercent + '% higher in battle.' : 'A second ' + t.theme + ' affix would add +15% to them.';
+      chip.title = on ? t.pieces + ' ' + t.theme + ' traits: their values count ' + t.bonusPercent + '% higher in battle.' : 'A second ' + t.theme + ' trait would add +15% to them.';
       box.appendChild(chip);
     });
   }
