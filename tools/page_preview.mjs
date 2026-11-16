@@ -17,9 +17,9 @@ const MOCK = `<script>
   var PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFUlEQVR42mP8z8Dwn4EIwDiqkL4KAfE8Bv9hHFSfAAAAAElFTkSuQmCC';
   var price = { dust: 20, facets: 2, cores: 0 };
   var slots = [
-    { slotId: 'p1', category: 'prefix', name: 'Smoldering', condition: 'Burns you inflict deal 50% more damage.', rank: 2, value: 12, bandMin: 10, bandMax: 14, nextMin: 15, nextMax: 19, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6 },
-    { slotId: 'p2', category: 'prefix', name: 'Physical Force', condition: '', rank: 1, value: 8, bandMin: 6, bandMax: 9, nextMin: 10, nextMax: 13, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6 },
-    { slotId: 's1', category: 'suffix', name: 'Stubborn', condition: '', rank: 5, value: 30, bandMin: 28, bandMax: 32, nextMin: -1, nextMax: -1, upgradeBlock: 'Already at the top rank', refineBlock: '', reforgeBlock: '', reforgePool: 3, perfectBlock: '', perfectCost: 40, floor: 29 } ];
+    { slotId: 'p1', category: 'prefix', name: 'Smoldering', condition: 'Burns you inflict deal 50% more damage.', rank: 2, value: 12, bandMin: 10, bandMax: 14, nextMin: 15, nextMax: 19, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6, overreachBlock: 'Needs rank V', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 },
+    { slotId: 'p2', category: 'prefix', name: 'Physical Force', condition: '', rank: 1, value: 8, bandMin: 6, bandMax: 9, nextMin: 10, nextMax: 13, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6, overreachBlock: 'Needs rank V', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 },
+    { slotId: 's1', category: 'suffix', name: 'Stubborn', condition: '', rank: 5, value: 30, bandMin: 28, bandMax: 32, nextMin: -1, nextMax: -1, upgradeBlock: 'Already at the top rank', refineBlock: '', reforgeBlock: '', reforgePool: 3, perfectBlock: '', perfectCost: 40, floor: 29, overreachBlock: '', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 } ];
   var view = { pokemonId: 'mew2', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', aspects: [], level: 52, rarityId: 'mythical', uniqueName: '777', pending: 2, nextMilestone: 60,
     profileRevision: 7, walletRevision: 8, dust: 1234, facets: 40, cores: 3, scouters: 5, marks: 6, refine: price, reforge: price,
     promotion: { toRarity: '', price: price, attunement: 90, attunementNeeded: 0, block: 'Already Ascended' },
@@ -35,12 +35,16 @@ const MOCK = `<script>
   function scoutState() { return { encounterId: 'enc-1', scouters: 3, entries: [{ subjectId: 's1', name: 'Growlithe', detail: scouted.s1 ? detail('rare') : undefined }, { subjectId: 's2', name: 'Houndoom', detail: detail('epic') }] }; }
   function emit(e, d) { setTimeout(function () { (handlers[e] || []).forEach(function (fn) { fn(Math.random() < .5 ? d : JSON.stringify(d)); }); }, 60); }
   var page = location.pathname.split('/').pop();
+  window.__seen = location.search.indexOf('seen') >= 0 ? ['craft.upgrade', 'craft.refine', 'craft.reforge', 'craft.perfect', 'craft.overreach', 'craft.promote', 'craft.unique', 'craft.respec'] : [];
   window.webgui = {
     isHud: page === 'hud.html',
     on: function (e, fn) { (handlers[e] = handlers[e] || []).push(fn); },
     postToGame: function (m) {
       log.push(m); console.log('[page -> server]', JSON.stringify(m)); showLog();
       switch (m.channel) {
+        // the player's page prefs; the first-open tutorials start unseen (add ?seen to the URL to start with them all dismissed)
+        case 'ascension_ui_get': emit('uiScale', { percent: 100, min: 60, max: 160, calm: false, halloween: false, seen: window.__seen }); break;
+        case 'ascension_ui_set': if (m.seen && window.__seen.indexOf(m.seen) < 0) window.__seen.push(m.seen); emit('uiScale', { percent: m.percent > 0 ? m.percent : 100, min: 60, max: 160, calm: !!m.calm, halloween: false, seen: window.__seen }); break;
         case 'ascension_craft_ready': emit('sprites', { mewtwo: PNG }); emit('craftView', view); break;
         case 'ascension_craft_confirm':
           emit('craftDone', { operationId: m.operationId, ok: true, message: '', slotId: m.slotId, oldName: 'Smoldering', oldRank: 2, oldValue: 12, newName: 'Smoldering', newRank: 3, newValue: 16, replayed: false });

@@ -199,6 +199,15 @@
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) { var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
   };
+  /**
+   * First-open tutorials: A.seen is null until the server has said which ones this player dismissed (a page shows none before then, so a returning
+   * player never sees a flash of one), then the list of ids such as 'craft.refine'. A.markSeen keeps the choice on the server (TutorialPrefs.java).
+   */
+  A.seen = null;
+  var prefsFns = [];
+  A.onSeen = function (fn) { prefsFns.push(fn); };
+  A.hasSeen = function (id) { return !!A.seen && A.seen.indexOf(id) >= 0; };
+  A.markSeen = function (id) { if (A.seen && A.seen.indexOf(id) < 0) A.seen.push(id); A.send('ascension_ui_set', { seen: id }); };
   if (g && g.isHud) document.body.classList.add('hud');
   // The player's saved size: asked for once the page loads and again whenever it changes (the header buttons).
   A.on('uiScale', function (s) {
@@ -209,6 +218,7 @@
     var cb = document.getElementById('calmbtn'); if (cb) cb.classList.toggle('on', A.calm);
     var label = document.getElementById('uipct'); if (label) label.textContent = s.percent + '%';
     A.fit();
+    if (s.seen) { A.seen = s.seen.slice(); prefsFns.forEach(function (fn) { fn(); }); }
   });
   if (g) A.send('ascension_ui_get');
 })();

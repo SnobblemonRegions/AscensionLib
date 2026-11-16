@@ -11,6 +11,15 @@
         ],
         "createdAt": "2026-11-15T14:56:24.090Z",
         "reason": "Claude: detector measured text against #ffffff, but the page sets an explicit dark body background (#041019); a contrast pass on the rendered page found no text under 4.5:1"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "ascensionlib/src/main/resources/web/ascensionlib/craft.html"
+        ],
+        "createdAt": "2026-11-15T17:11:09.316Z",
+        "reason": "Claude: the glow is the incumbent Pokédex LCD world, defined once as --glow in ascension.css and used on every page; the Calm setting (html.calm) removes it"
       }
     ]
   }
