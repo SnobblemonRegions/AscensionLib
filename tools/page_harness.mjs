@@ -256,6 +256,26 @@ await check('craft respec: the Unique tab offers the Unbinding Prism as a free s
   noErrors(p);
 });
 
+await check('craft tutorials: none before the server answers, one per unseen mechanic, dismissed for good, reopened with ?', async () => {
+  const p = await open(null, 'craft.html');
+  await emit(p, 'craftView', craftView);
+  eq(await p.locator('.coach').count(), 0, 'no tutorial while the seen list is unknown');
+  await emit(p, 'uiScale', { percent: 100, min: 60, max: 160, calm: false, seen: ['craft.refine'] });
+  yes((await p.textContent('.coach')).includes('How Upgrade works'), 'the opening mechanic shows its tutorial');
+  await p.locator('.coach button.primary').click();
+  eq(await p.locator('.coach').count(), 0, 'Got it closes it');
+  eq((await sentAll(p)).filter(m => m.channel === 'ascension_ui_set').pop().seen, 'craft.upgrade', 'and tells the server');
+  await p.locator('.tab', { hasText: 'Refine' }).click();
+  eq(await p.locator('.coach').count(), 0, 'an already-seen mechanic shows none');
+  await p.locator('.tab', { hasText: 'Reforge' }).click();
+  yes((await p.textContent('.coach')).includes('Reforge'), 'an unseen one does');
+  await p.locator('.tab', { hasText: 'Refine' }).click();
+  await p.locator('.dhead .help').click();
+  yes((await p.textContent('.coach')).includes('How Refine works'), '? reopens a seen tutorial');
+  eq(await p.locator('.tab').count(), 8, 'all eight mechanics stay on the rail');
+  noErrors(p);
+});
+
 await check('craft: a server refusal shows and a stale wait recovers', async () => {
   const p = await open(null, 'craft.html');
   await emit(p, 'craftView', craftView);

@@ -11,7 +11,8 @@ import net.minecraft.world.level.storage.LevelResource;
  * its header control ({@code ascension_ui_set}); both are answered with {@code uiScale}. The server clamps and stores; the page only draws.
  */
 public final class UiPrefsWeb {
-    public record Scale(int percent, int min, int max, boolean calm, boolean halloween) {}
+    /** seen: the ids of the first-open tutorials this player has dismissed (see {@link TutorialPrefs}). */
+    public record Scale(int percent, int min, int max, boolean calm, boolean halloween, java.util.List<String> seen) {}
 
     private static UiPrefs prefs;
     private static Path prefsFile;
@@ -28,6 +29,8 @@ public final class UiPrefsWeb {
             boolean changed = false;
             if (value >= 0) { of(player.getServer()).set(player.getUUID(), value); changed = true; }
             if (o.has("calm")) { calmOf(player.getServer()).set(player.getUUID(), WebUi.bool(o, "calm")); changed = true; }
+            String seen = WebUi.str(o, "seen", 48);
+            if (!seen.isEmpty() && tutorialsOf(player.getServer()).mark(player.getUUID(), seen)) changed = true;
             if (changed) send(player);
         });
     }
@@ -57,10 +60,23 @@ public final class UiPrefsWeb {
 
     public static boolean calmOf(ServerPlayer player) { return calmOf(player.getServer()).get(player.getUUID()); }
 
+    private static TutorialPrefs tutorials;
+    private static Path tutorialsFile;
+
+    /** The first-open tutorials each player has dismissed (see {@link TutorialPrefs}), loaded once and again if the world changed. */
+    public static synchronized TutorialPrefs tutorialsOf(MinecraftServer server) {
+        Path file = server == null ? null : server.getWorldPath(LevelResource.ROOT).resolve("ascensionlib-tutorials.json");
+        if (tutorials == null || (file != null && !file.equals(tutorialsFile))) {
+            tutorials = new TutorialPrefs(file);
+            tutorialsFile = file;
+        }
+        return tutorials;
+    }
+
     public static int percentOf(ServerPlayer player) { return of(player.getServer()).get(player.getUUID()); }
 
     public static void send(ServerPlayer player) {
         WebUi.emit(player, "uiScale", new Scale(percentOf(player), UiPrefs.MIN_PERCENT, UiPrefs.MAX_PERCENT, calmOf(player),
-                com.ascensionlib.event.HalloweenEvent.isOpen()));
+                com.ascensionlib.event.HalloweenEvent.isOpen(), tutorialsOf(player.getServer()).get(player.getUUID())));
     }
 }
