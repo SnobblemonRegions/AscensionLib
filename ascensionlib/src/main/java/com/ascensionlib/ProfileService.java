@@ -143,6 +143,23 @@ public final class ProfileService {
                 progression.create(id, runtime.authority(), atLeast(rules.base().rollRarity(random), floor), origin, level, types, random));
     }
 
+    /**
+     * Registers an owned Pokemon found in a profile zone of this tier (a Pokemon from a dungeon chest): its rarity is the zone's own
+     * rating for this Pokemon, exactly as a wild one of that tier would be rated, but never below {@code floor}. Where the rating
+     * already meets the floor it is the wild rating, slots and all; otherwise the floor is used and the slots are rolled for it.
+     * Same once-only guarantee as {@link #acquire}.
+     */
+    public ProfileV1 acquireAtTierWithFloor(Pokemon pokemon, Origin origin, Rarity floor, int tier) {
+        Objects.requireNonNull(floor, "floor");
+        int zone = Math.max(1, tier);
+        return register(pokemon, (id, level, types) -> {
+            var rating = progression.rateWild(store.wildSecret(), id, types, level, zone);
+            if (rating.rarity().ordinal() >= floor.ordinal())
+                return progression.createWild(store.wildSecret(), id, runtime.authority(), origin, level, types, zone);
+            return progression.create(id, runtime.authority(), floor, origin, level, types, random);
+        });
+    }
+
     /** The higher of two rarities. Package-visible for the tests. */
     static Rarity atLeast(Rarity rolled, Rarity floor) {
         return rolled.ordinal() >= floor.ordinal() ? rolled : floor;
