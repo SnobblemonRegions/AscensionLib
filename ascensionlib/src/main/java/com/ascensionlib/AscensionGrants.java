@@ -151,4 +151,28 @@ public final class AscensionGrants {
             return Result.FAILED;
         }
     }
+
+    /**
+     * For a Pokemon found in a dungeon: gives an owned Pokemon a profile rated as a wild Pokemon of zone {@code tier} would be,
+     * but at least {@code floorRarityId}. Call after the Pokemon has been added to the player's party or PC, on the server thread.
+     * Safe to repeat: a Pokemon that already has a profile keeps it. Ascension Dungeons reaches this by reflection and falls back
+     * to {@link #grantWithRarityFloor} when it is missing. New method; the existing contracts are unchanged.
+     */
+    public static Result grantWithRarityFloorAtTier(Pokemon pokemon, String floorRarityId, int tier) {
+        Rarity floor;
+        try {
+            floor = Rarity.fromId(floorRarityId.trim().toLowerCase(Locale.ROOT));
+        } catch (RuntimeException exception) {
+            return Result.UNKNOWN_RARITY;
+        }
+        var service = AscensionApi.service();
+        if (service.isEmpty()) return Result.DISABLED;
+        try {
+            service.get().acquireAtTierWithFloor(pokemon, Origin.of("external_grant"), floor, tier);
+            return Result.GRANTED;
+        } catch (RuntimeException exception) {
+            LOG.error("Could not grant a profile of at least {} at zone tier {} to Pokemon {}", floor.id(), tier, pokemon.getUuid(), exception);
+            return Result.FAILED;
+        }
+    }
 }
