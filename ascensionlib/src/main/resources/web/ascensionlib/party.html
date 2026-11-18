@@ -26,9 +26,21 @@
   .card .spr { width: 100%; flex: 1; min-height: 64px; display: flex; align-items: center; justify-content: center; position: relative;
                background: radial-gradient(ellipse 60% 70% at 50% 78%, rgba(74,216,246,.10), transparent 70%), var(--well); border: 2px solid #12384a; box-shadow: var(--sunk); }
   .card .spr::after { content: ""; position: absolute; bottom: 12%; left: 30%; right: 30%; height: 4px; background: rgba(0,0,0,.35); }   /* the floor shadow under the sprite */
-  .card .spr > * { position: relative; z-index: 1; }
+  .card .spr { min-height: 0; overflow: hidden; }
+  .card .spr > * { position: relative; z-index: 1; height: 100%; }
+  /* the sprite fills what the card has left (up to its 3x size), so the rows under it always show */
+  .card .spr img { height: 100% !important; width: auto !important; max-height: 96px; }
   .card .nm { margin-top: 4px; font-size: var(--fs-name); text-shadow: var(--glow); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .card .sub { font-size: var(--fs-body); color: var(--muted); display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .card .sub .typechip { margin-left: 0; }
+  /* one cell per trait slot: Attack cells, a gap, then Guard cells; the rank in the cell, an open slot dashed */
+  .traits { display: flex; gap: 3px; align-items: center; justify-content: center; min-height: 16px; }
+  .traits i { width: 18px; height: 16px; display: flex; align-items: center; justify-content: center; font-style: normal; font-size: var(--fs-meta);
+              color: var(--scr); background: var(--acc); border: 1px solid var(--outline); box-shadow: inset 0 -2px 0 rgba(0,0,0,.25); }
+  .traits i.g { background: #8fd0a8; }
+  .traits i.v { background: var(--gold); }
+  .traits i.open { background: transparent; border: 1px dashed var(--line); box-shadow: none; }
+  .traits .sep { width: 6px; }
   .tag { font-size: var(--fs-meta); padding: 0 6px; background: #46526a; color: #fff; border: 1px solid var(--outline); }
   /* HP as a segmented cell, like a handheld's battery meter */
   .hp { --hpc: var(--good); width: 86%; height: 8px; padding: 1px; background: var(--scr); border: 1px solid var(--line); box-shadow: inset 1px 1px 0 var(--lo); }
@@ -49,8 +61,8 @@
 <div class="frame">
   <div class="head"><span>ASCENSIONDEX</span><button class="x" id="close" title="Close">&times;</button></div>
   <div class="main">
-    <div class="pane" id="paneParty">
-      <div class="hint">Your party. Pick a Pokemon (double-click inspects it).</div>
+    <div class="pane" id="paneParty" data-boot>
+      <div class="hint" id="hint">Your party. Arrow keys pick, Enter inspects (or double-click).</div>
       <div class="grid" id="grid"></div>
     </div>
     <div class="pane" id="paneWallet" hidden></div>
@@ -60,11 +72,11 @@
     <button class="on" id="tabParty">Party</button>
     <button id="tabWallet">Wallet</button>
     <button id="tabGuide">Guide</button>
-    <button id="tabFuse" disabled>Fuse</button>
   </div>
   <div class="foot">
     <div class="msg muted" id="info"></div>
     <div class="group" id="footParty">
+      <button id="fuse" disabled>Fuse</button>
       <button id="upgrade" disabled>Upgrade</button>
       <button class="primary" id="inspect" disabled>Inspect</button>
     </div>
@@ -95,6 +107,22 @@
     return s.rarityId ? 'var(--' + s.rarityId + ')' : 'var(--line)';
   }
 
+  /** The trait slots as cells: each Attack then each Guard trait with its rank (gold at V), and its rarity's open slots dashed. */
+  function traitCells(s) {
+    var row = A.el('div', 'traits');
+    row.title = 'Traits: ' + (s.attack || []).length + ' of ' + (s.attackSlots || 0) + ' Attack, ' + (s.guard || []).length + ' of ' + (s.guardSlots || 0) + ' Guard';
+    function side(ranks, slots, cls) {
+      for (var i = 0; i < Math.max(slots || 0, ranks.length); i++) {
+        var r = ranks[i];
+        row.appendChild(r ? A.el('i', cls + (r >= 5 ? ' v' : ''), A.roman[Math.min(5, r)]) : A.el('i', 'open'));
+      }
+    }
+    side(s.attack || [], s.attackSlots, 'a');
+    row.appendChild(A.el('span', 'sep'));
+    side(s.guard || [], s.guardSlots, 'g');
+    return row;
+  }
+
   var cards = [];   // the drawn cards by slot, so choosing one only moves the highlight instead of rebuilding the grid and re-decoding every sprite
 
   function pick(i) { sel = i; select(); }
@@ -115,7 +143,8 @@
       var sub = A.el('div', 'sub'); sub.appendChild(A.el('span', '', 'Lv ' + s.level));
       var tag = A.el('span', 'tag', s.rarityId ? A.rarityName(s.rarityId) : 'No profile');
       if (s.rarityId) { tag.style.background = 'var(--' + s.rarityId + '-bg)'; tag.style.color = 'var(--' + s.rarityId + ')'; }
-      sub.appendChild(tag); card.appendChild(sub);
+      sub.appendChild(tag); (s.types || []).forEach(function (t) { sub.appendChild(A.typeChip(t)); }); card.appendChild(sub);
+      if (s.rarityId) card.appendChild(traitCells(s));
       var hp = A.el('div', 'hp' + (s.hp < 25 ? ' crit' : s.hp < 50 ? ' low' : '')); var fill = A.el('i'); fill.style.width = s.hp + '%'; hp.appendChild(fill); card.appendChild(hp);
       card.addEventListener('click', function () { pick(i); });
       card.addEventListener('dblclick', function () { pick(i); inspect(); });
@@ -131,8 +160,8 @@
     $('inspect').disabled = !(s && s.id);
     $('upgrade').disabled = !(s && s.id && s.rarityId && !s.locked);
     $('upgrade').title = s && s.locked ? 'This Pokemon is on loan and cannot be upgraded.' : s && s.id && !s.rarityId ? 'It has no ascension profile yet: inspect it to use an Ascension Sigil.' : '';
-    $('tabFuse').disabled = !(s && s.id);
-    $('tabFuse').title = s && s.id ? 'Fuse: open the fusion screen with ' + s.name + ' as the host (an Ascended Pokémon with a Unique can be one; you can change it there).' : 'Pick a Pokemon first.';
+    $('fuse').disabled = !(s && s.id);
+    $('fuse').title = s && s.id ? 'Fuse: open the fusion screen with ' + s.name + ' as the host (an Ascended Pokémon with a Unique can be one; you can change it there).' : 'Pick a Pokemon first.';
     partyInfo = s && s.id ? s.name + (s.rarityId ? '' : ' has no ascension profile') : 'Pick a Pokemon';
     if (tab === 'party') A.text($('info'), partyInfo);
   }
@@ -143,6 +172,7 @@
     tab = name;
     $('paneParty').hidden = name !== 'party'; $('paneWallet').hidden = name !== 'wallet'; $('paneGuide').hidden = name !== 'guide';
     $('footParty').hidden = name !== 'party'; $('footWallet').hidden = name !== 'wallet';
+    $('hint').hidden = name !== 'party';
     $('tabParty').className = name === 'party' ? 'on' : ''; $('tabWallet').className = name === 'wallet' ? 'on' : ''; $('tabGuide').className = name === 'guide' ? 'on' : '';
     if (name === 'wallet') {
       if (!wallet) wallet = A.wallet.mount($('paneWallet'), {
@@ -163,7 +193,18 @@
   $('tabWallet').addEventListener('click', function () { showTab('wallet'); });
   $('tabGuide').addEventListener('click', function () { showTab('guide'); });
   // Fuse is not a tab: it opens the fusion screen (the craft screen's Fuse button sends the same message) with the chosen Pokemon as the host.
-  $('tabFuse').addEventListener('click', function () { var s = view && view.slots[sel]; if (s && s.id && !$('tabFuse').disabled) A.send('ascension_fusion_open', { hostId: s.id }); });
+  $('fuse').addEventListener('click', function () { var s = view && view.slots[sel]; if (s && s.id && !$('fuse').disabled) A.send('ascension_fusion_open', { hostId: s.id }); });
+  // The keyboard: arrows move across the 3 x 2 grid (over empty slots too), Enter inspects, U upgrades.
+  document.addEventListener('keydown', function (e) {
+    if (tab !== 'party' || !view || e.target.tagName === 'INPUT') return;
+    var step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[e.key];
+    if (step) {
+      e.preventDefault();
+      for (var i = (sel < 0 ? 0 : sel) + step; i >= 0 && i < view.slots.length; i += step) if (view.slots[i].id) { pick(i); break; }   // skip empty slots
+    }
+    else if (e.key === 'Enter') { e.preventDefault(); inspect(); }
+    else if ((e.key === 'u' || e.key === 'U') && !$('upgrade').disabled) $('upgrade').click();
+  });
   $('depositAll').addEventListener('click', function () { if (wallet) wallet.depositAll(); });
   $('inspect').addEventListener('click', inspect);
   $('upgrade').addEventListener('click', function () { var s = view && view.slots[sel]; if (s && s.id && !$('upgrade').disabled) A.send('ascension_craft_open', { pokemonId: s.id }); });

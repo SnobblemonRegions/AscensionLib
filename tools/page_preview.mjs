@@ -77,15 +77,22 @@ const MOCK = `<script>
             .map(function (a) { return { id: a[0], name: a[1], color: a[2], amount: a[3], carried: a[4] }; }) }); break;
         case 'ascension_wallet_open': location.href = 'wallet.html'; break;
         case 'ascension_back': history.back(); break;
+        // the Tower completion reveal: a Mythic run with a pile and two crowns (the same sample as the page test)
+        case 'ascension_completion_ready':
+          emit('completionView', { tier: 'mythic', tierName: 'MYTHIC', score: 9, cycle: 1, cards: 5, flawless: true, attunement: 3, preview: false,
+            tiers: [{ id: 'bronze', name: 'BRONZE', from: 0 }, { id: 'silver', name: 'SILVER', from: 2 }, { id: 'gold', name: 'GOLD', from: 5 }, { id: 'mythic', name: 'MYTHIC', from: 8 }],
+            pile: [['resonance_dust', 'Resonance Dust', '#d9a441', 1800], ['facet', 'Facet', '#4f9ad9', 13], ['unique_fragment', 'Unique Fragment', '#8c63c7', 7], ['scouter', 'Scouter', '#6f9a52', 4], ['tower_mark', 'Tower Mark', '#e8e1c9', 5]]
+              .map(function (a) { return { id: a[0], name: a[1], color: a[2], amount: a[3] }; }),
+            crowns: [{ kind: 'core', id: 'ascension_core', label: 'Ascension Core', color: '#c9694f', amount: 1, big: true }, { kind: 'armor', id: '', label: 'Tower armor piece', color: '#c9d4e0', amount: 1, big: false }] }); break;
         // the Dex home: a full party with every state a card can show (pending upgrades, no profile, low and fainted HP, shiny, an empty slot)
         case 'ascension_party_ready':
           emit('sprites', { arcanine: PNG, mewtwo: PNG, ditto: PNG, growlithe: PNG, gyarados: PNG });
           emit('partyView', { slots: [
-            { id: 'a1', name: 'Arcanine', speciesId: 'cobblemon:arcanine', level: 40, rarityId: 'epic', hp: 100, pending: 2 },
-            { id: 'a2', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', level: 52, rarityId: 'mythical', hp: 64, pending: 0 },
-            { id: 'a3', name: 'Gyarados', speciesId: 'cobblemon:gyarados', level: 33, rarityId: 'rare', hp: 38, pending: 1, shiny: true },
-            { id: 'a4', name: 'Ditto', speciesId: 'cobblemon:ditto', level: 12, rarityId: '', hp: 18, pending: 0 },
-            { id: 'a5', name: 'Growlithe', speciesId: 'cobblemon:growlithe', level: 9, rarityId: 'common', hp: 0, pending: 0, fainted: true },
+            { id: 'a1', name: 'Arcanine', speciesId: 'cobblemon:arcanine', level: 40, rarityId: 'epic', hp: 100, pending: 2, types: ['fire'], attack: [3, 1], guard: [2], attackSlots: 2, guardSlots: 2 },
+            { id: 'a2', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', level: 52, rarityId: 'mythical', hp: 64, pending: 0, types: ['psychic'], attack: [5, 4, 2], guard: [5, 3, 1], attackSlots: 3, guardSlots: 3 },
+            { id: 'a3', name: 'Gyarados', speciesId: 'cobblemon:gyarados', level: 33, rarityId: 'rare', hp: 38, pending: 1, shiny: true, types: ['water', 'flying'], attack: [2], guard: [1], attackSlots: 2, guardSlots: 1 },
+            { id: 'a4', name: 'Ditto', speciesId: 'cobblemon:ditto', level: 12, rarityId: '', hp: 18, pending: 0, types: ['normal'] },
+            { id: 'a5', name: 'Growlithe', speciesId: 'cobblemon:growlithe', level: 9, rarityId: 'common', hp: 0, pending: 0, fainted: true, types: ['fire'], attack: [1], guard: [], attackSlots: 1, guardSlots: 0 },
             { id: '' } ] }); break;
         case 'ascension_hud_ready':
           emit('sprites', { arcanine: PNG });

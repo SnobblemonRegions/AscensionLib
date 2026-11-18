@@ -29,6 +29,14 @@
   .tile.off { background: var(--head); color: var(--muted); cursor: not-allowed; opacity: .6; }
   .tile .n { font-size: var(--fs-body); overflow-wrap: anywhere; } .tile .r { font-size: var(--fs-meta); text-transform: capitalize; }
   .spr { image-rendering: pixelated; }
+  /* before a donor is picked: what fusion does, and what each chamber still needs */
+  .check { list-style: none; margin: 6px 0 10px; padding: 0; display: grid; gap: 4px; }
+  .check li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: center; padding: 4px 8px; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); }
+  .check li::before { content: ""; width: 14px; height: 14px; border: 2px solid var(--line); }
+  .check li.ok::before { background: var(--good); border-color: var(--outline); box-shadow: inset 0 -3px 0 rgba(0,0,0,.25); }
+  .check li.no { color: var(--warn); } .check li.no::before { border-color: var(--warn); }
+  .check li.who { display: block; padding: 6px 0 0; background: none; border: 0; box-shadow: none; color: var(--muted); font-size: var(--fs-meta); letter-spacing: .08em; text-transform: uppercase; }
+  .check li.who::before { display: none; }
   .empty { padding: 12px; color: var(--muted); }
   .reason { padding: 6px 12px; min-height: 28px; color: var(--warn); font-size: var(--fs-body); }
 </style>
@@ -111,10 +119,29 @@
 
   function line(parent, cls, value) { var p = document.createElement('p'); if (cls) p.className = cls; p.textContent = value; parent.appendChild(p); return p; }
 
+  /** Before a donor is chosen: what fusion makes, and a checklist of what the host has and the donor needs. */
+  function checklist(box) {
+    var h = document.createElement('h2'); h.textContent = 'Fusion'; box.appendChild(h);
+    line(box, '', 'Two Pokémon with Uniques become one Transcendent. The host keeps its own traits and gains a fused power. The donor is consumed and cannot be recovered.');
+    var ul = document.createElement('ul'); ul.className = 'check';
+    function head(t) { var li = document.createElement('li'); li.className = 'who'; li.textContent = t; ul.appendChild(li); }
+    function item(state, t) { var li = document.createElement('li'); li.className = state; li.appendChild(document.createElement('span')).textContent = t; ul.appendChild(li); }
+    head('Host' + (host ? ': ' + host.name : ''));
+    item(host ? (host.rarityId === 'mythical' ? 'ok' : 'no') : '', 'Ascended rarity');
+    item(host ? (host.uniqueName ? 'ok' : 'no') : '', 'Has a Unique');
+    item(host ? (hostBlock ? 'no' : 'ok') : '', 'Not already a Transcendent, not on loan');
+    head('Donor: not chosen');
+    item('', 'Epic rarity or better');
+    item('', 'Has a Unique');
+    item('', 'Not a Transcendent');
+    box.appendChild(ul);
+    line(box, 'muted', 'Choose a donor on the right to see the fused power and its price.');
+  }
+
   function renderResult() {
     var box = $('result'); box.innerHTML = '';
     if (hostBlock) { line(box, 'bad', hostBlock + ' Choose a different host.'); return; }
-    if (!donor) { line(box, 'muted', 'Choose a donor: Epic or better, with a Unique, and not a Transcendent.'); return; }
+    if (!donor) { checklist(box); return; }
     if (phase !== 'browse') {
       line(box, '', 'Fuse ' + donor.name + ' into ' + host.name + '? ' + donor.name + ' is consumed and cannot be recovered. ' + host.name +
         ' keeps its own modifiers and becomes ' + (detail ? detail.name : 'a Transcendent') + ', once, for good.');

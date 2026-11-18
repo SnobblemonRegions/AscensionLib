@@ -20,7 +20,11 @@
     '.gp .tip::before { content: "TIP  "; color: var(--acc); } .gp .warn { border-color: #6b2a22; background: #2b1612; } .gp .warn::before { content: "NOTE  "; color: var(--warn); }',
     '.gp table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); } .gp th { text-align: left; color: var(--muted); font-weight: 400; padding: 5px 8px; border-bottom: 2px solid var(--line); }',
     '.gp td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.4; } .gp td:first-child { color: var(--ink); white-space: nowrap; }',
-    '.gp .nav { display: flex; justify-content: space-between; margin-top: 6px; }'
+    '.gp .nav { display: flex; justify-content: space-between; margin-top: 6px; }',
+    '.gp .side { width: 200px; flex: none; display: flex; flex-direction: column; gap: 6px; min-height: 0; } .gp .side .topics { width: auto; flex: 1; }',
+    '.gp .find { width: 100%; padding: 5px 8px; } .gp .find::placeholder { color: var(--muted); opacity: 1; }',
+    '.gp .topics button[hidden] { display: none; } .gp .none { color: var(--muted); padding: 6px 2px; }',
+    '.gp mark { background: var(--acc); color: var(--scr); padding: 0 1px; }'
   ].join('\n');
 
   function el(tag, cls, text) { return A.el(tag, cls, text); }
@@ -55,8 +59,14 @@
     root.className = (root.className ? root.className + ' ' : '') + 'gp';
     root.innerHTML = '';
     var data = window.GUIDE && window.GUIDE.topics ? window.GUIDE.topics : [];
-    var list = el('div', 'topics'), content = el('div', 'content');
-    root.appendChild(list); root.appendChild(content);
+    var side = el('div', 'side'), find = el('input', 'find'), list = el('div', 'topics'), none = el('div', 'none', 'No topic mentions that.'), content = el('div', 'content');
+    find.type = 'search'; find.placeholder = 'Search the guide'; find.setAttribute('aria-label', 'Search the guide');
+    none.hidden = true;
+    side.appendChild(find); side.appendChild(list); side.appendChild(none);
+    root.appendChild(side); root.appendChild(content);
+    // every word of a topic (title, text, list items, table cells), lower-cased, for the search box
+    function words(v) { return typeof v === 'string' ? fill(v) : Array.isArray(v) ? v.map(words).join(' ') : v && typeof v === 'object' ? Object.keys(v).filter(function (k) { return k !== 'type' && k !== 'live'; }).map(function (k) { return words(v[k]); }).join(' ') : ''; }
+    var haystack = {};
     var buttons = {}, current = -1;
 
     function show(id) {
@@ -79,11 +89,26 @@
 
     if (!data.length) { content.appendChild(el('div', 'p', 'The guide is not available.')); return { show: function () {} }; }
     data.forEach(function (t) {
+      haystack[t.id] = (t.title + ' ' + words(t.blocks)).toLowerCase();
       var b = el('button', '', t.title);
       b.addEventListener('click', function () { show(t.id); });
       buttons[t.id] = b; list.appendChild(b);
     });
     show(data[0].id);
+    // search: hides the topics that do not mention every word typed, and opens the first that does
+    find.addEventListener('input', function () {
+      var q = find.value.toLowerCase().split(/\s+/).filter(Boolean), first = null;
+      data.forEach(function (t) {
+        var hit = q.every(function (w) { return haystack[t.id].indexOf(w) >= 0; });
+        buttons[t.id].hidden = !hit;
+        if (hit && !first) first = t.id;
+      });
+      none.hidden = !!first;
+      if (first && q.length && (current < 0 || buttons[data[current].id].hidden)) show(first);
+    });
+    find.addEventListener('keydown', function (e) { if (e.key === 'Escape' && find.value) { e.stopPropagation(); find.value = ''; find.dispatchEvent(new Event('input')); } });
+    // another page asked for this guide at one topic (GuideWeb.java)
+    A.on('guideTopic', function (m) { if (m && m.topic && buttons[m.topic]) show(m.topic); });
     // the live numbers: asked for once, and redrawn when they arrive
     A.on('guideFacts', function (m) {
       if (m && m.facts) Object.keys(m.facts).forEach(function (k) { facts[k] = m.facts[k]; });

@@ -430,7 +430,8 @@ await check('inspect: owned view, affixes, upgrade button; enemy view, scout', a
   await emit(p, 'inspectOwned', { pokemonId: 'a1', name: 'Arcanine', species: 'Arcanine', pending: 2, attunement: 9, detail: detail(), extra: { speciesId: 'cobblemon:arcanine', aspects: [], origin: 'wild_capture', initialRarity: 'rare', highestLevel: 40, milestones: 3, prefixCap: 2, suffixCap: 2, craftLocked: false } });
   eq(await p.textContent('#name'), 'Arcanine', 'name');
   yes((await p.textContent('#grade')).includes('EPIC'), 'grade');
-  yes((await p.textContent('#bottom')).includes('2 upgrades pending'), 'bottom line');
+  yes((await p.textContent('#bottom')).includes('2 pending'), 'bottom line: the upgrades waiting');
+  yes((await p.textContent('#rows')).includes('Next slot'), 'the slot the next rarity adds is shown');
   yes(await p.locator('#rows .row').count() >= 2, 'unique + affix rows');
   yes((await p.textContent('#reso')).includes('PREDATOR 2 · +15%'), 'resonance tier shown');
   yes((await p.textContent('#rows')).includes('MAX'), 'a perfected rank V slot is marked');
@@ -827,20 +828,27 @@ await check('party: six slots, rarity, health and pending upgrades; pick, inspec
   await p.locator('.card').nth(0).click();
   await p.click('#upgrade');
   eq((await sent(p)).find(x => x.channel === 'ascension_craft_open').pokemonId, 'a1', 'Upgrade opens craft for the pick');
-  eq(await p.isDisabled('#tabFuse'), false, 'Fuse is available with a Pokemon picked');
-  await p.click('#tabFuse');
+  eq(await p.isDisabled('#fuse'), false, 'Fuse is available with a Pokemon picked');
+  await p.click('#fuse');
   eq((await sent(p)).find(x => x.channel === 'ascension_fusion_open').hostId, 'a1', 'Fuse opens the fusion screen with the pick as the host');
   await p.locator('.card').nth(3).click();
   eq(await p.locator('.card.sel').count() <= 1, true, 'an empty slot cannot be picked in');
   await p.locator('.card').nth(2).dblclick();
   eq((await sent(p)).filter(x => x.channel === 'ascension_inspect_open').pop().id, 'c3', 'double-click inspects');
+  // the keyboard: arrows skip empty slots, Enter inspects
+  await p.locator('.card').nth(0).click();
+  await p.keyboard.press('ArrowRight');
+  await p.keyboard.press('Enter');
+  eq((await sent(p)).filter(x => x.channel === 'ascension_inspect_open').pop().id, 'b2', 'ArrowRight then Enter inspects the next Pokemon');
+  await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight');
+  eq(await p.locator('.card.empty.sel').count(), 0, 'the arrows never land on an empty slot');
   await shot(p, 'party');
   noErrors(p);
 });
 
 await check('party: a Wallet tab at the bottom shows the wallet (fee preview, Take, Deposit) and switches back to the party', async () => {
   const p = await open(null, 'party.html', 1920, 1080);
-  eq(await p.locator('#tabbar button').count(), 4, 'three tabs and the Fuse button');
+  eq(await p.locator('#tabbar button').count(), 3, 'three tabs (Fuse is a footer button)');
   eq(await p.isVisible('#paneWallet'), false, 'the wallet is hidden at first');
   eq(await p.isVisible('#footParty'), true, 'the party buttons show');
   const box = async sel => p.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return { t: b.top, b: b.bottom }; }, sel);
@@ -925,7 +933,7 @@ await check('guide: the numbers a server owner can tune come live from the serve
 
 await check('party: the Guide tab shows the same guide inside the AscensionDex', async () => {
   const p = await open(null, 'party.html', 1920, 1080);
-  eq(await p.locator('#tabbar button').count(), 4, 'three tabs and the Fuse button');
+  eq(await p.locator('#tabbar button').count(), 3, 'three tabs (Fuse is a footer button)');
   await p.click('#tabGuide');
   eq(await p.isVisible('#paneGuide'), true, 'the guide pane shows');
   eq(await p.isVisible('#paneParty'), false, 'and the party hides');

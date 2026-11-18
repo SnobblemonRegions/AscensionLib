@@ -34,7 +34,23 @@
   .tier { padding: 1px 8px; border: 2px solid var(--line); color: var(--muted); letter-spacing: .06em; }
   .tier.on { border-color: var(--acc); color: var(--acc); box-shadow: var(--glow); text-shadow: var(--glow); }
   .strip { margin-top: 8px; padding: 8px 10px; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); min-height: 52px; }
-  .bottom { padding: 2px 16px 6px; font-size: var(--fs-meta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* the facts about this Pokemon, label over value, in one row under the panels */
+  .bottom { display: flex; gap: 0; padding: 0 14px 8px; min-height: 34px; }
+  .bottom .fact { flex: 1; min-width: 0; padding: 3px 10px; border-left: 1px solid var(--line); }
+  .bottom .fact:first-child { border-left: 0; padding-left: 2px; }
+  .bottom .k { display: block; font-size: var(--fs-meta); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+  .bottom .val { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bottom .val.hot { color: var(--good); }
+  /* an open trait slot, and the one the next rarity would add */
+  .row.open { cursor: default; background: transparent; border: 2px dashed var(--line); box-shadow: none; color: var(--muted); }
+  .row.open:hover { border-color: var(--line); }
+  .row.open .slotmark { width: 26px; height: 26px; flex: none; border: 2px dashed var(--line); }
+  .row.next { opacity: .75; }
+  /* base stats by tier: low, solid, and the species' best one in gold */
+  .stat.low .seg i.on { background: #5da6bd; box-shadow: none; }
+  .stat.high .seg i.on { background: var(--good); }
+  .stat.best .k, .stat.best .v { color: var(--gold); }
+  .stat.best .seg i.on { background: var(--gold); }
   .empty { padding: 14px; color: var(--muted); }
   .ivnote { margin-top: 6px; font-size: var(--fs-body); line-height: 1.4; }
 </style>
@@ -76,8 +92,7 @@
   'use strict';
   var A = window.A, $ = A.$;
   var STATS = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
-  var TYPES = { normal: '#a8a77a', fire: '#ee8130', water: '#6390f0', electric: '#f7d02c', grass: '#7ac74c', ice: '#96d9d6', fighting: '#c22e28', poison: '#a33ea1',
-    ground: '#e2bf65', flying: '#a98ff3', psychic: '#f95587', bug: '#a6b91a', rock: '#b6a136', ghost: '#735797', dragon: '#6f35fc', dark: '#705746', steel: '#b7b7ce', fairy: '#d685ad' };
+  var TYPES = A.TYPES;
   var mode = '';           // owned | enemy
   var owned = null, state = null, idx = 0, sel = 0, sigilArmed = false, rowEls = [];
 
@@ -89,6 +104,30 @@
     d.slots.forEach(function (s) { rows.push({ unique: false, name: s.name, value: s.value + '%', rank: s.rank, min: s.min, max: s.max, condition: s.condition, prefix: s.category === 'prefix', theme: s.theme || '', perfected: s.rank === 5 && s.max >= 0 && s.value >= s.max && !s.sealed, sealed: !!s.sealed, over: !!s.sealed && s.max >= 0 && s.value > s.max }); });
     return rows;
   }
+  /** A base stat's tier: under 60 is low, 100 and over is high, and the species' highest stat is its best (gold). */
+  function statTier(v, d) {
+    if (v == null) return '';
+    var best = d && d.baseStats.length ? Math.max.apply(null, d.baseStats) : -1;
+    return (v === best ? ' best' : '') + (v < 60 ? ' low' : v >= 100 ? ' high' : '');
+  }
+  var ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythical'];
+
+  /** The trait slots this Pokemon has but has not filled, and (below Ascended) a line for the slot the next rarity adds. */
+  function openRows(d, box) {
+    if (mode !== 'owned' || !owned || !owned.extra) return;
+    var pre = d.slots.filter(function (s) { return s.category === 'prefix'; }).length, suf = d.slots.length - pre;
+    function open(label, text, cls) {
+      var el = A.el('div', 'row open' + (cls ? ' ' + cls : ''));
+      el.appendChild(A.el('span', 'slotmark'));
+      var col = A.el('div'); col.appendChild(A.el('div', 't1', label)); col.appendChild(A.el('div', 't2', text)); el.appendChild(col);
+      box.appendChild(el);
+    }
+    for (var i = pre; i < owned.extra.prefixCap; i++) open('Open Attack slot', 'Filled by the next roll on the Traits screen');
+    for (var j = suf; j < owned.extra.suffixCap; j++) open('Open Guard slot', 'Filled by the next roll on the Traits screen');
+    var at = ORDER.indexOf(d.rarityId);
+    if (at >= 0 && at < ORDER.length - 1) open('Next slot: ' + A.rarityName(ORDER[at + 1]), 'Promote to ' + A.rarityName(ORDER[at + 1]) + ' on the Traits screen to add a trait', 'next');
+  }
+
   function origin(k) {
     if (!k) return 'Origin unknown';
     return k === 'wild_capture' ? 'Wild capture' : k === 'hatch' ? 'Hatched' : k === 'admin' ? 'Operator-registered' : A.cap(k.replace(/_/g, ' '));
@@ -110,8 +149,8 @@
       : mode === 'owned' ? (owned ? 'No profile available' : 'Loading server data…') : 'Details not revealed');
     var st = $('stats'); st.innerHTML = '';
     for (var i = 0; i < 6; i++) {
-      var row = A.el('div', 'stat'); row.appendChild(A.el('span', 'muted', STATS[i]));
-      var v = d && i < d.baseStats.length ? d.baseStats[i] : null; var on = v == null ? 0 : Math.max(1, Math.round(v / 255 * 14 * 1.6));
+      var v = d && i < d.baseStats.length ? d.baseStats[i] : null;
+      var row = A.el('div', 'stat' + statTier(v, d)); row.appendChild(A.el('span', 'k muted', STATS[i])); var on = v == null ? 0 : Math.max(1, Math.round(v / 255 * 14 * 1.6));
       var b = A.el('div', 'seg'); for (var k = 0; k < 14; k++) b.appendChild(A.el('i', k < on ? 'on' : '')); row.appendChild(b);
       row.appendChild(A.el('span', 'v', v == null ? '?' : v)); st.appendChild(row);
     }
@@ -158,6 +197,7 @@
       el.addEventListener('mouseenter', function () { A.text($('strip'), describe(r)); });
       box.appendChild(el);
     });
+    openRows(d, box);
     drawResonance(d);
     if (rows.length) A.text($('strip'), describe(rows[sel]));
   }
@@ -179,18 +219,17 @@
   }
 
   function drawBottom(d) {
-    var b = $('bottom');
+    var b = $('bottom'); b.innerHTML = '';
+    function fact(k, v, hot) { var f = A.el('div', 'fact'); f.appendChild(A.el('span', 'k', k)); f.appendChild(A.el('span', 'val' + (hot ? ' hot' : ''), v)); f.title = k + ': ' + v; b.appendChild(f); }
     if (mode === 'owned' && owned && d) {
-      var e = owned.extra, bits = [];
-      bits.push(owned.pending + ' upgrade' + (owned.pending === 1 ? '' : 's') + ' pending');
-      bits.push('attunement ' + owned.attunement);
-      bits.push(origin(e.origin));
-      if (e.initialRarity && e.initialRarity !== d.rarityId) bits.push('promoted from ' + A.cap(e.initialRarity));
-      bits.push(e.milestones + ' milestone' + (e.milestones === 1 ? '' : 's'));
-      if (e.highestLevel > 0) bits.push('best Lv ' + e.highestLevel);
-      A.text(b, bits.join(' · '));
-    } else if (mode === 'enemy' && state) A.text(b, 'Scouters: ' + state.scouters);
-    else A.text(b, '');
+      var e = owned.extra;
+      fact('Upgrades', owned.pending + ' pending', owned.pending > 0);
+      fact('Attunement', String(owned.attunement));
+      fact('Origin', origin(e.origin));
+      fact('Started', e.initialRarity && e.initialRarity !== d.rarityId ? A.rarityName(e.initialRarity) + ', promoted' : A.rarityName(d.rarityId));
+      fact('Milestones', String(e.milestones));
+      if (e.highestLevel > 0) fact('Best level', 'Lv ' + e.highestLevel);
+    } else if (mode === 'enemy' && state) fact('Scouters', String(state.scouters), state.scouters > 0);
   }
 
   function buttons() {
@@ -236,6 +275,15 @@
   });
   $('prev').addEventListener('click', function () { if (state) { idx = (idx - 1 + state.entries.length) % state.entries.length; sel = 0; render(); } });
   $('next').addEventListener('click', function () { if (state) { idx = (idx + 1) % state.entries.length; sel = 0; render(); } });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (!rowEls.length) return;
+      e.preventDefault();
+      var i = Math.max(0, Math.min(rowEls.length - 1, sel + (e.key === 'ArrowDown' ? 1 : -1)));
+      rowEls[i].click(); rowEls[i].scrollIntoView({ block: 'nearest' });
+    } else if (mode === 'enemy' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) $(e.key === 'ArrowLeft' ? 'prev' : 'next').click();
+  });
 
   function ready() {
     A.ready('ascension_inspect_ready', function () { return !!mode; }, $('info'));
