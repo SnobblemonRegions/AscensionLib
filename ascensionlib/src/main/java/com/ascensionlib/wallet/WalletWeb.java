@@ -48,7 +48,7 @@ public final class WalletWeb {
         }
     }
 
-    public static boolean open(ServerPlayer player) { return WebUi.open(player, "wallet.html"); }
+    public static boolean open(ServerPlayer player) { return WebUi.open(player, "wallet.html", "wallet", WalletWeb::open); }
 
     private static void answer(ServerPlayer player, WalletItems.Result result) {
         WebUi.emit(player, "walletResult", new ResultView(result.ok(), result.message()));

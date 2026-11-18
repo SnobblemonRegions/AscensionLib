@@ -117,6 +117,7 @@ public final class HudWeb {
         REOPENS.remove(player);
         DEFERRED.remove(player);
         GuiPresence.forget(player);
+        PageNav.forget(player);
         BLEEDS.remove(player);
         MOMENTUM.remove(player);
         com.ascensionlib.battle.BleedWatch.forget(player);

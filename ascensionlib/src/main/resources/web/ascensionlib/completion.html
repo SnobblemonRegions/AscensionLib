@@ -11,38 +11,38 @@
   .frame { width: 720px; height: 560px; }
   .main { flex: 1; min-height: 0; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
   .banner { text-align: center; padding: 14px 8px; border: 2px solid var(--tier, var(--line)); background: var(--tierbg, var(--row)); color: var(--tier, var(--acc));
-            font-size: 24px; letter-spacing: .18em; text-shadow: 0 0 10px var(--tier, var(--acc)); opacity: 0; transform: scale(.92); transition: opacity .5s, transform .5s; }
+            font-size: var(--fs-hero); letter-spacing: .18em; text-shadow: 0 0 10px var(--tier, var(--acc)); opacity: 0; transform: scale(.92); transition: opacity .5s, transform .5s; }
   .banner.on { opacity: 1; transform: scale(1); }
-  .sub { text-align: center; color: var(--muted); font-size: 11px; min-height: 16px; }
+  .sub { text-align: center; color: var(--muted); font-size: var(--fs-body); min-height: 16px; }
   .pile { display: grid; gap: 5px; }
-  .pl { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 5px 8px; background: var(--row); border: 2px solid var(--line);
+  .pl { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 5px 8px; background: var(--sheen), var(--row); border: 2px solid var(--line); box-shadow: var(--raised);
         opacity: 0; transform: translateX(-12px); transition: opacity .25s, transform .25s; }
   .pl.on { opacity: 1; transform: none; }
-  .pl img { width: 32px; height: 32px; image-rendering: pixelated; background: var(--well); border: 2px solid var(--line); padding: 2px; }
-  .pl .amt { font-size: 15px; color: var(--acc); text-shadow: var(--glow); min-width: 70px; text-align: right; }
+  .pl img { width: 32px; height: 32px; image-rendering: pixelated; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); padding: 2px; }
+  .pl .amt { font-size: var(--fs-name); color: var(--acc); text-shadow: var(--glow); min-width: 70px; text-align: right; }
   .crownlabel { color: var(--gold); letter-spacing: .14em; text-align: center; margin-top: 4px; opacity: 0; transition: opacity .4s; }
   .crownlabel.on { opacity: 1; }
   .crowns { display: grid; gap: 8px; }
-  .cr { display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center; padding: 10px; background: var(--row); border: 2px solid var(--line); min-height: 64px;
+  .cr { display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center; padding: 10px; background: var(--sheen), var(--row); border: 2px solid var(--line); box-shadow: var(--raised); min-height: 64px;
         opacity: 0; transform: scale(.9); transition: opacity .3s, transform .3s; }
   .cr.on { opacity: 1; transform: none; }
   .cr.big { border-color: var(--gold); box-shadow: 0 0 0 2px var(--outline), 0 0 14px rgba(242, 207, 58, .55); animation: pulse 1s steps(2) 3; }
-  .cr img { width: 64px; height: 64px; image-rendering: pixelated; background: var(--well); border: 2px solid var(--line); padding: 3px; }
-  .cr .ph { width: 64px; height: 64px; background: var(--well); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: 22px; }
-  .cr .nm { font-size: 15px; text-shadow: var(--glow); } .cr .hint { color: var(--muted); font-size: 10px; }
+  .cr img { width: 64px; height: 64px; image-rendering: pixelated; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); padding: 3px; }
+  .cr .ph { width: 64px; height: 64px; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); display: flex; align-items: center; justify-content: center; color: var(--gold); font-size: var(--fs-hero); }
+  .cr .nm { font-size: var(--fs-name); text-shadow: var(--glow); } .cr .hint { color: var(--muted); font-size: var(--fs-meta); }
   .cr.spin .nm { color: var(--muted); }
   @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
   .meter { display: flex; gap: 3px; justify-content: center; align-items: flex-end; margin-top: 2px; }
-  .meter .tier { flex: 1; max-width: 120px; text-align: center; font-size: 10px; color: var(--muted); }
-  .meter .tier .b { height: 8px; background: var(--well); border: 2px solid var(--line); margin-bottom: 3px; } .meter .tier.on .b { background: var(--tier, var(--acc)); }
+  .meter .tier { flex: 1; max-width: 120px; text-align: center; font-size: var(--fs-meta); color: var(--muted); }
+  .meter .tier .b { height: 8px; background: var(--well); border: 2px solid var(--line); box-shadow: inset 1px 1px 0 var(--lo); margin-bottom: 3px; } .meter .tier.on .b { background: var(--tier, var(--acc)); }
   .meter .tier.on { color: var(--ink); }
-  .report { color: var(--muted); font-size: 11px; text-align: center; opacity: 0; transition: opacity .5s; }
+  .report { color: var(--muted); font-size: var(--fs-body); text-align: center; opacity: 0; transition: opacity .5s; }
   .report.on { opacity: 1; }
 </style>
 </head>
 <body>
 <div class="frame">
-  <div class="head"><span>TOWER COMPLETION</span><button class="x" id="close" title="Close">X</button></div>
+  <div class="head"><span>TOWER COMPLETION</span><button class="x" id="close" title="Close">&times;</button></div>
   <div class="main">
     <div class="banner" id="banner"></div>
     <div class="sub" id="sub"></div>

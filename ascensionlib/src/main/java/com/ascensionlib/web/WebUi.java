@@ -50,7 +50,13 @@ public final class WebUi {
      * Opens {@code page} (a file under web/ascensionlib/) for the player. Returns false and tells the player why when they cannot see it.
      * A page that needs data asks for it with its own "ready" message once it has loaded.
      */
-    public static boolean open(ServerPlayer player, String page) {
+    public static boolean open(ServerPlayer player, String page) { return open(player, page, page, null); }
+
+    /**
+     * Opens a page of the AscensionDex that the Back button can return to: {@code key} names the page and its arguments, and {@code reopen}
+     * opens it again the same way (see {@link PageNav}).
+     */
+    public static boolean open(ServerPlayer player, String page, String key, PageNav.Reopen reopen) {
         if (!available()) {
             player.sendSystemMessage(Component.literal("This screen needs the WebGUI mod on the server."));
             return false;
@@ -60,6 +66,7 @@ public final class WebUi {
             return false;
         }
         WebSprites.reset(player.getUUID());
+        PageNav.opening(player.getUUID(), key, reopen, GuiPresence.isOpen(player.getUUID()));   // read before touch: was a page already up?
         GuiPresence.touch(player.getUUID());
         land.webgui.api.WebviewApi.openGui(player, "webgui://ascensionlib/" + page);
         return true;

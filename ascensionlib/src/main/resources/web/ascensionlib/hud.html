@@ -11,25 +11,25 @@
   html, body { background: transparent; overflow: hidden; }
   body { display: block; }
   @keyframes in { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
-  #panel { transform: scale(var(--ui-scale, 1)); transform-origin: top right; position: fixed; right: 12px; top: 90px; width: 270px; user-select: none; background: var(--panel); border: 2px solid var(--edge); box-shadow: inset 0 0 0 1px #fff, 0 0 0 3px #1b120d; display: none; font-size: 13px; }
+  #panel { transform: scale(var(--ui-scale, 1)); transform-origin: top right; position: fixed; right: 12px; top: 90px; width: 270px; user-select: none; background: var(--panel); border: 2px solid var(--edge); box-shadow: inset 0 0 0 1px #fff, 0 0 0 3px #1b120d; display: none; font-size: var(--fs-body); }
   #panel.on { display: block; }
   #panel .h { display: flex; justify-content: space-between; align-items: center; background: var(--head); padding: 5px 10px; font-weight: 600; cursor: move; }
-  #panel .sec { padding: 6px 10px 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  #panel .sec { padding: 6px 10px 2px; font-size: var(--fs-meta); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
   #panel .r { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-bottom: 1px solid var(--line); background: var(--row); }
   #panel .r .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
   #panel .r .n:hover { text-decoration: underline; }
-  #panel .tag { font-size: 11px; font-weight: 700; padding: 0 6px; color: #fff; background: #46526a; }
-  #panel button { padding: 2px 8px; font-size: 12px; }
+  #panel .tag { font-size: var(--fs-meta); font-weight: 700; padding: 0 6px; color: #fff; background: #46526a; }
+  #panel button { padding: 2px 8px; font-size: var(--fs-body); }
   #panel.min .body { display: none; }
   #left { transform: scale(var(--ui-scale, 1)); transform-origin: top left; position: fixed; left: 12px; top: 90px; display: flex; flex-direction: column; gap: 5px; }
   #bleeds, #effects { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; }
-  .bleed { display: flex; align-items: center; gap: 7px; padding: 3px 9px 3px 6px; background: #2a0b12; border: 2px solid #c4283c; box-shadow: 0 0 0 2px #1b120d; color: #ffd6da; font-size: 12px; animation: in .25s ease-out; }
+  .bleed { display: flex; align-items: center; gap: 7px; padding: 3px 9px 3px 6px; background: #2a0b12; border: 2px solid #c4283c; box-shadow: 0 0 0 2px #1b120d; color: #ffd6da; font-size: var(--fs-body); animation: in .25s ease-out; }
   .bleed.foe { border-color: #e08a2c; background: #2a1a0b; color: #ffe6c8; }
   .bleed .drop { width: 10px; height: 14px; flex: none; background: #ff3448; border: 2px solid #1b120d; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; }
   .bleed.foe .drop { background: #ff9a3c; }
   .bleed .st { color: #ff8896; font-weight: 700; } .bleed.foe .st { color: #ffc078; }
   /* effect badges: Momentum stays while its holder is on the field; Wardstone and Ensnaring flash once. Your side blue, the foe's orange, like the bleed badges. */
-  .eff { display: flex; align-items: center; gap: 7px; padding: 3px 9px 3px 6px; background: #0b1c2a; border: 2px solid #3d8fd1; box-shadow: 0 0 0 2px #1b120d; color: #d6ebff; font-size: 12px; animation: in .25s ease-out; }
+  .eff { display: flex; align-items: center; gap: 7px; padding: 3px 9px 3px 6px; background: #0b1c2a; border: 2px solid #3d8fd1; box-shadow: 0 0 0 2px #1b120d; color: #d6ebff; font-size: var(--fs-body); animation: in .25s ease-out; }
   .eff.foe { border-color: #e08a2c; background: #2a1a0b; color: #ffe6c8; }
   .eff .ic { width: 12px; height: 12px; flex: none; border: 2px solid #1b120d; background: #5db0f0; }
   .eff.foe .ic { background: #ff9a3c; }
@@ -37,7 +37,7 @@
   .eff.wardstone .ic { border-radius: 50% 50% 4px 4px; }
   .eff.ensnaring .ic { background: repeating-linear-gradient(45deg, #5db0f0 0 2px, #1b120d 2px 4px); }
   .eff .st { font-weight: 700; color: #f2cf3a; } .eff.flash .st { color: #9fd4ff; } .eff.foe.flash .st { color: #ffc078; }
-  #panel .hint { padding: 4px 10px 6px; font-size: 11px; color: var(--muted); }
+  #panel .hint { padding: 4px 10px 6px; font-size: var(--fs-body); color: var(--muted); }
 </style>
 </head>
 <body class="hud">

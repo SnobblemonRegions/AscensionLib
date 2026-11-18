@@ -35,6 +35,8 @@ const MOCK = `<script>
   function scoutState() { return { encounterId: 'enc-1', scouters: 3, entries: [{ subjectId: 's1', name: 'Growlithe', detail: scouted.s1 ? detail('rare') : undefined }, { subjectId: 's2', name: 'Houndoom', detail: detail('epic') }] }; }
   function emit(e, d) { setTimeout(function () { (handlers[e] || []).forEach(function (fn) { fn(Math.random() < .5 ? d : JSON.stringify(d)); }); }, 60); }
   var page = location.pathname.split('/').pop();
+  // the Back button shows when the page was reached from another preview page (or with ?back); it goes back in the browser history
+  window.__back = location.search.indexOf('back') >= 0 || (document.referrer.indexOf(location.host) >= 0 && document.referrer.indexOf(page) < 0);
   window.__seen = location.search.indexOf('seen') >= 0 ? ['craft.upgrade', 'craft.refine', 'craft.reforge', 'craft.perfect', 'craft.overreach', 'craft.promote', 'craft.unique', 'craft.respec'] : [];
   window.webgui = {
     isHud: page === 'hud.html',
@@ -43,8 +45,8 @@ const MOCK = `<script>
       log.push(m); console.log('[page -> server]', JSON.stringify(m)); showLog();
       switch (m.channel) {
         // the player's page prefs; the first-open tutorials start unseen (add ?seen to the URL to start with them all dismissed)
-        case 'ascension_ui_get': emit('uiScale', { percent: 100, min: 60, max: 160, calm: false, halloween: false, seen: window.__seen }); break;
-        case 'ascension_ui_set': if (m.seen && window.__seen.indexOf(m.seen) < 0) window.__seen.push(m.seen); emit('uiScale', { percent: m.percent > 0 ? m.percent : 100, min: 60, max: 160, calm: !!m.calm, halloween: false, seen: window.__seen }); break;
+        case 'ascension_ui_get': emit('uiScale', { percent: 100, min: 60, max: 160, calm: false, halloween: false, seen: window.__seen, back: window.__back }); break;
+        case 'ascension_ui_set': if (m.seen && window.__seen.indexOf(m.seen) < 0) window.__seen.push(m.seen); emit('uiScale', { percent: m.percent > 0 ? m.percent : 100, min: 60, max: 160, calm: !!m.calm, halloween: false, seen: window.__seen, back: window.__back }); break;
         case 'ascension_craft_ready': emit('sprites', { mewtwo: PNG }); emit('craftView', view); break;
         case 'ascension_craft_confirm':
           emit('craftDone', { operationId: m.operationId, ok: true, message: '', slotId: m.slotId, oldName: 'Smoldering', oldRank: 2, oldValue: 12, newName: 'Smoldering', newRank: 3, newValue: 16, replayed: false });
@@ -74,6 +76,17 @@ const MOCK = `<script>
             ['unique_fragment', 'Unique Fragment', '#8c63c7', 7, 0], ['unique_catalyst', 'Unique Catalyst', '#b04fa0', 1, 0], ['scouter', 'Scouter', '#6f9a52', 5, 0], ['ascension_sigil', 'Ascension Sigil', '#ffd437', 0, 0]]
             .map(function (a) { return { id: a[0], name: a[1], color: a[2], amount: a[3], carried: a[4] }; }) }); break;
         case 'ascension_wallet_open': location.href = 'wallet.html'; break;
+        case 'ascension_back': history.back(); break;
+        // the Dex home: a full party with every state a card can show (pending upgrades, no profile, low and fainted HP, shiny, an empty slot)
+        case 'ascension_party_ready':
+          emit('sprites', { arcanine: PNG, mewtwo: PNG, ditto: PNG, growlithe: PNG, gyarados: PNG });
+          emit('partyView', { slots: [
+            { id: 'a1', name: 'Arcanine', speciesId: 'cobblemon:arcanine', level: 40, rarityId: 'epic', hp: 100, pending: 2 },
+            { id: 'a2', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', level: 52, rarityId: 'mythical', hp: 64, pending: 0 },
+            { id: 'a3', name: 'Gyarados', speciesId: 'cobblemon:gyarados', level: 33, rarityId: 'rare', hp: 38, pending: 1, shiny: true },
+            { id: 'a4', name: 'Ditto', speciesId: 'cobblemon:ditto', level: 12, rarityId: '', hp: 18, pending: 0 },
+            { id: 'a5', name: 'Growlithe', speciesId: 'cobblemon:growlithe', level: 9, rarityId: 'common', hp: 0, pending: 0, fainted: true },
+            { id: '' } ] }); break;
         case 'ascension_hud_ready':
           emit('sprites', { arcanine: PNG });
           emit('hudReveal', { pokemonId: 'a1', name: 'Arcanine', speciesId: 'cobblemon:arcanine', aspects: [], detail: detail('epic') });

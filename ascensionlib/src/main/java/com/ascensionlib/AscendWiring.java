@@ -689,7 +689,7 @@ final class AscendWiring {
     }
 
     private int openGuide(CommandSourceStack source) throws CommandSyntaxException {
-        return com.ascensionlib.web.WebUi.open(source.getPlayerOrException(), "guide.html") ? 1 : 0;
+        return com.ascensionlib.web.WebUi.open(source.getPlayerOrException(), "guide.html", "guide", p -> com.ascensionlib.web.WebUi.open(p, "guide.html", "guide", null)) ? 1 : 0;
     }
 
     private int reveals(CommandSourceStack source, Boolean enabled) throws CommandSyntaxException {

@@ -126,7 +126,7 @@
     var open = append(actions, 'button', 'primary', 'Inspect'); open.type = 'button'; open.addEventListener('click', explore);
     var keep = append(actions, 'button', 'capture-continue', 'Continue'); keep.type = 'button'; keep.addEventListener('click', dismiss);
     var foot = append(lcd, 'div', 'capture-foot'), brand = append(foot, 'span'), dex = append(brand, 'img'); dex.src = 'icons/ascension_dex.png'; dex.alt = '';
-    brand.appendChild(document.createTextNode('ASCENSION DEX')); append(foot, 'span', '', 'PROFILE SAVED');
+    brand.appendChild(document.createTextNode('ASCENSIONDEX')); append(foot, 'span', '', 'PROFILE SAVED');
     card.addEventListener('mouseenter', function () { hovering = true; pause(); });
     card.addEventListener('mouseleave', function () { hovering = false; resume(); });
     card.addEventListener('focusin', function () { focused = true; pause(); });
