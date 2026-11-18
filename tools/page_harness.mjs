@@ -416,8 +416,8 @@ await check('fusion: pick, preview, review, confirm, result', async () => {
 
 await check('fusion: a host that cannot host shows why, swap needs a valid host', async () => {
   const p = await open(null, 'fusion.html');
-  await emit(p, 'fusionCandidates', { host: entry('Pidgey', 'h9', 'common', true, false), hostBlock: 'Only a Mythic Pokémon can be the host.' });
-  yes((await p.textContent('#result')).includes('Only a Mythic'), 'reason shown');
+  await emit(p, 'fusionCandidates', { host: entry('Pidgey', 'h9', 'common', true, false), hostBlock: 'Only an Ascended Pokémon can be the host.' });
+  yes((await p.textContent('#result')).includes('Only an Ascended'), 'reason shown');
   eq(await p.isDisabled('#swap'), true, 'swap disabled');
   noErrors(p);
 });
@@ -437,7 +437,7 @@ await check('inspect: owned view, affixes, upgrade button; enemy view, scout', a
   yes((await p.textContent('#rows')).includes('MAX'), 'a perfected rank V slot is marked');
   yes((await p.textContent('#rows')).includes('Predator'), 'theme tag on the affix row');
   await shot(p, 'inspect-owned');
-  yes((await p.textContent('#upgrade')).includes('Upgrade (2)'), 'upgrade label');
+  yes((await p.textContent('#upgrade')).includes('Traits (2)'), 'the button names the screen it opens, with the upgrades waiting');
   await p.click('#upgrade');
   yes((await sent(p)).some(x => x.channel === 'ascension_craft_open' && x.pokemonId === 'a1'), 'upgrade opens craft');
   noErrors(p);

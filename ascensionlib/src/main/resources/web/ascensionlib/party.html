@@ -10,7 +10,10 @@
 <style>
   /* the same 1040 x 600 tablet as every other Dex screen (ascension.css), so moving between screens never resizes the device */
   .main { flex: 1; min-height: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-  .hint { color: var(--muted); font-size: var(--fs-body); }
+  .hint { color: var(--muted); font-size: var(--fs-body); display: flex; justify-content: space-between; align-items: center; }
+  .legend { display: flex; align-items: center; gap: 5px; font-size: var(--fs-meta); }
+  .legend i { width: 16px; height: 14px; display: inline-flex; align-items: center; justify-content: center; font-style: normal; color: var(--scr); background: var(--acc); border: 1px solid var(--outline); margin-left: 6px; }
+  .legend i.g { background: #8fd0a8; } .legend i.open { background: transparent; border: 1px dashed var(--line); }
   .grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; }
   /* a party card: a raised panel with a sunk stage for the sprite, and a band along the bottom edge in the Pokemon's rarity colour (--rc, set per card) */
   .card { --rc: var(--line); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding: 22px 10px 12px; min-height: 0;
@@ -62,7 +65,8 @@
   <div class="head"><span>ASCENSIONDEX</span><button class="x" id="close" title="Close">&times;</button></div>
   <div class="main">
     <div class="pane" id="paneParty" data-boot>
-      <div class="hint" id="hint">Your party. Arrow keys pick, Enter inspects (or double-click).</div>
+      <div class="hint" id="hint"><span>Your party. Arrow keys pick, Enter inspects (or double-click).</span>
+        <span class="legend" aria-label="Trait cells: Attack, Guard, and an open slot"><i class="a">I</i> Attack <i class="g">I</i> Guard <i class="open"></i> open slot</span></div>
       <div class="grid" id="grid"></div>
     </div>
     <div class="pane" id="paneWallet" hidden></div>
@@ -77,7 +81,7 @@
     <div class="msg muted" id="info"></div>
     <div class="group" id="footParty">
       <button id="fuse" disabled>Fuse</button>
-      <button id="upgrade" disabled>Upgrade</button>
+      <button id="upgrade" disabled title="Opens the Traits screen">Traits</button>
       <button class="primary" id="inspect" disabled>Inspect</button>
     </div>
     <div class="group" id="footWallet" hidden>
@@ -162,7 +166,11 @@
     $('upgrade').title = s && s.locked ? 'This Pokemon is on loan and cannot be upgraded.' : s && s.id && !s.rarityId ? 'It has no ascension profile yet: inspect it to use an Ascension Sigil.' : '';
     $('fuse').disabled = !(s && s.id);
     $('fuse').title = s && s.id ? 'Fuse: open the fusion screen with ' + s.name + ' as the host (an Ascended Pokémon with a Unique can be one; you can change it there).' : 'Pick a Pokemon first.';
-    partyInfo = s && s.id ? s.name + (s.rarityId ? '' : ' has no ascension profile') : 'Pick a Pokemon';
+    // the footer says why a button is off, where the player is already looking (a tooltip may not show in the game's browser)
+    partyInfo = !(s && s.id) ? 'Pick a Pokemon'
+      : !s.rarityId ? s.name + ' has no profile yet: Inspect it to use an Ascension Sigil.'
+      : s.locked ? s.name + ' is on loan: its traits cannot change until it is returned.'
+      : s.name;
     if (tab === 'party') A.text($('info'), partyInfo);
   }
 
@@ -194,7 +202,7 @@
   $('tabGuide').addEventListener('click', function () { showTab('guide'); });
   // Fuse is not a tab: it opens the fusion screen (the craft screen's Fuse button sends the same message) with the chosen Pokemon as the host.
   $('fuse').addEventListener('click', function () { var s = view && view.slots[sel]; if (s && s.id && !$('fuse').disabled) A.send('ascension_fusion_open', { hostId: s.id }); });
-  // The keyboard: arrows move across the 3 x 2 grid (over empty slots too), Enter inspects, U upgrades.
+  // The keyboard: arrows move across the 3 x 2 grid (over empty slots too), Enter inspects, T opens Traits.
   document.addEventListener('keydown', function (e) {
     if (tab !== 'party' || !view || e.target.tagName === 'INPUT') return;
     var step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[e.key];
@@ -203,7 +211,7 @@
       for (var i = (sel < 0 ? 0 : sel) + step; i >= 0 && i < view.slots.length; i += step) if (view.slots[i].id) { pick(i); break; }   // skip empty slots
     }
     else if (e.key === 'Enter') { e.preventDefault(); inspect(); }
-    else if ((e.key === 'u' || e.key === 'U') && !$('upgrade').disabled) $('upgrade').click();
+    else if ((e.key === 't' || e.key === 'T') && !$('upgrade').disabled) $('upgrade').click();
   });
   $('depositAll').addEventListener('click', function () { if (wallet) wallet.depositAll(); });
   $('inspect').addEventListener('click', inspect);

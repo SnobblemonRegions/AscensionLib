@@ -196,6 +196,18 @@
     c.style.background = A.TYPES[type] || '#7f869b';
     return c;
   };
+  /**
+   * One of the game's own words (attunement, Transcendent...) drawn as a link to the Guide topic that explains it. The Guide opens at that topic and
+   * Back returns here (GuideWeb.java). Only words the Guide actually explains get one.
+   */
+  A.TERMS = { attunement: 'growing', milestones: 'growing', overreach: 'growing', transcendent: 'uniques', unique: 'uniques' };
+  A.term = function (text, key) {
+    var topic = A.TERMS[(key || text).toLowerCase()];
+    if (!topic || !g) return A.el('span', '', text);
+    var t = A.el('button', 'term', text); t.type = 'button'; t.title = 'What is this? Opens the Guide';
+    t.addEventListener('click', function (e) { e.stopPropagation(); A.send('ascension_guide_open', { topic: topic }); });
+    return t;
+  };
   A.num = function (n) { n = Number(n) || 0; return n >= 10000000 ? (n / 1000000).toFixed(1) + 'M' : n.toLocaleString('en-US'); };
   A.speciesPath = function (speciesId) { var i = (speciesId || '').indexOf(':'); return i >= 0 ? speciesId.slice(i + 1) : (speciesId || ''); };
   A.speciesName = function (speciesId) { return A.speciesPath(speciesId).replace(/_/g, ' '); };

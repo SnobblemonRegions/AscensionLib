@@ -28,4 +28,18 @@ class ScoutPayloadsTest {
     @Test void aSlotWithNoRollDoesNotCountTowardsResonance() {
         assertEquals(List.of(new ScoutPayloads.Tier("Tempo", 1, 0)), detail(slot("a", "Tempo", 4), slot("b", "Tempo", 0)).resonance());
     }
+
+    @Test void aTraitsUnitSaysWhatItsPercentMeasures() {
+        assertEquals("damage", ScoutPayloads.Slot.unitOf("physical_force", "outgoingDamage"));
+        assertEquals("less damage taken", ScoutPayloads.Slot.unitOf("type_ward", "incomingReduction"));
+        assertEquals("healing", ScoutPayloads.Slot.unitOf("restorative", "healing"));
+        assertEquals("chance", ScoutPayloads.Slot.unitOf("keen_edge", "mechanic"));
+        assertEquals("Speed", ScoutPayloads.Slot.unitOf("swift_strike", "mechanic"), "Swift Strike raises Speed, not a chance");
+        assertEquals("burn damage", ScoutPayloads.Slot.unitOf("smoldering", "residual"));
+        assertEquals("", ScoutPayloads.Slot.unitOf("future_trait", "someNewChannel"), "an unknown channel shows no unit rather than a wrong one");
+    }
+
+    @Test void anEnemyRowHasNoUnit() {
+        assertEquals("", slot("a", "", 4).unit());
+    }
 }

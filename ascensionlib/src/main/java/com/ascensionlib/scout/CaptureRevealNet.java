@@ -28,7 +28,8 @@ public final class CaptureRevealNet {
         String condition = affix.base().condition() == null ? "" : affix.base().condition();
         return new ScoutPayloads.Slot(slot.category().id(), affix.base().name() + (type == null ? "" : " (" + type + ")"),
                 slot.rank(), slot.rolledValue(), Math.max(band.min(), slot.floor()), band.max(), condition,
-                com.cobbleascend.domain.v1.Resonance.themeOf(slot.affixId()).map(com.cobbleascend.domain.v1.Resonance.Theme::display).orElse(""), slot.sealed());
+                com.cobbleascend.domain.v1.Resonance.themeOf(slot.affixId()).map(com.cobbleascend.domain.v1.Resonance.Theme::display).orElse(""), slot.sealed(),
+                ScoutPayloads.Slot.unitOf(slot.affixId(), affix.base().channel()));
     }
 
     /** Shows a committed profile in the transparent capture GUI. False when the client cannot show web pages. */

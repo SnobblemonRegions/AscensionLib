@@ -30,7 +30,7 @@ const MOCK = `<script>
     slots: slots, message: '', open: false };
   var E = function (n, id, rar, party, canHost, block) { return { id: id, name: n, speciesId: 'cobblemon:' + n.toLowerCase(), rarityId: rar, uniqueName: 'Overmind', inParty: party, canHost: canHost, block: block }; };
   var detail = function (rar) { return { level: 40, types: ['fire', 'flying'], baseStats: [90, 100, 80, 110, 80, 95], rarityId: rar, uniqueName: '777',
-    slots: [{ category: 'prefix', name: 'Smoldering', rank: 3, value: 14, min: 12, max: 16, condition: 'Burns you inflict deal 50% more damage.' }, { category: 'suffix', name: 'Stubborn', rank: 1, value: 6, min: 5, max: 8, condition: '' }] }; };
+    slots: [{ category: 'prefix', name: 'Smoldering', rank: 3, value: 14, min: 12, max: 16, condition: 'Burns you inflict deal 50% more damage.', unit: 'burn damage' }, { category: 'suffix', name: 'Stubborn', rank: 1, value: 6, min: 5, max: 8, condition: '', unit: 'chance' }] }; };
   var scouted = {};
   function scoutState() { return { encounterId: 'enc-1', scouters: 3, entries: [{ subjectId: 's1', name: 'Growlithe', detail: scouted.s1 ? detail('rare') : undefined }, { subjectId: 's2', name: 'Houndoom', detail: detail('epic') }] }; }
   function emit(e, d) { setTimeout(function () { (handlers[e] || []).forEach(function (fn) { fn(Math.random() < .5 ? d : JSON.stringify(d)); }); }, 60); }
@@ -66,7 +66,7 @@ const MOCK = `<script>
           emit('sprites', { arcanine: PNG });
           if (location.search.indexOf('enemy') >= 0) emit('inspectScout', scoutState());
           else emit('inspectOwned', { pokemonId: 'a1', name: 'Arcanine', species: 'Arcanine', pending: 2, attunement: 9, detail: detail('epic'),
-            extra: { speciesId: 'cobblemon:arcanine', aspects: [], origin: 'wild_capture', initialRarity: 'rare', highestLevel: 40, milestones: 3, prefixCap: 2, suffixCap: 2, craftLocked: false } });
+            extra: { speciesId: 'cobblemon:arcanine', aspects: [], origin: 'wild_capture', initialRarity: 'rare', highestLevel: 40, milestones: 3, prefixCap: 2, suffixCap: 2, craftLocked: false, attunementNeeded: 30 } });
           break;
         case 'ascension_inspect_use': scouted[m.subjectId] = true; emit('inspectScout', scoutState()); emit('hudScout', scoutState()); break;
         case 'ascension_inspect_open': location.href = 'inspect.html' + (m.kind === 'enemy' ? '?enemy' : ''); break;
