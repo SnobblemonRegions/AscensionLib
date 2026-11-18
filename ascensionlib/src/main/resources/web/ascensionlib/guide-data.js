@@ -195,7 +195,7 @@ window.GUIDE = {
       ],
       [
        "Reforge",
-       "Swap one trait for a different one. The rank stays and the value rerolls.",
+       "Reroll which trait one slot holds. The rank stays and the value rerolls; the same trait can come back.",
        "24 dust + 1 facet"
       ],
       [

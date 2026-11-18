@@ -208,6 +208,28 @@
     t.addEventListener('click', function (e) { e.stopPropagation(); A.send('ascension_guide_open', { topic: topic }); });
     return t;
   };
+  /**
+   * A screen's first-open intro: a short card over its content, once per player (the same dismissed-tutorial list as the Traits cards, TutorialPrefs.java).
+   * Shown only after the server has said what this player has seen, so a returning player never sees it flash. lines: two or three short sentences.
+   */
+  A.firstTime = function (id, title, lines) {
+    function show() {
+      if (!A.seen || A.hasSeen(id) || document.querySelector('.intro')) return;
+      var frame = document.querySelector('.frame'); if (!frame) return;
+      var area = frame.querySelector('.main') || frame;
+      if (getComputedStyle(area).position === 'static') area.style.position = 'relative';
+      var wrap = A.el('div', 'intro'); wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-label', title);
+      var card = A.el('div', 'intro-card');
+      card.appendChild(A.el('div', 'intro-t', title));
+      var ul = A.el('ul'); lines.forEach(function (l) { ul.appendChild(A.el('li', '', l)); }); card.appendChild(ul);
+      var ok = A.el('button', 'primary', 'Got it');
+      ok.addEventListener('click', function () { A.markSeen(id); wrap.parentNode.removeChild(wrap); });
+      var row = A.el('div', 'intro-go'); row.appendChild(ok); card.appendChild(row);
+      wrap.appendChild(card); area.appendChild(wrap);
+      ok.focus();
+    }
+    if (A.seen) show(); else A.onSeen(show);
+  };
   A.num = function (n) { n = Number(n) || 0; return n >= 10000000 ? (n / 1000000).toFixed(1) + 'M' : n.toLocaleString('en-US'); };
   A.speciesPath = function (speciesId) { var i = (speciesId || '').indexOf(':'); return i >= 0 ? speciesId.slice(i + 1) : (speciesId || ''); };
   A.speciesName = function (speciesId) { return A.speciesPath(speciesId).replace(/_/g, ' '); };

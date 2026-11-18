@@ -19,9 +19,11 @@ public final class PartyWeb {
     /**
      * One party slot. {@code id} is empty for an empty slot; {@code rarityId} is empty when the Pokemon has no profile. {@code attack} and {@code guard} are
      * the ranks (1-5) of its Attack and Guard traits; {@code attackSlots} and {@code guardSlots} how many its rarity allows, so the card can show the open ones.
+     * {@code nextMilestone} (0: all reached), {@code attunement} and {@code attunementNeeded} (0 at Ascended) give the card its next goal.
      */
     public record Slot(int slot, String id, String name, String speciesId, int level, String rarityId, int pending, int hp, boolean fainted,
-                       boolean shiny, boolean locked, List<String> types, List<Integer> attack, List<Integer> guard, int attackSlots, int guardSlots) {}
+                       boolean shiny, boolean locked, List<String> types, List<Integer> attack, List<Integer> guard, int attackSlots, int guardSlots,
+                       int nextMilestone, int attunement, int attunementNeeded) {}
 
     public record View(List<Slot> slots) {}
 
@@ -42,7 +44,7 @@ public final class PartyWeb {
         for (int i = 0; i < 6; i++) {
             var pokemon = party.get(i);
             if (pokemon == null || pokemon.isBattleClone()) {
-                slots.add(new Slot(i, "", "", "", 0, "", 0, 0, false, false, false, List.of(), List.of(), List.of(), 0, 0));
+                slots.add(new Slot(i, "", "", "", 0, "", 0, 0, false, false, false, List.of(), List.of(), List.of(), 0, 0, 0, 0, 0));
                 continue;
             }
             var profile = service == null ? java.util.Optional.<com.cobbleascend.domain.v1.ProfileV1>empty() : service.canonical(pokemon);
@@ -56,7 +58,10 @@ public final class PartyWeb {
                     java.util.stream.StreamSupport.stream(pokemon.getTypes().spliterator(), false).map(type -> type.getName()).toList(),
                     ranks(profile, com.cobbleascend.domain.v1.Category.PREFIX), ranks(profile, com.cobbleascend.domain.v1.Category.SUFFIX),
                     profile.map(p -> service.rules().slotCount(p.rarity(), com.cobbleascend.domain.v1.Category.PREFIX)).orElse(0),
-                    profile.map(p -> service.rules().slotCount(p.rarity(), com.cobbleascend.domain.v1.Category.SUFFIX)).orElse(0)));
+                    profile.map(p -> service.rules().slotCount(p.rarity(), com.cobbleascend.domain.v1.Category.SUFFIX)).orElse(0),
+                    // the card's next goal: the page picks the most useful one (an upgrade waiting, a promotion ready, the next milestone)
+                    profile.map(com.ascensionlib.ProgressFacts::nextMilestone).orElse(0), profile.map(p -> p.attunement()).orElse(0),
+                    profile.map(p -> com.ascensionlib.ProgressFacts.attunementNeeded(service.rules(), p)).orElse(0)));
         }
         return new View(slots);
     }

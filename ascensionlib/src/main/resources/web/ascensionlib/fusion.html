@@ -139,6 +139,8 @@
     line(box, 'muted', 'Choose a donor on the right to see the fused power and its price.');
   }
 
+  window.A.firstTime('dex.fusion', 'Fusion', ['Fusion turns two Pokémon with Uniques into one Transcendent.', 'The host on the left is kept. The donor on the right is consumed for good.', 'Nothing happens until you review the pairing and confirm a second time.']);
+
   function renderResult() {
     var box = $('result'); box.innerHTML = '';
     if (hostBlock) { line(box, 'bad', hostBlock + ' Choose a different host.'); return; }

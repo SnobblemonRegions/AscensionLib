@@ -44,6 +44,9 @@
   .traits i.v { background: var(--gold); }
   .traits i.open { background: transparent; border: 1px dashed var(--line); box-shadow: none; }
   .traits .sep { width: 6px; }
+  /* what this Pokemon can do next, the card's call to action */
+  .goal { font-size: var(--fs-meta); color: var(--muted); letter-spacing: .04em; min-height: 14px; }
+  .goal.up { color: var(--good); } .goal.ready { color: var(--gold); }
   .tag { font-size: var(--fs-meta); padding: 0 6px; background: #46526a; color: #fff; border: 1px solid var(--outline); }
   /* HP as a segmented cell, like a handheld's battery meter */
   .hp { --hpc: var(--good); width: 86%; height: 8px; padding: 1px; background: var(--scr); border: 1px solid var(--line); box-shadow: inset 1px 1px 0 var(--lo); }
@@ -127,6 +130,16 @@
     return row;
   }
 
+  /** The one next step worth showing on a card, most useful first: an upgrade waiting, a promotion's attunement reached, the next milestone. [text, class] */
+  function goalOf(s) {
+    if (!s.rarityId) return ['Start: a Sigil gives it a profile', ''];
+    if (s.pending > 0) return [s.pending + (s.pending === 1 ? ' upgrade' : ' upgrades') + ' to spend', 'up'];
+    if (s.attunementNeeded > 0 && s.attunement >= s.attunementNeeded) return ['Attunement ready to promote', 'ready'];
+    if (s.nextMilestone > 0) return ['Next upgrade at Lv ' + s.nextMilestone, ''];
+    if (s.attunementNeeded > 0) return ['Attunement ' + s.attunement + ' / ' + s.attunementNeeded + ' to promote', ''];
+    return ['Every milestone reached', ''];
+  }
+
   var cards = [];   // the drawn cards by slot, so choosing one only moves the highlight instead of rebuilding the grid and re-decoding every sprite
 
   function pick(i) { sel = i; select(); }
@@ -141,7 +154,6 @@
       if (s.id) card.style.setProperty('--rc', cardAccent(s));
       card.appendChild(A.el('span', 'slot', String(i + 1)));
       if (!s.id) { card.appendChild(A.el('div', 'sub', 'Empty slot')); grid.appendChild(card); return; }
-      if (s.pending > 0) card.appendChild(A.el('span', 'badge', s.pending + (s.pending === 1 ? ' upgrade' : ' upgrades')));
       var spr = A.el('div', 'spr'); spr.appendChild(A.sprite(s.speciesId, 3)); card.appendChild(spr);
       card.appendChild(A.el('div', 'nm', (s.shiny ? '★ ' : '') + s.name));
       var sub = A.el('div', 'sub'); sub.appendChild(A.el('span', '', 'Lv ' + s.level));
@@ -149,6 +161,7 @@
       if (s.rarityId) { tag.style.background = 'var(--' + s.rarityId + '-bg)'; tag.style.color = 'var(--' + s.rarityId + ')'; }
       sub.appendChild(tag); (s.types || []).forEach(function (t) { sub.appendChild(A.typeChip(t)); }); card.appendChild(sub);
       if (s.rarityId) card.appendChild(traitCells(s));
+      var g = goalOf(s); card.appendChild(A.el('div', 'goal' + (g[1] ? ' ' + g[1] : ''), g[0]));
       var hp = A.el('div', 'hp' + (s.hp < 25 ? ' crit' : s.hp < 50 ? ' low' : '')); var fill = A.el('i'); fill.style.width = s.hp + '%'; hp.appendChild(fill); card.appendChild(hp);
       card.addEventListener('click', function () { pick(i); });
       card.addEventListener('dblclick', function () { pick(i); inspect(); });
@@ -218,6 +231,8 @@
   $('upgrade').addEventListener('click', function () { var s = view && view.slots[sel]; if (s && s.id && !$('upgrade').disabled) A.send('ascension_craft_open', { pokemonId: s.id }); });
   $('close').addEventListener('click', function () { A.send('close'); });
   $('done').addEventListener('click', function () { A.send('close'); });
+
+  A.firstTime('dex.home', 'Your AscensionDex', ['Each card is a Pokémon in your party: its rarity, types and traits.', 'The line under its traits says what it can do next.', 'Inspect shows everything about it. Traits is where you upgrade it.']);
 
   function ready() {
     A.ready('ascension_party_ready', function () { return !!view; }, $('info'));

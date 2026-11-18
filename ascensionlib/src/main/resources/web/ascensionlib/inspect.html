@@ -189,7 +189,7 @@
       if (!r.unique) {
         var t2 = A.el('div', 't2'); var pips = A.el('span', 'pips');
         for (var k = 0; k < 5; k++) pips.appendChild(A.el('i', k < r.rank ? 'on' : ''));
-        t2.appendChild(pips); if (r.min >= 0) t2.appendChild(A.el('span', '', 'rolls ' + r.min + '–' + r.max + '%'));
+        t2.appendChild(pips); if (r.min >= 0) t2.appendChild(A.el('span', '', 'range ' + r.min + '–' + r.max + '%'));
         col.appendChild(t2);
       }
       el.appendChild(col);
@@ -260,7 +260,7 @@
       : mode === 'owned' && owned && owned.name && !owned.detail ? owned.name + ' has no profile yet. An Ascension Sigil gives it one.' : '');
   }
 
-  A.on('inspectOwned', function (o) { mode = 'owned'; owned = o; sel = 0; render(); });
+  A.on('inspectOwned', function (o) { mode = 'owned'; owned = o; sel = 0; render(); introOnce(); });
   A.on('inspectScout', function (s) { if (mode === '') mode = 'enemy'; if (mode !== 'enemy') return; state = s; idx = Math.min(idx, Math.max(0, s.entries.length - 1)); render(); });
 
   $('close').addEventListener('click', function () { A.send('close'); });
@@ -288,6 +288,9 @@
       rowEls[i].click(); rowEls[i].scrollIntoView({ block: 'nearest' });
     } else if (mode === 'enemy' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) $(e.key === 'ArrowLeft' ? 'prev' : 'next').click();
   });
+
+  A.onSeen(function () { if (mode === 'owned') introOnce(); });
+  function introOnce() { A.firstTime('dex.inspect', 'Inspecting a Pokémon', ['Left: its species base stats and its rarity.', 'Right: its traits. Click one to read what it does. Dashed rows are open slots.', 'Underlined words open the Guide at the topic that explains them.']); }
 
   function ready() {
     A.ready('ascension_inspect_ready', function () { return !!mode; }, $('info'));

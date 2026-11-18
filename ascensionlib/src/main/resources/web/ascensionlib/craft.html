@@ -86,6 +86,12 @@
   .odds { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 14px; margin: 6px 0; font-size: var(--fs-meta); }
   .odds div { display: flex; gap: 6px; padding: 0 3px; } .odds div.cur { background: var(--well); color: var(--acc); } .odds i { margin-left: auto; font-style: normal; color: var(--muted); } .odds .rr { color: var(--legendary); }
   #detail { overflow-y: auto; position: relative; }
+  .rodds { margin-top: 8px; } .odds-h { font-size: var(--fs-meta); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+  .odds-l { display: grid; gap: 2px; max-height: 108px; overflow-y: auto; padding-right: 4px; }
+  .odds-r { display: grid; grid-template-columns: 1fr 90px 44px; gap: 8px; align-items: center; font-size: var(--fs-meta); }
+  .odds-r.now .odds-n { color: var(--acc); }
+  .odds-b { height: 6px; background: var(--well); border: 1px solid var(--line); } .odds-b i { display: block; height: 100%; background: var(--acc); }
+  .odds-p { text-align: right; font-variant-numeric: tabular-nums; }
   /* the one moment on this screen: when a craft lands, a bright line sweeps down the detail panel in the mechanic's colour (Calm removes it) */
   #detail.landed::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--acc); box-shadow: 0 0 0 1px var(--outline); pointer-events: none;
                           animation: landed .55s steps(12) 1 forwards; }
@@ -143,8 +149,8 @@
       does: "Raises one trait a rank and rerolls its value in the higher rank's range.", costs: 'One upgrade. Your Pokémon earns one every 10 levels.', risk: 'None. It never fails.' },
     refine: { hue: '#5fe3b0', verb: 'Reroll the value', icon: ['##########', '#........#', '#.##.....#', '#.##.....#', '#...##...#', '#...##...#', '#.....##.#', '#.....##.#', '#........#', '##########'],
       does: "Rerolls a trait's value inside its current rank.", costs: 'Resonance Dust and Facets.', risk: 'The new value can be lower than now.' },
-    reforge: { hue: '#b48cff', verb: 'Swap the trait', icon: ['...#......', '..##......', '.########.', '..##.....#', '...#.....#', '#.....#...', '#.....##..', '.########.', '......##..', '......#...'],
-      does: 'Swaps a trait for a different one. The rank stays and the value rerolls.', costs: 'Resonance Dust and Facets.', risk: 'The new trait is random. It also clears a perfected floor.' },
+    reforge: { hue: '#b48cff', verb: 'Reroll the trait', icon: ['...#......', '..##......', '.########.', '..##.....#', '...#.....#', '#.....#...', '#.....##..', '.########.', '......##..', '......#...'],
+      does: 'Rerolls which trait the slot holds. The rank stays and the value rerolls. The same trait can come back.', costs: 'Resonance Dust and Facets.', risk: 'The new trait is random. It also clears a perfected floor.' },
     perfect: { hue: '#f2cf3a', verb: 'Lift the floor', icon: ['..######..', '.#.#..#.#.', '##########', '#..#..#..#', '.#..##..#.', '..#.##.#..', '...####...', '....##....', '..........', '##########'],
       does: 'Raises the lowest value a rank V trait can roll, one point a step. A Refine never rolls below it.', costs: 'Resonance Dust, 10 more each step on the same trait.', risk: 'None, but a Reforge clears the floor.' },
     overreach: { hue: '#ff7a5c', verb: 'Gamble past cap', icon: ['.....####.', '....####..', '...####...', '..#######.', '.....###..', '....###...', '...###....', '..###.....', '.##.......', '#.........'],
@@ -291,6 +297,39 @@
     ok.addEventListener('click', function () { coachOpen = ''; if (!A.hasSeen('craft.' + mode)) A.markSeen('craft.' + mode); drawDetail(); });
     go.appendChild(ok); c.appendChild(go);
     box.scrollTop = 0; box.appendChild(c);
+  }
+  /** What a Reforge can roll and how likely each is (the server's weighted odds); the trait held now is marked, since it can come back. */
+  function oddsList(box, odds) {
+    var wrap = A.el('div', 'rodds'); wrap.appendChild(A.el('div', 'odds-h', 'What it can become'));
+    var list = A.el('div', 'odds-l');
+    odds.forEach(function (o) {
+      var pct = o.permille >= 100 ? Math.round(o.permille / 10) + '%' : (o.permille / 10).toFixed(1) + '%';
+      var row = A.el('div', 'odds-r' + (o.current ? ' now' : ''));
+      row.appendChild(A.el('span', 'odds-n', o.name + (o.current ? ' (now)' : '')));
+      var b = A.el('span', 'odds-b'), fill = A.el('i'); fill.style.width = Math.max(2, Math.min(100, o.permille / 10 * 2)) + '%'; b.appendChild(fill); row.appendChild(b);
+      row.appendChild(A.el('span', 'odds-p', pct));
+      list.appendChild(row);
+    });
+    wrap.appendChild(list); box.appendChild(wrap);
+  }
+  /**
+   * The rare results worth a moment: a promotion to Ascended, a trait reaching rank V, a value at the top of its range. Judged on the fresh view after a craft
+   * (the craft result alone does not carry the new band), so it reflects what the server saved. Returns the stamp text, or ''.
+   */
+  var landed = null;
+  function stampFor(l, v) {
+    if (!l) return '';
+    if (l.mode === 'promote') return v.rarityId === 'mythical' && l.rarity !== 'mythical' ? 'ASCENDED' : '';
+    var s = null; v.slots.forEach(function (x) { if (x.slotId === l.slotId) s = x; });
+    if (!s || (l.mode !== 'upgrade' && l.mode !== 'refine' && l.mode !== 'reforge')) return '';
+    if (l.mode === 'upgrade' && s.rank === 5 && l.oldRank < 5) return 'RANK V';
+    return s.value >= s.bandMax ? 'MAX ROLL' : '';
+  }
+  function stamp(text) {
+    var old = document.querySelector('#detail .stamp'); if (old) old.parentNode.removeChild(old);
+    var el = A.el('div', 'stamp', text); el.setAttribute('role', 'status');
+    $('detail').appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, A.calm ? 1400 : 2000);   // Calm: shown still, then gone
   }
   function rangeStrip(box, s) {
     var lo = s.bandMin, hi = s.bandMax, span = Math.max(1, hi - lo), pct = function (v) { return Math.max(0, Math.min(100, 100 * (v - lo) / span)); };
@@ -479,9 +518,10 @@
       nxt = vbox(capped ? 'Not available' : 'New floor', capped ? '—' : '+' + (s.floor + 1) + '%', capped ? 'Band top ' + s.bandMax + '%' : 'value → +' + Math.max(s.value, s.floor + 1) + '%', true);
     } else {
       cur = vbox('Current · ' + A.roman[Math.max(1, Math.min(5, s.rank))], s.name, '+' + s.value + '% · rank ' + A.roman[Math.max(1, Math.min(5, s.rank))], false);
-      nxt = vbox('New trait', '?', s.reforgePool + ' eligible', true);
+      nxt = vbox('New trait', '?', s.reforgePool + ' possible', true);
     }
     pair(box, cur, nxt);
+    if (mode === 'reforge' && s.reforgeOdds && s.reforgeOdds.length) oddsList(box, s.reforgeOdds);
     if (mode === 'refine') rangeStrip(box, s);
     if (mode === 'overreach' && !blockFor(s) && typeof s.overreachChance === 'number') gambleBar(box, s);
     var bar = A.el('div', 'bar');
@@ -491,7 +531,7 @@
       : mode === 'refine' ? "Rerolls the value inside this rank's range. It can go lower."
       : mode === 'perfect' ? 'Raises the lowest value this rank V trait can roll by one point, up to the band top. A Refine can never roll below it. Each step costs more dust; a Reforge clears it.'
       : mode === 'overreach' ? 'A gamble for a rank V trait at its band top, one attempt per trait. Win: a permanent value above the band top. Lose: the value drops into the lower half of the band, ignoring your floor. Win or lose the slot is sealed: only a Reforge can change it.'
-      : 'Swaps this trait for a different one. Rank stays, value rerolls.'));
+      : 'Rerolls which trait this slot holds. Rank stays, value rerolls; the same trait can come back.'));
     box.appendChild(A.el('div', 'spacer'));
     costRow(box, blockFor(s));
     drawCoach(box);
@@ -613,6 +653,7 @@
   A.onSeen(function () { if (view) drawDetail(); });
   A.on('craftView', function (v) {
     var first = !view; view = v;
+    var won = stampFor(landed, v); landed = null;
     if (first) { mode = v.pending > 0 ? 'upgrade' : 'refine'; if (v.slots.length) slotId = v.slots[0].slotId; }
     uniqueId = validUnique(uniqueId);
     var found = false; v.slots.forEach(function (s) { if (s.slotId === slotId) found = true; });
@@ -620,10 +661,12 @@
     if (!found) slotId = v.slots.length ? v.slots[0].slotId : '';
     if (v.message && !banner) { banner = v.message; bannerOk = false; }
     render();
+    if (won) stamp(won);
   });
   A.on('craftDone', function (d) {
     if (d.operationId !== pendingOp) return;
     if (d.ok) { var det = $('detail'); det.classList.remove('landed'); void det.offsetWidth; det.classList.add('landed'); }   // restart the sweep for each craft
+    if (d.ok && !d.replayed) landed = { mode: mode, slotId: d.slotId, oldRank: d.oldRank, rarity: view.rarityId };
     clearTimeout(waitTimer); pendingOp = ''; phase = 'browse'; bannerOk = !!d.ok;
     var did = action; action = '';
     var wasHaunt = isHaunt();

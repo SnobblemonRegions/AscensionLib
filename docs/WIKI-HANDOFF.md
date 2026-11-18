@@ -58,7 +58,7 @@ Open Craft from the inspector (Upgrade button). Nothing is spent until you press
 |---|---|---|
 | Upgrade | Raise one trait one rank and reroll its value in the new, higher range. Never fails. | 1 upgrade credit (free) |
 | Refine | Reroll one trait's value inside its current rank. It can come out lower. | 12 dust |
-| Reforge | Swap one trait for a different one. The rank stays and the value rerolls. | 24 dust + 1 facet |
+| Reforge | Reroll which trait one slot holds. The rank stays and the value rerolls; the same trait can come back. | 24 dust + 1 facet |
 | Perfect | Rank V only. Raise the lowest value the trait can roll by one point, up to its range top. A Refine can never roll below the floor. | 30 dust, +10 for each step already bought on that slot |
 | Overreach | Rank V at its range top only. One gamble per trait: 45% for a permanent value 10 to 25% above the range top; otherwise the value drops into the lower half. Either way the slot is sealed (only a Reforge changes it). | 60 dust + 2 facets + 1 Tower Mark |
 | Promote | Move the whole Pokémon up one rarity and open one new trait slot. All traits are kept. | see the promotion table, plus attunement |
