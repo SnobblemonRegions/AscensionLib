@@ -60,6 +60,19 @@
   });
   sizeControl();
   calmControl();
+  backControl();
+  /**
+   * Back, at the left of the header: reopens the page this one replaced (the Dex from Inspect, Inspect from Traits). Hidden until the server says
+   * there is one (uiScale.back, see PageNav.java), so a page opened straight from the item or a command shows none.
+   */
+  function backControl() {
+    var head = document.querySelector('.frame .head');
+    if (!head || head.querySelector('.backbtn')) return;
+    var b = document.createElement('button'); b.className = 'x backbtn'; b.id = 'backbtn'; b.hidden = true;
+    b.textContent = '‹ Back'; b.title = 'Back to the previous screen';
+    b.addEventListener('click', function () { b.disabled = true; A.send('ascension_back'); });
+    head.insertBefore(b, head.firstChild);
+  }
   /** A header control to make the page bigger or smaller: the server keeps the choice and answers with the clamped value. */
   function sizeControl() {
     var head = document.querySelector('.frame .head');
@@ -216,6 +229,7 @@
     document.documentElement.classList.toggle('calm', A.calm);
     document.documentElement.classList.toggle('halloween', !!s.halloween);   // the event theme: ascension.css, HalloweenEvent.java
     var cb = document.getElementById('calmbtn'); if (cb) cb.classList.toggle('on', A.calm);
+    var bb = document.getElementById('backbtn'); if (bb) bb.hidden = !s.back;
     var label = document.getElementById('uipct'); if (label) label.textContent = s.percent + '%';
     A.fit();
     if (s.seen) { A.seen = s.seen.slice(); prefsFns.forEach(function (fn) { fn(); }); }

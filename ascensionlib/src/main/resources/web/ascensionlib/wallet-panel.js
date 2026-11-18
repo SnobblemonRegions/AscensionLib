@@ -6,19 +6,19 @@
   var A = window.A;
   var STYLE = [
     '.wp { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }',
-    '.wp .hint { color: var(--muted); font-size: 11px; }',
+    '.wp .hint { color: var(--muted); font-size: var(--fs-body); }',
     '.wp .lines { flex: 1; min-height: 0; overflow-y: auto; display: grid; gap: 6px; align-content: start; }',
-    '.wp .line { display: grid; grid-template-columns: 40px 1fr 120px 150px 100px; gap: 10px; align-items: center; padding: 6px 8px; background: var(--row); border: 2px solid var(--line); }',
-    '.wp .line img { width: 32px; height: 32px; image-rendering: pixelated; background: var(--well); border: 2px solid var(--line); padding: 2px; }',
-    '.wp .line .nm { font-size: 13px; text-shadow: var(--glow); }',
-    '.wp .line .amt { text-align: right; font-size: 15px; color: var(--acc); text-shadow: var(--glow); }',
-    '.wp .line .car { font-size: 10px; color: var(--muted); text-align: right; }',
-    '.wp .line input { width: 74px; padding: 4px 6px; border: 2px solid var(--line); background: var(--head); color: var(--ink); font: inherit; text-align: right; }',
+    '.wp .line { display: grid; grid-template-columns: 40px 1fr 120px 150px 100px; gap: 10px; align-items: center; padding: 6px 8px; background: var(--sheen), var(--row); border: 2px solid var(--line); box-shadow: var(--raised); }',
+    '.wp .line img { width: 32px; height: 32px; image-rendering: pixelated; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); padding: 2px; }',
+    '.wp .line .nm { font-size: var(--fs-name); text-shadow: var(--glow); }',
+    '.wp .line .amt { text-align: right; font-size: var(--fs-name); color: var(--acc); text-shadow: var(--glow); }',
+    '.wp .line .car { font-size: var(--fs-meta); color: var(--muted); text-align: right; }',
+    '.wp .line input { width: 74px; padding: 4px 6px; text-align: right; font-variant-numeric: tabular-nums; }',
     '.wp .withdraw { display: flex; gap: 6px; align-items: center; }',
-    '.wp .fee { font-size: 10px; color: var(--muted); text-align: right; min-height: 12px; white-space: nowrap; } .wp .fee.bad { color: var(--warn); }',
-    '.wp .cat { padding: 6px 10px; background: var(--row); border: 2px solid var(--line); display: flex; align-items: center; gap: 10px; font-size: 11px; }',
-    '.wp .cat .bar { flex: 1; height: 10px; background: var(--well); border: 2px solid var(--line); } .wp .cat .bar i { display: block; height: 100%; background: var(--acc); }',
-    '.wp .banner { padding: 6px 10px; font-size: 11px; border-left: 4px solid var(--line); background: var(--row); min-height: 28px; }',
+    '.wp .fee { font-size: var(--fs-meta); color: var(--muted); text-align: right; min-height: 12px; white-space: nowrap; } .wp .fee.bad { color: var(--warn); }',
+    '.wp .cat { padding: 6px 10px; background: var(--sheen), var(--row); border: 2px solid var(--line); box-shadow: var(--raised); display: flex; align-items: center; gap: 10px; font-size: var(--fs-body); }',
+    '.wp .cat .bar { flex: 1; height: 10px; background: var(--well); border: 2px solid var(--line); box-shadow: inset 1px 1px 0 var(--lo); } .wp .cat .bar i { display: block; height: 100%; background: var(--acc); }',
+    '.wp .banner { padding: 6px 10px; font-size: var(--fs-body); border: 2px solid var(--line); background: var(--row); box-shadow: var(--sunk); min-height: 28px; }',
     '.wp .banner.ok { border-color: var(--good); background: #0d2a1c; } .wp .banner.bad { border-color: var(--warn); background: #2b1612; }'
   ].join('\n');
 

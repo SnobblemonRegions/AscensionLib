@@ -11,6 +11,7 @@ public final class ScoutNet {
         com.ascensionlib.wallet.WalletWeb.register();
         com.ascensionlib.reward.CompletionReveal.register();
         com.ascensionlib.web.UiPrefsWeb.register();
+        com.ascensionlib.web.PageNav.register();
         com.ascensionlib.web.UiMetrics.register();
         com.ascensionlib.dex.PartyWeb.register();
         com.ascensionlib.web.GuideWeb.register();
