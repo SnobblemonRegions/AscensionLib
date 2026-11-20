@@ -1,15 +1,19 @@
 {
   "title": "AscensionLib guide",
-  "note": "The one source for the in-game guide (the Guide tab of the AscensionDex and /ascend guide) and for docs/WIKI-HANDOFF.md. Numbers are written as {placeholders} that tools/build_guide.py fills from the code and the design data, so the text cannot drift from the rules; a missing placeholder fails the build. Block types: p, ul, steps, tip, warn, table {head, rows}, gen {name} (a table built from the data). A topic with wikiOnly is left out of the in-game guide.",
+  "note": "The one source for the in-game guide (the Guide tab of the AscensionDex and /ascend guide) and for docs/WIKI-HANDOFF.md. Numbers are written as {placeholders} that tools/build_guide.py fills from the code and the design data, so the text cannot drift from the rules; a missing placeholder fails the build. Block types: p, ul, steps, tip, warn, table {head, rows}, gen {name} (a table built from the data). A topic with wikiOnly is left out of the in-game guide. The skim layer, read first in game and as a summary on the wiki: tldr (one sentence), glance (three or four short points; an item {icon, text} shows that item), icon (an item art id under web/ascensionlib/icons), path (show glance as numbered steps), open (show the full text at once; for short topics).",
   "topics": [
     {
       "id": "quickstart",
       "title": "Quick start",
+      "icon": "ascension_dex",
+      "tldr": "Every Pokémon gets a rarity and traits. You grow it instead of replacing it.",
+      "path": true,
+      "glance": [{"icon": "ascension_dex", "text": "Catch it, then Inspect it in your Dex"}, {"icon": "ascension_core", "text": "Every {milestone.step} levels: one free upgrade"}, {"icon": "resonance_dust", "text": "Earn materials in Towers, dungeons and raids"}, {"icon": "ascension_sigil", "text": "Win battles to promote its rarity"}, {"icon": "scouter", "text": "Scout enemies before you fight"}, {"icon": "unique_catalyst", "text": "At the top: Uniques and Fusion"}],
       "blocks": [
         {"type": "p", "text": "Every Pokémon you catch or hatch gets an ascension profile: a rarity and a few traits that change how it fights. You grow them instead of replacing them. Here is the short version."},
         {"type": "steps", "items": [
           "Catch or hatch a Pokémon. Right-click your AscensionDex (get one with /ascend dex), pick it and press Inspect to see its rarity and traits.",
-          "Level it up. Every {milestone.step} levels earns one upgrade credit (up to {milestone.credits}). Spend it in Craft, on the Upgrade tab: one trait goes up a rank and rerolls its value. It never fails.",
+          "Level it up. Every {milestone.step} levels earns one upgrade credit (up to {milestone.credits}). Spend it on the Traits screen (Upgrade): one trait goes up a rank and rerolls its value. It never fails.",
           "Earn materials. Tower runs, trials, dungeons and raids pay Resonance Dust, Facets, Cores and more into your wallet (the Wallet tab of the Dex).",
           "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Ascended.",
           "Scout enemies. A Scouter reveals an enemy's rarity and traits before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.",
@@ -21,6 +25,9 @@
     {
       "id": "cobblemon",
       "title": "How it fits with Cobblemon",
+      "icon": "ascension_sigil",
+      "tldr": "Nature, IVs and EVs work as always. Ascension adds rarity and traits on top.",
+      "glance": ["Rarity sets how many traits it holds (1 to 6)", "Traits are battle bonuses you upgrade", "Rarity has nothing to do with IVs or shininess", "IVs and EVs stay on Cobblemon's Summary"],
       "blocks": [
         {"type": "p", "text": "Everything you know from Cobblemon still works. Ascension adds one layer on top: rarity decides how many traits a Pokémon can hold, and traits are battle bonuses you upgrade over time."},
         {"type": "table", "head": ["System", "What it is", "Set when", "How it changes"], "rows": [
@@ -28,7 +35,7 @@
           ["IVs", "Its genes, 0 to 31 per stat", "Caught or hatched", "Cobblemon's usual items"],
           ["EVs", "Training from battles", "Battling", "Cobblemon's usual items"],
           ["Rarity", "How many trait slots it has (1 to 6)", "Caught in a profile zone, or an Ascension Sigil", "Promote it with attunement and materials. It never goes down"],
-          ["Traits", "Battle bonuses in those slots", "Filled when a slot opens", "Upgrade, Refine and Reforge in Craft"]
+          ["Traits", "Battle bonuses in those slots", "Filled when a slot opens", "Upgrade, Refine and Reforge on the Traits screen"]
         ]},
         {"type": "tip", "text": "Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Ascended. Check IVs, EVs and nature on Cobblemon's Summary screen as usual."}
       ]
@@ -36,6 +43,9 @@
     {
       "id": "rarity",
       "title": "Rarity and traits",
+      "icon": "facet",
+      "tldr": "Rarity sets how many traits a Pokémon holds. Each trait ranks from I to V.",
+      "glance": ["Attack traits: more damage dealt", "Guard traits: less damage taken, or more healing", "A higher rank rolls a higher range", "Traits of one theme boost each other"],
       "blocks": [
         {"type": "p", "text": "Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Ascended."},
         {"type": "gen", "name": "rarity_table"},
@@ -47,8 +57,11 @@
     {
       "id": "growing",
       "title": "Growing a Pokémon",
+      "icon": "ascension_core",
+      "tldr": "Upgrade, reroll and promote on the Traits screen. Nothing is spent until you confirm.",
+      "glance": ["Upgrade: free, one rank up, never fails", "Refine: reroll the value", "Reforge: reroll the trait", "Promote: attunement and materials add a slot"],
       "blocks": [
-        {"type": "p", "text": "Open Craft from the inspector (Upgrade button). Nothing is spent until you press Review and then Confirm."},
+        {"type": "p", "text": "Open the Traits screen with the Traits button, from the Dex or Inspect. Nothing is spent until you press Review and then Confirm."},
         {"type": "table", "head": ["Action", "What it does", "Cost"], "rows": [
           ["Upgrade", "Raise one trait one rank and reroll its value in the new, higher range. Never fails.", "1 upgrade credit (free)"],
           ["Refine", "Reroll one trait's value inside its current rank. It can come out lower.", "{refine.dust} dust"],
@@ -65,23 +78,29 @@
     {
       "id": "uniques",
       "title": "Uniques and Transcendents",
+      "icon": "unique_catalyst",
+      "tldr": "A Unique is one strong power with a drawback. Fusion turns two holders into a Transcendent.",
+      "glance": ["A Catalyst and {install.marks} Tower Mark install one", "One Unique per Pokémon", "Fusion consumes the donor for good", "A Transcendent's power is permanent"],
       "blocks": [
         {"type": "p", "text": "A Unique is one powerful ability with a real drawback. It needs a Unique Catalyst, which you assemble from {catalyst.fragments} Unique Fragments, and {install.marks} Tower Mark. A Pokémon holds one Unique; installing a different one replaces it."},
         {"type": "gen", "name": "unique_table"},
-        {"type": "p", "text": "Fusion makes a Transcendent: a Ascended host that holds a Unique and an Epic-or-better donor holding a different one become one Pokémon with a completely new power. The host is kept; the donor is consumed. It is permanent."},
+        {"type": "p", "text": "Fusion makes a Transcendent: an Ascended host that holds a Unique and an Epic-or-better donor holding a different one become one Pokémon with a completely new power. The host is kept; the donor is consumed. It is permanent."},
         {"type": "ul", "items": [
           "Host: Ascended, every upgrade credit spent, at least {fusion.hostAttunement} attunement, holding a Unique.",
           "Donor: Epic or better, holding a different Unique, and not already a Transcendent.",
           "Price: {fusion.dust} dust, {fusion.facets} facets, {fusion.cores} cores, {fusion.catalysts} Catalyst and {fusion.marks} Tower Marks.",
-          "The Fuse button is on the Craft page. A Transcendent's power cannot be replaced."
+          "The Fuse button is on the Traits screen and the Dex. A Transcendent's power cannot be replaced."
         ]}
       ]
     },
     {
       "id": "wallet",
       "title": "Materials and your wallet",
+      "icon": "resonance_dust",
+      "tldr": "Your materials live in your wallet. Loot you pick up joins it by itself.",
+      "glance": ["Take materials out as tradable vouchers", "A {fee.percent}% fee on each withdrawal", "Deposit vouchers to get them back", "Tower Marks are bound to you"],
       "blocks": [
-        {"type": "p", "text": "Materials live in your wallet, which is saved with the world. Loot that drops as an item joins the wallet by itself when you carry it. Open it from the Wallet tab of the AscensionDex, the Wallet button in Craft."},
+        {"type": "p", "text": "Materials live in your wallet, which is saved with the world. Loot that drops as an item joins the wallet by itself when you carry it. Open it from the Wallet tab of the AscensionDex, or the Wallet button on the Traits screen."},
         {"type": "gen", "name": "material_table"},
         {"type": "p", "text": "Take currency out as items to trade it, then redeem the items with Deposit. A {fee.percent}% fee, rounded up, is paid on top of a withdrawal. Tower Marks are bound to you and can never be taken out."},
         {"type": "tip", "text": "A voucher is a bearer item: whoever holds it can deposit it, and each batch can only ever be redeemed for what it still holds, so a copied stack is worth nothing."}
@@ -90,6 +109,9 @@
     {
       "id": "towers",
       "title": "Towers and completion chests",
+      "icon": "tower_mark",
+      "tldr": "Towers are the only place that pays Cores. Clear bosses for chests; play clean for a better tier.",
+      "glance": ["Floor 5 boss: a mini chest", "Champion: a completion chest and its crown", "Score: cards taken, cycles, no faints", "The first {budget.full} chests a day pay in full"],
       "blocks": [
         {"type": "p", "text": "A Tower is where Cores come from, and nowhere else pays them. Clearing the first boss (floor 5) opens a mini chest; clearing a cycle's champion (floor 10, and every Ascension cycle after) opens a completion chest."},
         {"type": "p", "text": "The completion chest has three parts: a guaranteed pile of dust, facets, fragments, scouters and Tower Marks; a quality tier that multiplies it; and a crown of one to three rolls of something notable. The tier is earned by difficulty and a clean run, never by speed."},
@@ -104,6 +126,9 @@
     {
       "id": "battle",
       "title": "In battle",
+      "icon": "scouter",
+      "tldr": "Traits work inside normal battle rules, against wild Pokémon, trainers, Towers and raids.",
+      "glance": ["Fights between players stay native", "A Scouter reveals an enemy's traits", "Bleeding shows as a red badge on the overlay", "Battle effects need CobbleRaids"],
       "blocks": [
         {"type": "p", "text": "Traits act inside the battle simulator, so they follow the normal rules: immunities, abilities and caps all still apply. They take effect in Tower and raid fights and in every fight against a wild Pokémon or a trainer's Pokémon, which have traits of their own: the deeper the place (a dungeon, say), the rarer they tend to be. Fights between players are native for both sides. A Scouter reveals the wild Pokémon you are looking at. Battle effects need CobbleRaids installed."},
         {"type": "ul", "items": [
@@ -116,8 +141,11 @@
     {
       "id": "respec",
       "title": "Respec items",
+      "icon": "rank_respec",
+      "tldr": "Two rare items undo an investment: the Hourglass resets ranks, the Prism swaps a Unique.",
+      "glance": ["Hourglass: every trait back to rank I", "Your upgrade credits come back", "Prism: swap a Unique for free", "Materials are never refunded"],
       "blocks": [
-        {"type": "p", "text": "Two rare items undo an investment. They drop from Tower completion chests, and the Hourglass can also be bought with Tower Marks. Both are tradable. Use them in the Respec tab (Hourglass) or the Unique tab (Prism) of Craft."},
+        {"type": "p", "text": "Two rare items undo an investment. They drop from Tower completion chests, and the Hourglass can also be bought with Tower Marks. Both are tradable. Use them in the Respec tab (Hourglass) or the Unique tab (Prism) of the Traits screen."},
         {"type": "table", "head": ["Item", "Effect", "How to get it"], "rows": [
           ["Hourglass of Undoing", "Every trait goes back to rank I with a fresh value and its perfected floor cleared, and every upgrade credit comes back to spend again. Traits, Unique, rarity and attunement stay. No materials are refunded.", "About 1 in {respec.rankOneIn} completions, or {respec.price} Tower Marks"],
           ["Unbinding Prism", "Swap a Pokémon's Unique for a different one with no Catalyst and no Tower Mark.", "About 1 in {respec.uniqueOneIn} completions"]
@@ -128,6 +156,9 @@
     {
       "id": "commands",
       "title": "Commands",
+      "icon": "ascension_dex",
+      "tldr": "Three commands cover everything.",
+      "open": true,
       "blocks": [
         {"type": "table", "head": ["Command", "What it does"], "rows": [
           ["/ascend dex", "Gives you an AscensionDex (right-click it for your party and wallet)."],
@@ -139,6 +170,9 @@
     {
       "id": "faq",
       "title": "Help and troubleshooting",
+      "icon": "unique_respec",
+      "tldr": "Quick fixes for the common problems.",
+      "open": true,
       "blocks": [
         {"type": "ul", "items": [
           "A page will not open: every screen is a web page shown by the WebGUI mod, so your client needs WebGUI installed. The server tells you when yours is missing.",

@@ -240,7 +240,16 @@ def resolve(guide, facts, towers, balance, keep_live=False):
                 blocks.append(dict(type='table', head=[fill(h, facts, keep_live) for h in b['head']], rows=[[fill(c, facts, keep_live) for c in row] for row in b['rows']]))
             else:
                 raise SystemExit(f"unknown block type {b['type']}")
-        topics.append({'id': topic['id'], 'title': topic['title'], 'wikiOnly': bool(topic.get('wikiOnly')), 'blocks': blocks})
+        out = {'id': topic['id'], 'title': topic['title'], 'wikiOnly': bool(topic.get('wikiOnly')), 'blocks': blocks}
+        # the skim layer, read before the blocks: one sentence, a few short points (an item {icon, text} shows that item's art), the topic's item art
+        if topic.get('tldr'):
+            out['tldr'] = fill(topic['tldr'], facts, keep_live)
+        if topic.get('glance'):
+            out['glance'] = [dict(icon=g['icon'], text=fill(g['text'], facts, keep_live)) if isinstance(g, dict) else fill(g, facts, keep_live) for g in topic['glance']]
+        for key in ('icon', 'path', 'open'):
+            if topic.get(key):
+                out[key] = topic[key]
+        topics.append(out)
     return topics
 
 
@@ -266,6 +275,10 @@ def render_md(guide, topics, facts):
            'materials and rare items. Screens are web pages shown by the WebGUI mod on the client. It is the shared library for CobbleRaids, CobbleTowers and ascensionDungeons.', '']
     for topic in topics:
         out += [f"## {topic['title']}", '']
+        if topic.get('tldr'):
+            out += [f"*{topic['tldr']}*", '']
+        if topic.get('glance'):
+            out += ['**At a glance:** ' + '; '.join(g['text'] if isinstance(g, dict) else g for g in topic['glance']) + '.', '']
         for b in topic['blocks']:
             if b['type'] == 'p':
                 out += [b['text'], '']
