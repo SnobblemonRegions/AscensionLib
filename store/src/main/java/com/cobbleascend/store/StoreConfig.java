@@ -6,5 +6,9 @@ public record StoreConfig(int catalystFragments) {
         if (catalystFragments < 1) throw new IllegalArgumentException("Catalyst threshold must be at least 1");
     }
 
-    public static StoreConfig defaults() { return new StoreConfig(100); }
+    /**
+     * 40 Unique Fragments to a Catalyst (was 100). Live data, 12 Nov 2026: in three weeks no player reached 100 (the most was 69), so no Catalyst was
+     * ever assembled, one Unique was ever installed and Fusion, which needs two Uniques, never happened. 40 is about four or five tower completions.
+     */
+    public static StoreConfig defaults() { return new StoreConfig(40); }
 }

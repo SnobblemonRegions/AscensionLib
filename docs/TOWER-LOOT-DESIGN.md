@@ -29,7 +29,7 @@ floor band) and Scouter drops, plus Towers' own items (candy, vitamins, balls, C
 | 7 cores (Common to Mythic promotion) | 47 |
 | 10 cores (one Fusion) | 67 |
 | 17 cores (a Mythic that is then fused) | 113 |
-| 100 fragments (one Catalyst) | 35 |
+| 40 fragments (one Catalyst; 100 until 12 Nov 2026) | 14 |
 
 At about 14 keyed runs a week, a Mythic is about 3.3 weeks and a fused Mythic about 8. The Tower already *is* a long grind; the problem is how that grind **feels**.
 
@@ -89,7 +89,7 @@ exists, and gives the three regions different reasons to run.
 ### 5.5 Visible progress and bounded pity
 - **Core meter.** Show "Core luck" on the run summary and the wallet page. Guarantee a core after **30 bosses without one** (about 15 runs): 9.6 percent of players ever reach it, the
   mean wait falls only from 6.7 to 6.0 runs, and the worst case becomes 15 runs. Reset on a natural core. Per player, persisted. No pity on Sigils or on chase items.
-- **Catalyst progress** is already a count; show it as a bar ("63 of 100 fragments").
+- **Catalyst progress** is already a count; show it as a bar ("23 of 40 fragments").
 - **Every run moves something:** Marks, a crest, a meter, or items. The run report lists what moved.
 
 | Pity at (bosses) | Players who reach it | Mean runs per core | Worst case (runs) |

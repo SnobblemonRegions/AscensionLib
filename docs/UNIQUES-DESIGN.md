@@ -24,7 +24,7 @@ weather. Uniques on enemies exist (a boss spec may declare one) but no caller de
 
 ## Player flow
 
-Catalyst sources: 5% Unique Fragment per Tower boss, 100 fragments assemble one Catalyst (the **Assemble Catalyst** button on the Unique tab), or an operator grant
+Catalyst sources: 5% Unique Fragment per Tower boss, 40 fragments assemble one Catalyst (100 until 12 Nov 2026, when live data showed no player ever reached it) (the **Assemble Catalyst** button on the Unique tab), or an operator grant
 (`/ascend admin grant <player> unique_catalyst 1`). `/ascend craft` has a **Unique** tab: pick one of the four, see benefit and drawback, confirm; a
 Catalyst is consumed; replacing needs another Catalyst. Nothing is spent without a confirmation, and the tab says why it is blocked.
 

@@ -46,7 +46,7 @@ if RESPEC:
 GOALS = {
     'Mythic promotion (Common to Mythic)': dict(dust=770, facets=37, cores=7, attunement=90),
     'one Fusion (host Mythic + donor)': dict(dust=600, facets=30, cores=10, marks=5, attunement=150, catalyst=1),
-    'one Catalyst (100 fragments)': dict(fragments=100),
+    'one Catalyst (40 fragments)': dict(fragments=40),
     'perfect one rank V slot (typical band width 8)': dict(dust=520),
     'one Overreach attempt': dict(dust=60, facets=2, marks=1),
 }
