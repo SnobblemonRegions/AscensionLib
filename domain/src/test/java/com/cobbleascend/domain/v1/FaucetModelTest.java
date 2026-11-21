@@ -68,6 +68,17 @@ class FaucetModelTest {
             int r = rank;
             out.add(new Source("Trial rank " + rank, (run, p) -> TrialRewardBands.payout(r)));
         }
+        // A typical Abandoned Laboratory, searched by one player: about three Supply Crates, a Specimen Locker in four labs of nine (two rooms,
+        // containment drawn 2 times in 9 each), and the Research Terminal. Not budgeted (owner, 2026-11-20).
+        out.add(new Source("Laboratory (3 crates, locker 44%, terminal)", (run, p) -> {
+            var pile = new EnumMap<MaterialId, Long>(MaterialId.class);
+            for (int crate = 0; crate < 3; crate++)
+                LaboratoryLoot.roll(LaboratoryLoot.Container.SUPPLY, run + "/supply" + crate, p).forEach((m, n) -> pile.merge(m, n, Long::sum));
+            if (new java.util.Random(RewardSeed.of("model-locker", run, p)).nextInt(100) < 44)
+                LaboratoryLoot.roll(LaboratoryLoot.Container.SPECIMEN, run + "/specimen", p).forEach((m, n) -> pile.merge(m, n, Long::sum));
+            LaboratoryLoot.roll(LaboratoryLoot.Container.TERMINAL, run + "/terminal", p).forEach((m, n) -> pile.merge(m, n, Long::sum));
+            return pile;
+        }));
         return out;
     }
 
@@ -95,7 +106,7 @@ class FaucetModelTest {
         // Design rules the owner approved: Cores come only from the Tower, and a Tower completion out-earns a Dungeon run and a Trial of the same depth.
         double towerDust = means.get("Tower floor 10 completion, 0 cards").get(MaterialId.RESONANCE_DUST);
         for (var entry : means.entrySet()) {
-            if (entry.getKey().startsWith("Dungeon") || entry.getKey().startsWith("Trial")) {
+            if (entry.getKey().startsWith("Dungeon") || entry.getKey().startsWith("Trial") || entry.getKey().startsWith("Laboratory")) {
                 assertEquals(0.0, entry.getValue().getOrDefault(MaterialId.ASCENSION_CORE, 0.0), 0.0, entry.getKey() + " pays no Core");
                 assertTrue(entry.getValue().getOrDefault(MaterialId.RESONANCE_DUST, 0.0) < towerDust * 1.0 + 1e-9 || entry.getKey().contains("tier 10"),
                         entry.getKey() + " should not out-earn a Tower completion in dust");

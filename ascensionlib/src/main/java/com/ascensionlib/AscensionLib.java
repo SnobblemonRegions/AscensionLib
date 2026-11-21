@@ -32,6 +32,9 @@ public final class AscensionLib implements ModInitializer {
             LOG.error("SQLite driver is NOT usable; progression will stay disabled", exception);
         }
         com.ascensionlib.scout.ScoutNet.register();
+        // Abandoned Laboratories: per-player container searches and guard tiers (the structure itself is datapack data in the jar).
+        com.ascensionlib.laboratory.LabContainers.register();
+        com.ascensionlib.laboratory.LabGuards.register();
         // Optional: with Polymer installed, the item art joins its server resource pack (the class is not loaded otherwise).
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("polymer-resource-pack")) com.ascensionlib.wallet.PolymerPack.register();
         ServerLifecycleEvents.SERVER_STARTING.register(this::start);
