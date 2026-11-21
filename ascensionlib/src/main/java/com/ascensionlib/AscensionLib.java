@@ -50,6 +50,9 @@ public final class AscensionLib implements ModInitializer {
             com.ascensionlib.scout.ScoutEncounters.endWild(id);
             com.ascensionlib.craft.CraftNet.forget(id);
             com.ascensionlib.fusion.FusionWeb.forget(id);
+            com.ascensionlib.fusion.TranscendReveal.forget(id);
+            if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(com.ascensionlib.compat.ProjectFusionGuard.MOD_ID))
+                com.ascensionlib.compat.bond.FuserBond.forget(id);
             com.ascensionlib.scout.ScoutEncounters.disarmBattle(java.util.List.of(id));
         });
         new AscendWiring().register();
@@ -58,6 +61,7 @@ public final class AscensionLib implements ModInitializer {
 
     private void start(MinecraftServer server) {
         CompatReport.log(LOG);
+        com.ascensionlib.compat.ProjectFusionGuard.check(LOG);
         var config = TunablesConfig.loadAndUse(TunablesConfig.file());
         var changed = TunablesConfig.differences(com.cobbleascend.domain.v1.Tunables.defaults(), config.tunables());
         if (!changed.isEmpty()) LOG.info("Configuration differs from the defaults: {}", changed);

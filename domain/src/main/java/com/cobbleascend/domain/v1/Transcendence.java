@@ -183,6 +183,29 @@ public final class Transcendence {
 
     private static String pairKey(String a, String b) { return a.compareTo(b) <= 0 ? a + "+" + b : b + "+" + a; }
 
+    /** A named recipe this species belongs to, and one partner species that completes it. */
+    public record RecipeHint(String recipeName, String partnerSpecies) {}
+
+    /**
+     * The named recipes a species belongs to, for a hint on screen: each pair recipe with its partner, then each group with up to
+     * {@code perGroup} of its other members (groups are large; the player only needs a lead). Species ids are Cobblemon ids without a
+     * namespace. Empty for a species in no recipe.
+     */
+    public List<RecipeHint> recipesFor(String species, int perGroup) {
+        var out = new ArrayList<RecipeHint>();
+        for (var entry : pairs.entrySet()) {
+            String[] members = entry.getKey().split("\\+", 2);
+            if (members.length == 2 && (members[0].equals(species) || members[1].equals(species)))
+                out.add(new RecipeHint(entry.getValue().name(), members[0].equals(species) ? members[1] : members[0]));
+        }
+        for (var group : groups) {
+            if (!group.getKey().contains(species)) continue;
+            group.getKey().stream().filter(other -> !other.equals(species)).sorted().limit(Math.max(0, perGroup))
+                    .forEach(other -> out.add(new RecipeHint(group.getValue().name(), other)));
+        }
+        return out;
+    }
+
     public Scale scale(Harmony harmony) { return scales.get(harmony); }
     public int baseCount() { return bases.size(); }
     public int pairRecipeCount() { return pairs.size(); }

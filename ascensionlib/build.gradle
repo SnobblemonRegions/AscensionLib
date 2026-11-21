@@ -35,6 +35,8 @@ dependencies {
     // Polymer (github.com/Patbox/polymer, LGPL) hosts the server resource pack. Optional at runtime: when it is installed the mod adds its item
     // art to the pack itself (PolymerPack); without it the mod runs unchanged. Compile against the two jars only (libs/README.md).
     modCompileOnly files('libs/polymer-resource-pack-0.9.19+1.21.1.jar', 'libs/polymer-common-0.9.19+1.21.1.jar')
+    // Cobblemon Project Fusion (All Rights Reserved) is compiled against only, for the Fuser bond; never included (libs/README.md).
+    modCompileOnly files('libs/project-fusion-fabric-2.1.0.jar')
     compileOnly 'org.jetbrains.kotlin:kotlin-stdlib:2.2.20'
     // Loom's dev-remapped dependency omits the upstream nested jars. Production Cobblemon
     // supplies these; declare them explicitly only for the development runtime.

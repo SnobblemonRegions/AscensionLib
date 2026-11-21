@@ -30,7 +30,7 @@ class FusionJsonTest {
 
     @Test void detailKeepsPriceBalancesAndRevisionsAsNumbers() {
         var detail = new FusionPayloads.Detail("h", "d", "", "Name", "A + B", "mild", 70, 30, "blurb", "core", "clutch", "drawback", "Twist", "text",
-                "rider", "fire", "water", new long[] {600, 30, 10, 1}, new long[] {1, 2, 3, 4}, 5, 6, 7);
+                "rider", "fire", "water", new long[] {600, 30, 10, 1}, new long[] {1, 2, 3, 4}, 5, 6, 7, true);
         var json = JsonParser.parseString(gson.toJson(detail)).getAsJsonObject();
         assertEquals(4, json.getAsJsonArray("price").size());
         assertEquals(600, json.getAsJsonArray("price").get(0).getAsLong());

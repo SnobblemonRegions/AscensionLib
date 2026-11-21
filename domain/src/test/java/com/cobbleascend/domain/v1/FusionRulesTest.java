@@ -76,4 +76,25 @@ class FusionRulesTest {
         var h = host();
         assertEquals(Reason.FUSION_SAME_POKEMON, refused(h, false, h, false, rich));
     }
+
+    @Test void readinessShowsProgressTowardsEachRole() {
+        var ready = FusionRules.readiness(host(), false);
+        assertTrue(ready.hostReady());
+        assertTrue(ready.donorReady());
+        var young = FusionRules.readiness(profile(Rarity.MYTHICAL, false, 120, null), false);
+        assertFalse(young.hostReady());
+        assertFalse(young.donorReady(), "no Unique");
+        var credits = young.host().stream().filter(r -> r.id().equals("credits")).findFirst().orElseThrow();
+        assertEquals(FusionRules.HOST_CREDITS, credits.need());
+        assertFalse(credits.met());
+        var attunement = young.host().stream().filter(r -> r.id().equals("attunement")).findFirst().orElseThrow();
+        assertEquals(120, attunement.have());
+        assertEquals(FusionRules.HOST_ATTUNEMENT, attunement.need());
+        var epicDonor = FusionRules.readiness(donor(), false);
+        assertFalse(epicDonor.hostReady());
+        assertTrue(epicDonor.donorReady());
+        var transcendent = FusionRules.readiness(host(), true);
+        assertFalse(transcendent.hostReady(), "a Transcendent is neither host nor donor again");
+        assertFalse(transcendent.donorReady());
+    }
 }

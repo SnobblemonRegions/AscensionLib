@@ -72,9 +72,23 @@ public final class InspectWeb {
             com.ascensionlib.web.WebSprites.feed(player, java.util.List.of(result.extra().speciesId()));
             WebUi.emit(player, "inspectOwned", Views.owned(result, com.ascensionlib.AscensionApi.store()
                     .map(store -> store.wallet(player.getUUID()).balance(com.cobbleascend.domain.v1.MaterialId.ASCENSION_SIGIL)).orElse(0L)));
+            emitTranscend(player, target.id());
         }
         else if (target.kind() == Kind.WILD) emitWild(player);
         else WebUi.emit(player, "inspectScout", Views.state(ScoutEncounters.stateFor(player.getUUID())));
+    }
+
+    /** The Transcendence panel for one of the player's own Pokemon (see {@link TranscendView}); nothing when it cannot be found. */
+    private static void emitTranscend(ServerPlayer player, String pokemonId) {
+        var service = com.ascensionlib.AscensionApi.service().orElse(null);
+        if (service == null) return;
+        UUID id;
+        try { id = UUID.fromString(pokemonId); } catch (IllegalArgumentException e) { return; }
+        OwnedInspectNet.findForInspection(player, id).ifPresent(pokemon -> {
+            var info = TranscendView.of(service, pokemon, com.ascensionlib.fusion.FusionNet.madeAtFuser());
+            if (info.head() != null) com.ascensionlib.web.WebSprites.feed(player, java.util.List.of(info.head().speciesId()));
+            WebUi.emit(player, "inspectTranscend", info);
+        });
     }
 
     private static void emitWild(ServerPlayer player) {

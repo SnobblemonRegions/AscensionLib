@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transcendence</title>
+<meta name="color-scheme" content="dark">
+<style>html, body { background: transparent; }</style>
+<link rel="stylesheet" href="ascension.css">
+<style>
+  .frame { width: 640px; height: 500px; }
+  .main { flex: 1; min-height: 0; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+  /* The one authored moment: body and head travel in from either side and meet, then the name settles in. */
+  .meet { position: relative; height: 150px; background: radial-gradient(circle at 50% 60%, #11405a, #07131c 70%); border: 2px solid var(--line); overflow: hidden; }
+  .meet .p { position: absolute; top: 50%; width: 128px; height: 128px; display: flex; align-items: center; justify-content: center;
+             transition: transform 1.1s cubic-bezier(.16, 1, .3, 1), opacity .6s ease-out; }
+  .meet .p.mbody { left: 50%; transform: translate(-170%, -50%); }
+  .meet .p.mhead { left: 50%; transform: translate(70%, -50%); }
+  .meet.on .p.mbody { transform: translate(-88%, -50%); }
+  .meet.on .p.mhead { transform: translate(-12%, -50%) scale(.8); opacity: .9; }
+  .meet .cap { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; color: var(--muted); font-size: 12px; }
+  .name { text-align: center; font-size: 20px; color: var(--acc); letter-spacing: .02em; overflow-wrap: anywhere;
+          opacity: 0; transform: translateY(6px); transition: opacity .7s ease-out .9s, transform .7s cubic-bezier(.16, 1, .3, 1) .9s; }
+  .name.on { opacity: 1; transform: none; }
+  .sub { text-align: center; color: var(--muted); font-size: 12px; }
+  .power { display: grid; gap: 6px; opacity: 0; transition: opacity .6s ease-out 1.4s; }
+  .power.on { opacity: 1; }
+  .power p { margin: 0; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+  .power .k { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="head"><span>TRANSCENDENCE</span><button class="x" id="close" title="Close">X</button></div>
+  <div class="main">
+    <div class="meet" id="meet">
+      <div class="p mbody" id="pbody"></div>
+      <div class="p mhead" id="phead"></div>
+      <div class="cap" id="cap"></div>
+    </div>
+    <div class="name" id="name"></div>
+    <div class="sub" id="sub"></div>
+    <div class="power" id="power"></div>
+  </div>
+  <div class="foot">
+    <div class="msg muted" id="msg"></div>
+    <button id="share" disabled>Share in chat</button>
+    <button class="primary" id="done">Close</button>
+  </div>
+</div>
+<script src="ui.js"></script>
+<script>
+(function () {
+  'use strict';
+  var A = window.A, $ = A.$;
+  var view = null;
+
+  function p(parent, label, text, cls) {
+    var e = document.createElement('p'); if (cls) e.className = cls;
+    var k = document.createElement('span'); k.className = 'k'; k.textContent = label + ' ';
+    e.appendChild(k); e.appendChild(document.createTextNode(text)); parent.appendChild(e);
+  }
+
+  function show() {
+    $('pbody').innerHTML = ''; $('phead').innerHTML = '';
+    $('pbody').appendChild(A.sprite(view.bodySpecies, 3));
+    $('phead').appendChild(A.sprite(view.headSpecies, 2));
+    A.text($('cap'), view.bodyName + ' and ' + view.headName + ', bonded for good');
+    A.text($('name'), view.name);
+    A.text($('sub'), A.cap(view.harmony) + ' harmony: ' + view.benefit + '% of the benefits, ' + view.drawbackPercent + '% of the drawbacks'
+      + (view.namedRecipe ? '. A named recipe.' : '.'));
+    var pw = $('power'); pw.innerHTML = '';
+    if (view.blurb) { var b = document.createElement('p'); b.className = 'muted'; b.textContent = view.blurb; pw.appendChild(b); }
+    p(pw, 'Core:', view.core);
+    p(pw, 'Clutch:', view.clutch);
+    p(pw, 'Drawback:', view.drawback, 'bad');
+    $('share').disabled = false;
+    // Start the motion on the next frame so the starting positions are painted first.
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      $('meet').classList.add('on'); $('name').classList.add('on'); $('power').classList.add('on');
+    }); });
+  }
+
+  A.on('transcendView', function (v) { view = v; show(); });
+  $('close').addEventListener('click', function () { A.send('close'); });
+  $('done').addEventListener('click', function () { A.send('close'); });
+  $('share').addEventListener('click', function () {
+    if (!view || $('share').disabled) return;
+    $('share').disabled = true; A.send('ascension_transcend_share'); A.text($('msg'), 'Shared in chat.');
+  });
+  A.ready('ascension_transcend_ready', function () { return !!view; }, $('msg'));
+})();
+</script>
+</body>
+</html>

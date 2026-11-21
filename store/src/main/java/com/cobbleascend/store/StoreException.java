@@ -21,7 +21,9 @@ public final class StoreException extends RuntimeException {
         /** An operation ID was reused with different parameters. */
         OPERATION_REUSED,
         /** A voucher batch the store never minted (a forged or foreign item). */
-        UNKNOWN_VOUCHER
+        UNKNOWN_VOUCHER,
+        /** An unbond named a Pokemon that is not the host of a Fuser bond. */
+        NOT_BONDED
     }
 
     private final Code code;
