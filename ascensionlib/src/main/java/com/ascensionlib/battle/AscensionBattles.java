@@ -50,7 +50,9 @@ public final class AscensionBattles {
                 // The dimension is the opponent's (a wild Pokemon's or a trainer's), not the player's; its tier rates the opponent. A dimension the
                 // configuration turns off (tier 0) is native. No entity (a scripted battle) is native too.
                 if (actor.getType() != ActorType.PLAYER && actor instanceof EntityBackedBattleActor<?> backed && backed.getEntity() != null) {
-                    int tier = ProfileZones.tierOf(backed.getEntity().level().dimension().location());
+                    int tier = backed.getEntity() instanceof com.cobblemon.mod.common.entity.pokemon.PokemonEntity wildEntity
+                            ? ProfileZones.tierOf(wildEntity.getPokemon(), backed.getEntity().level().dimension().location())
+                            : ProfileZones.tierOf(backed.getEntity().level().dimension().location());
                     if (tier >= 1) {
                         profileZone = true;
                         zoneTier = Math.max(zoneTier, tier);

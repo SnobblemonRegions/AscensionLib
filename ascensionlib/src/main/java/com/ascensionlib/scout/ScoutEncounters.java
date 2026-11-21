@@ -296,7 +296,7 @@ public final class ScoutEncounters {
         if (service.isEmpty() || AscensionApi.scouting().isEmpty() || server == null) return WildDeclared.no("Ascension progression is not running.");
         var pokemon = entity.getPokemon();
         if (pokemon.getOwnerUUID() != null) return WildDeclared.no("That Pokémon belongs to someone.");
-        int tier = com.ascensionlib.battle.ProfileZones.tierOf(entity.level().dimension().location());
+        int tier = com.ascensionlib.battle.ProfileZones.tierOf(entity.getPokemon(), entity.level().dimension().location());
         if (tier < 1) return WildDeclared.no("Profiles are switched off in this dimension, so wild Pokémon here have no Ascension rating.");
         var species = pokemon.getSpecies();
         var types = new ArrayList<String>();
