@@ -92,7 +92,22 @@ class ThreatRewardsTest {
         long cut = 0;
         for (int i = 0; i < samples; i++)
             cut += RaidRewardBands.pay("cf-" + i, new UUID(5, i), RaidRewardBands.Tier.MYTHICAL, 0.25, 4, true, 25).materials().getOrDefault(MaterialId.FACET, 0L);
-        assertEquals(3.0 * 0.25, cut / (double) samples, 0.03, "past the daily full raids Facets are cut to a quarter too");
+        assertEquals(RaidRewardBands.Tier.MYTHICAL.facetHundredths / 100.0 * 0.25, cut / (double) samples, 0.03,
+                "past the daily full raids Facets are cut to a quarter too");
+    }
+
+    @Test void aHarderRaidTierPaysMoreOfEveryMaterial() {
+        var tiers = RaidRewardBands.Tier.values();
+        for (int i = 1; i < tiers.length; i++) {
+            var lower = tiers[i - 1];
+            var higher = tiers[i];
+            assertTrue(higher.dust > lower.dust, higher + " pays more dust than " + lower);
+            assertTrue(higher.corePermille > lower.corePermille, higher + " has a better Core chance than " + lower);
+            assertTrue(higher.facetHundredths >= lower.facetHundredths, higher + " pays at least the Facets of " + lower);
+            assertTrue(higher.apexHundredths > lower.apexHundredths, higher + " pays more Apex than " + lower);
+        }
+        assertTrue(RaidRewardBands.Tier.LEGENDARY.dust >= 2.5 * RaidRewardBands.Tier.STARTER.dust,
+                "a Legendary win is worth well over a Starter win, so Starters are not the best farm");
     }
 
     @Test void theFirstRaidWinOfTheDayPaysEveryMaterialDoubleButNotAttunement() {
