@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ascensionlib.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "ProjectFusionServiceMixin",
+    "ProjectFusionBondMixin",
+    "ProjectFusionRefundMixin",
+    "ProjectFusionCollectMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

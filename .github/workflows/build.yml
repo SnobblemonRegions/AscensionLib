@@ -51,6 +51,13 @@ jobs:
             curl -fsSL -o "ascensionlib/libs/$artifact-0.9.19+1.21.1.jar" "$base/$artifact/0.9.19%2B1.21.1/$artifact-0.9.19%2B1.21.1.jar"
           done
 
+      # The Fuser bond compiles against Cobblemon Project Fusion (All Rights Reserved): fetched from CurseForge's CDN for the build only, checked
+      # against its known hash, never committed or shipped in the jar (ascensionlib/libs/README.md).
+      - name: Fetch Project Fusion
+        run: |
+          curl -fsSL -o ascensionlib/libs/project-fusion-fabric-2.1.0.jar "https://mediafilez.forgecdn.net/files/9587/558/Cobblemon-Project-Fusion-fabric-2.1.0.jar"
+          echo "7ed038a3e5ee6d380319f6d1e167ee0ef3cbb5694f3b99ad0d11480129937b82  ascensionlib/libs/project-fusion-fabric-2.1.0.jar" | sha256sum -c -
+
       # domain and store are plain Java; ascensionlib is the Fabric mod, built against Cobblemon from the Modrinth Maven.
       - name: Compile and test
         run: ./gradlew --no-daemon :domain:test :store:test :ascensionlib:build --stacktrace --warning-mode all

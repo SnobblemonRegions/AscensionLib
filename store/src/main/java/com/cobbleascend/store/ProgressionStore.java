@@ -245,6 +245,8 @@ public final class ProgressionStore implements AutoCloseable {
             // Balance phase 1's daily Threat counters: an extra table, created when missing, with no schema version bump, so an older build
             // still opens this store (it simply never reads the table) and a downgrade stays possible.
             createThreatTable();
+            // Fuser bonds: likewise an extra table with no version bump. An older build ignores it and sees a bond as an ordinary fusion.
+            createBondsTable();
             if (meta("wild_secret") == null) {
                 byte[] secret = new byte[32];
                 new SecureRandom().nextBytes(secret);
@@ -308,6 +310,19 @@ public final class ProgressionStore implements AutoCloseable {
                         counter TEXT NOT NULL,
                         used INTEGER NOT NULL CHECK(used >= 0),
                         PRIMARY KEY(player_id, day, counter)) STRICT""");
+        }
+    }
+
+    private void createBondsTable() throws SQLException {
+        try (var statement = db.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS bonds(
+                        host_pokemon_id TEXT PRIMARY KEY,
+                        donor_pokemon_id TEXT NOT NULL UNIQUE,
+                        player_id TEXT NOT NULL,
+                        fuse_operation_id TEXT NOT NULL,
+                        price TEXT NOT NULL,
+                        bonded_at INTEGER NOT NULL) STRICT""");
         }
     }
 
@@ -1020,7 +1035,93 @@ public final class ProgressionStore implements AutoCloseable {
      * ID returns the first result so an interrupted removal can be finished.
      */
     public synchronized Outcome fuse(FuseRequest request) {
-        return run(request.operationId(), request.canonical(), () -> {
+        return fuse(request, false);
+    }
+
+    /**
+     * As {@link #fuse(FuseRequest)}, for a fusion made at a Project Fusion Fuser: the same rules, price and record, plus a {@link Bond}
+     * row in the same transaction. The donor is not consumed: it lives on inside the host, so the caller removes nothing. The price is
+     * recorded so {@link #unbond} can refund exactly what was paid if the Fuser never finishes.
+     */
+    public synchronized Outcome bond(FuseRequest request) {
+        return fuse(request, true);
+    }
+
+    /** The Fuser bond this Pokemon is the host or the donor of, if any. */
+    public synchronized Optional<Bond> bondOf(UUID pokemonId) {
+        return read(() -> {
+            try (var statement = db.prepareStatement("SELECT host_pokemon_id, donor_pokemon_id, player_id, fuse_operation_id, price, bonded_at"
+                    + " FROM bonds WHERE host_pokemon_id = ? OR donor_pokemon_id = ?")) {
+                statement.setString(1, pokemonId.toString());
+                statement.setString(2, pokemonId.toString());
+                try (var rows = statement.executeQuery()) {
+                    if (!rows.next()) return Optional.empty();
+                    return Optional.of(new Bond(UUID.fromString(rows.getString(1)), UUID.fromString(rows.getString(2)),
+                            UUID.fromString(rows.getString(3)), UUID.fromString(rows.getString(4)), decodePrice(rows.getString(5)), rows.getLong(6)));
+                }
+            }
+        });
+    }
+
+    /**
+     * Undoes a Fuser bond whose Fuser never finished (the server stopped mid-fusion, or the Fuser failed and handed both Pokemon back):
+     * the fusion and bond rows are removed, the recorded price is credited back to the player who paid it, and the host revision
+     * advances. Idempotent per operation ID; refused when {@code hostId} holds no bond.
+     */
+    public synchronized Outcome unbond(UUID operationId, UUID hostId) {
+        return run(operationId, "UNBOND|" + hostId, () -> {
+            Bond bond;
+            try (var statement = db.prepareStatement("SELECT donor_pokemon_id, player_id, fuse_operation_id, price, bonded_at FROM bonds WHERE host_pokemon_id = ?")) {
+                statement.setString(1, hostId.toString());
+                try (var rows = statement.executeQuery()) {
+                    if (!rows.next()) throw new StoreException(Code.NOT_BONDED, "That Pokemon holds no Fuser bond");
+                    bond = new Bond(hostId, UUID.fromString(rows.getString(1)), UUID.fromString(rows.getString(2)), UUID.fromString(rows.getString(3)),
+                            decodePrice(rows.getString(4)), rows.getLong(5));
+                }
+            }
+            var host = loadProfile(hostId).orElseThrow(() -> new StoreException(Code.UNKNOWN_PROFILE, "No profile for the host"));
+            for (String table : new String[] {"bonds", "fusions"}) {
+                try (var statement = db.prepareStatement("DELETE FROM " + table + " WHERE host_pokemon_id = ?")) {
+                    statement.setString(1, hostId.toString());
+                    statement.executeUpdate();
+                }
+            }
+            var before = loadWallet(bond.playerId());
+            var after = before.credit(bond.price());
+            var next = host.bumped();
+            updateProfile(next, host.revision());
+            saveWallet(bond.playerId(), before, after);
+            return new Fresh(Kind.UNBOND, bond.playerId(), hostId, next, after, bond.price(), 0).moved(Map.of(), bond.price(), "");
+        });
+    }
+
+    /** {@code DUST=600,FACET=30}: the price a bond row keeps, in material order. Package-visible for the tests. */
+    static String encodePrice(Map<MaterialId, Long> price) {
+        var out = new StringBuilder();
+        new java.util.TreeMap<>(price).forEach((material, amount) -> {
+            if (amount == null || amount <= 0) return;
+            out.append(out.length() == 0 ? "" : ",").append(material.name()).append('=').append(amount);
+        });
+        return out.toString();
+    }
+
+    static Map<MaterialId, Long> decodePrice(String text) {
+        var out = new java.util.EnumMap<MaterialId, Long>(MaterialId.class);
+        if (text == null || text.isBlank()) return out;
+        for (String part : text.split(",")) {
+            int eq = part.indexOf('=');
+            if (eq <= 0) throw new StoreException(Code.STORED_DATA_INVALID, "Unreadable bond price: " + text);
+            try {
+                out.merge(MaterialId.valueOf(part.substring(0, eq)), Long.parseLong(part.substring(eq + 1)), Long::sum);
+            } catch (IllegalArgumentException exception) {
+                throw new StoreException(Code.STORED_DATA_INVALID, "Unreadable bond price: " + text, exception);
+            }
+        }
+        return out;
+    }
+
+    private Outcome fuse(FuseRequest request, boolean bond) {
+        return run(request.operationId(), (bond ? "BOND|" : "") + request.canonical(), () -> {
             var host = loadProfile(request.hostId())
                     .orElseThrow(() -> new StoreException(Code.UNKNOWN_PROFILE, "No profile for the host"));
             var donor = loadProfile(request.donorId())
@@ -1047,6 +1148,18 @@ public final class ProgressionStore implements AutoCloseable {
                 statement.setString(7, request.operationId().toString());
                 statement.setLong(8, options.clock().millis());
                 statement.executeUpdate();
+            }
+            if (bond) {
+                try (var statement = db.prepareStatement("INSERT INTO bonds(host_pokemon_id, donor_pokemon_id, player_id, fuse_operation_id, price, bonded_at)"
+                        + " VALUES(?, ?, ?, ?, ?, ?)")) {
+                    statement.setString(1, request.hostId().toString());
+                    statement.setString(2, request.donorId().toString());
+                    statement.setString(3, request.playerId().toString());
+                    statement.setString(4, request.operationId().toString());
+                    statement.setString(5, encodePrice(cost));
+                    statement.setLong(6, options.clock().millis());
+                    statement.executeUpdate();
+                }
             }
             var next = host.bumped();
             updateProfile(next, host.revision());

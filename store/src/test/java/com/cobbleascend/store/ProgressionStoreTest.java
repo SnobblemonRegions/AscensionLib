@@ -813,6 +813,59 @@ class ProgressionStoreTest {
         assertEquals(599, store.wallet(player).balance(MaterialId.RESONANCE_DUST));
     }
 
+    // --- Fuser bonds -----------------------------------------------------------------------------------
+
+    @Test void aBondIsAFusionThatRecordsTheDonorAndThePriceAndReplaysExactly() {
+        var host = UUID.randomUUID(); var donor = UUID.randomUUID(); var op = UUID.randomUUID();
+        var store = fusionStore(host, donor);
+        var request = fuseRequest(op, host, donor, store);
+        var first = store.bond(request);
+        assertEquals(0, first.wallet().balance(MaterialId.RESONANCE_DUST));
+        assertTrue(store.fusion(host).isPresent(), "a bond is a fusion: the host is a Transcendent");
+        var bond = store.bondOf(host).orElseThrow();
+        assertEquals(bond, store.bondOf(donor).orElseThrow(), "the bond is found from either Pokemon");
+        assertEquals(donor, bond.donorId());
+        assertEquals(player, bond.playerId());
+        assertEquals(op, bond.fuseOperationId());
+        assertEquals(FusionRules.cost().entrySet().stream().filter(e -> e.getValue() > 0).collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                bond.price());
+        assertTrue(store.bond(request).replayed());
+        assertEquals(Code.OPERATION_REUSED, codeOf(() -> store.fuse(request)), "a bond and a plain fusion never share an operation");
+    }
+
+    @Test void anUnbondRefundsWhatWasPaidRemovesTheFusionAndReplaysWithoutRefundingTwice() {
+        var host = UUID.randomUUID(); var donor = UUID.randomUUID();
+        var store = fusionStore(host, donor);
+        store.bond(fuseRequest(UUID.randomUUID(), host, donor, store));
+        var op = UUID.randomUUID();
+        var undone = store.unbond(op, host);
+        assertEquals(Kind.UNBOND, undone.kind());
+        assertEquals(600, store.wallet(player).balance(MaterialId.RESONANCE_DUST));
+        assertEquals(3, store.profile(host).orElseThrow().revision(), "bonding and unbonding each advance the host");
+        assertTrue(store.fusion(host).isEmpty());
+        assertTrue(store.consumedBy(donor).isEmpty(), "the donor is free again");
+        assertTrue(store.bondOf(host).isEmpty());
+        assertTrue(store.unbond(op, host).replayed());
+        assertEquals(600, store.wallet(player).balance(MaterialId.RESONANCE_DUST), "a replay refunds nothing more");
+        assertEquals(Code.NOT_BONDED, codeOf(() -> store.unbond(UUID.randomUUID(), host)));
+    }
+
+    @Test void aPlainFusionCannotBeUnbonded() {
+        var host = UUID.randomUUID(); var donor = UUID.randomUUID();
+        var store = fusionStore(host, donor);
+        store.fuse(fuseRequest(UUID.randomUUID(), host, donor, store));
+        assertTrue(store.bondOf(host).isEmpty());
+        assertEquals(Code.NOT_BONDED, codeOf(() -> store.unbond(UUID.randomUUID(), host)));
+        assertTrue(store.fusion(host).isPresent());
+    }
+
+    @Test void aBondPriceSurvivesItsTextForm() {
+        var price = Map.of(MaterialId.RESONANCE_DUST, 600L, MaterialId.UNIQUE_CATALYST, 1L);
+        assertEquals(price, ProgressionStore.decodePrice(ProgressionStore.encodePrice(price)));
+        assertEquals(Map.of(), ProgressionStore.decodePrice(""));
+        assertEquals(Code.STORED_DATA_INVALID, codeOf(() -> ProgressionStore.decodePrice("NOT_A_MATERIAL=1")));
+    }
+
     @Test void aCrashBeforeCommitLeavesNoFusion() {
         var host = UUID.randomUUID(); var donor = UUID.randomUUID();
         var crash = new CrashAt();
