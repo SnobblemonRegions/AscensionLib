@@ -161,6 +161,48 @@
         "Earned from the World Boss; trade it",
         "freely. It works after the event ends."
       ]
+    },
+    "floor_serum": {
+      "base": "minecraft:popped_chorus_fruit",
+      "model": 8115,
+      "name": "Floor Serum",
+      "color": "#6fd3a0",
+      "rarity": "uncommon",
+      "kind": "Serum",
+      "lore": [
+        "Arm it at a Research Bench for a family",
+        "you have researched to level 2: your next",
+        "wild catch of that family gets one chosen",
+        "stat raised to at least 20."
+      ]
+    },
+    "focus_serum": {
+      "base": "minecraft:rabbit_hide",
+      "model": 8116,
+      "name": "Focus Serum",
+      "color": "#5aa9ff",
+      "rarity": "rare",
+      "kind": "Serum",
+      "lore": [
+        "Arm it at a Research Bench for a family",
+        "you have researched to level 3: your next",
+        "wild catch of that family gets two chosen",
+        "stats raised to at least 25."
+      ]
+    },
+    "prime_serum": {
+      "base": "minecraft:turtle_scute",
+      "model": 8117,
+      "name": "Prime Serum",
+      "color": "#ff7ad9",
+      "rarity": "epic",
+      "kind": "Serum",
+      "lore": [
+        "Arm it at a Research Bench for a family",
+        "you have researched to level 4: your next",
+        "wild catch of that family gets a chosen",
+        "stat and one random stat set to 31."
+      ]
     }
   },
   "rarities": {

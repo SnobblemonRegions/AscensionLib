@@ -27,6 +27,8 @@ public final class SimReport {
     public final double[] towerWinByGap = new double[4];
     public final double bothActivitiesLastWeek;
     public final double coresPerApex;
+    /** Null when every Field Research state stayed within its rules (or research was off). */
+    public final String researchProblem;
 
     public SimReport(Simulation sim) {
         ledgerProblem = sim.ledger().check(sim.players());
@@ -57,6 +59,7 @@ public final class SimReport {
                 / Math.max(1e-9, share(sim.players(), p -> p.towerLastWeek || p.raidLastWeek));
         long apex = sim.ledger().minted(MaterialId.APEX_SHARD);
         coresPerApex = apex == 0 ? Double.NaN : (double) sim.ledger().minted(MaterialId.ASCENSION_CORE) / apex;
+        researchProblem = sim.research == null ? null : sim.research.check();
     }
 
     public Pacing pacing(Archetype a) {
@@ -115,6 +118,7 @@ public final class SimReport {
         root.add("towerWinByGapMinus1To2", w);
         root.addProperty("bothActivitiesLastWeek", bothActivitiesLastWeek);
         root.addProperty("coresPerApex", coresPerApex);
+        if (researchProblem != null) root.addProperty("researchProblem", researchProblem);
         return new GsonBuilder().setPrettyPrinting().serializeSpecialFloatingPointValues().create().toJson(root);
     }
 
@@ -148,7 +152,33 @@ public final class SimReport {
             md.append(String.format(Locale.ROOT, "Prizes: %d small, %d big, %d jackpots (%.0f%% of the stakes' assumed value back).%n",
                     s.small, s.big, s.jackpots, s.stakeValue == 0 ? 0.0 : 100 * s.prizeValue / s.stakeValue));
         }
+        if (sim.researchOn()) research(md, sim);
         return md.toString();
+    }
+
+    private static void research(StringBuilder md, Simulation sim) {
+        var r = sim.research;
+        var s = r.stats;
+        int researchers = Math.max(1, r.researchers());
+        double perDay = (double) researchers * sim.days();
+        md.append("\n## Field Research prototype (docs/FIELD-RESEARCH-DESIGN.md)\n\n");
+        md.append(String.format(Locale.ROOT, "%d researchers of %d players. Research checks: **%s**.%n", r.researchers(), sim.players().size(),
+                r.check() == null ? "every meter, share and limit held" : r.check()));
+        md.append(String.format(Locale.ROOT, "Studies: %d overnight, %d quick, %d Boss Sample analyses; %d raid grants, %d labs; %d points wasted on full shares.%n",
+                s.standardStudies, s.quickStudies, s.analyses, s.raidGrants, s.labGrants, s.wasted));
+        md.append(String.format(Locale.ROOT, "Serums crafted: %d Floor, %d Focus, %d Prime (%.2f a researcher a day).%n", s.crafted[0], s.crafted[1], s.crafted[2],
+                (s.crafted[0] + s.crafted[1] + s.crafted[2]) / perDay));
+        md.append(String.format(Locale.ROOT, "Spent per researcher per day: %.0f dust, %.2f facets, %.3f Tower Marks; %d Boss Samples used.%n",
+                s.dust / perDay, s.facets / perDay, s.marks / perDay, s.samplesSpent));
+        for (int level = 2; level <= 4; level++) {
+            var days = s.firstDayAtLevel.getOrDefault(level, java.util.List.of());
+            var sorted = new ArrayList<>(days);
+            Collections.sort(sorted);
+            md.append(String.format(Locale.ROOT, "First family at level %d: %.0f%% of researchers, median day %s.%n", level, 100.0 * days.size() / researchers,
+                    sorted.isEmpty() ? "never" : String.valueOf(sorted.get(sorted.size() / 2))));
+        }
+        md.append(String.format(Locale.ROOT, "At the end: %.1f families at level 4 and %.1f raid bosses at 100%% boss research per researcher.%n",
+                (double) s.familiesAtLevel4 / researchers, (double) s.bossComplete / researchers));
     }
 
     private static String num(double v) { return Double.isNaN(v) ? "never" : String.format(Locale.ROOT, "%.1f", v); }

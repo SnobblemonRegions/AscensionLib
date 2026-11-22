@@ -77,6 +77,9 @@ public final class LabContainers {
         Map<MaterialId, Long> materials = LaboratoryLoot.roll(container, key, player.getUUID());
         try {
             var outcome = service.get().store().grant(operation, player.getUUID(), materials, "laboratory_" + container.id());
+            // Field Research from the same search (a Data Drive, specimen notes): once per container and player, so calling it on a replay too
+            // finishes a payment a crash may have interrupted.
+            com.ascensionlib.research.FieldResearchRuntime.labSearched(player, level, pos, container);
             if (outcome.replayed()) {
                 player.displayClientMessage(Component.literal("You have already searched this " + container.displayName() + ".")
                         .withStyle(ChatFormatting.GRAY), true);

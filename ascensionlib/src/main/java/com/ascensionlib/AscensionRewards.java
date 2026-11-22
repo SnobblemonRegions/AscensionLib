@@ -190,6 +190,7 @@ public final class AscensionRewards {
             players.forEach(player -> off.put(player, "THREAT_OFF"));
             return off;
         }
+        if ("VICTORY".equals(outcome)) com.ascensionlib.research.FieldResearchRuntime.raidWon(encounterId, players);
         BalanceLog.encounter("raid_threat", encounterId, Map.of("outcome", String.valueOf(outcome), "tier", tier.name().toLowerCase(java.util.Locale.ROOT),
                 "players", players.size()), players);
         int n = players.size();
@@ -395,7 +396,10 @@ public final class AscensionRewards {
         if (validId) BalanceLog.encounter("raid", encounterId, Map.of("outcome", String.valueOf(outcome), "players", players.size()), players);
         if (!"VICTORY".equals(outcome)) return 0;
         if (!validId) throw new IllegalArgumentException("Invalid encounter ID");
-        return awardAttunement("raid:" + encounterId, players);
+        int awarded = awardAttunement("raid:" + encounterId, players);
+        // Field Research: research and a Boss Sample for the boss's species (one per boss and player; never throws).
+        com.ascensionlib.research.FieldResearchRuntime.raidWon(encounterId, players);
+        return awarded;
     }
 
     /**

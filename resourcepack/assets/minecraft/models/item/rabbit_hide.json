@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/rabbit_hide"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 8116
+      },
+      "model": "ascensionlib:item/focus_serum"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9116
+      },
+      "model": "ascensionlib:item/focus_serum_voucher"
+    }
+  ]
+}

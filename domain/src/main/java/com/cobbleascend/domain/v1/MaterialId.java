@@ -30,7 +30,14 @@ public enum MaterialId {
      * Halloween 2026 event material, earned from the CobbleRaids World Boss. Spent on /ascend haunt to give a Pokemon a random Haunting
      * (docs/HALLOWEEN-EVENT-DESIGN.md). Like every material it stays usable and tradable after the event; it just stops being earned.
      */
-    SPOOKY_ESSENCE("spooky_essence");
+    SPOOKY_ESSENCE("spooky_essence"),
+    /**
+     * Field Research serums (docs/FIELD-RESEARCH-DESIGN.md): crafted at the Research Bench, tradable as vouchers (owner decision 8), but only a
+     * player with the serum's research level on a family can arm one for it ({@link Serums}). Ids match {@link Serums.Kind#id}: never rename.
+     */
+    FLOOR_SERUM("floor_serum"),
+    FOCUS_SERUM("focus_serum"),
+    PRIME_SERUM("prime_serum");
 
     private final String id;
     MaterialId(String id) { this.id = id; }

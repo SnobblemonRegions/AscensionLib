@@ -54,7 +54,20 @@ public final class Simulation {
         public double recycleParticipation = 0.8, gambleParticipation = 0.4;
         public int wagerReserve = 5000, wagerPlaysPerDay = 3;
         /** Facets, Cores and Apex Shards a gambler keeps back for the promotions still ahead of them. */
-        public int wagerReserveFacets = 100, wagerReserveCores = 20, wagerReserveApex = 40;    }
+        public int wagerReserveFacets = 100, wagerReserveCores = 20, wagerReserveApex = 40;
+        /**
+         * Field Research ({@link ResearchSink}, docs/FIELD-RESEARCH-DESIGN.md), off by default. Players in the {@code researchParticipation} share
+         * research a synthetic dex of {@code researchFamilies} three-stage families ({@code raidFamilies} of them with a raid boss): one overnight
+         * Bench study a play day, {@code benchJobsPerHour} quick studies or analyses an hour of play, {@code labsPerWeek} Laboratories, and a
+         * serum for {@code serumUsesPerDay} wild catches a play day, keeping the reserves for promotions.
+         */
+        public boolean research = false;
+        public double researchParticipation = 0.6, benchJobsPerHour = 1.5, labsPerWeek = 0.7;
+        public int researchFamilies = 60, raidFamilies = 40, serumUsesPerDay = 3;
+        public int researchReserveDust = 1500, researchReserveFacets = 30, researchReserveMarks = 5;
+        /** Sim-only: every research grant scaled to this percent (at least 1 point), to size the provisional numbers before the owner picks. */
+        public int researchGrantPercent = 100;
+    }
 
     private final long seed;
     private final int days;
@@ -68,6 +81,8 @@ public final class Simulation {
     /** A stream of its own for the sink prototypes, so switching them on never changes the base economy's rolls. */
     private final Random sinkRandom;
     public final Sinks.Stats sinks = new Sinks.Stats();
+    /** Field Research, when switched on; null otherwise. */
+    final ResearchSink research;
     private int encounters;
     /** Day of each player's last tower / raid, for the "both in the last week" figure. */
     private final Map<UUID, int[]> lastActivity = new java.util.HashMap<>();
@@ -101,6 +116,9 @@ public final class Simulation {
             player.reclaimer = sinkRandom.nextDouble() < model.recycleParticipation;
             player.gambler = sinkRandom.nextDouble() < model.gambleParticipation;
         }
+        // Field Research draws from a stream of its own too, so switching it on leaves every roll above unchanged.
+        research = model.research ? new ResearchSink(model, seed) : null;
+        if (research != null) for (SimPlayer player : players) research.enrol(player);
     }
 
     public List<SimPlayer> players() { return players; }
@@ -112,11 +130,15 @@ public final class Simulation {
     /** Whether either sink prototype was switched on for this run. */
     public boolean sinksOn() { return model.recycle || model.gamble; }
 
+    /** Whether the Field Research prototype was switched on. */
+    public boolean researchOn() { return research != null; }
+
     public long seed() { return seed; }
 
     /** Runs every day. Returns this for chaining. */
     public Simulation run() {
         for (int day = 0; day < days; day++) runDay(day);
+        if (research != null) research.finish();
         return this;
     }
 
@@ -126,11 +148,13 @@ public final class Simulation {
             player.coreRollsToday = 0;
             player.apexPayoutsToday = 0;
             player.playedToday = false;
+            player.sessionMinutes = 0;
             if (random.nextInt(7) >= player.archetype.daysPerWeek) continue;
             player.playedToday = true;
             // Ecology: wild captures on a play day.
             for (int c = 0; c < model.wildCapturesPerDay; c++) player.offer(ranked.base().rollRarity(random));
             double minutes = player.archetype.hoursPerDay * 60 * (0.75 + random.nextDouble() * 0.5);
+            player.sessionMinutes = minutes;
             double towerMinutes = minutes * player.archetype.towerShare;
             for (double t = model.towerMinutes; t <= towerMinutes; t += model.towerMinutes) tower(player, day);
             int raids = (int) ((minutes - towerMinutes) / model.raidMinutes);
@@ -150,6 +174,8 @@ public final class Simulation {
         for (SimPlayer player : players) {
             reclaim(player, day);
             promote(player, day);
+            // Serums after promotions: a player spends on their team first, then on serums above a reserve.
+            if (research != null) research.day(player, day, player.sessionMinutes, ledger);
             wager(player, day);
         }
     }
@@ -265,6 +291,7 @@ public final class Simulation {
             var pay = RaidRewardBands.pay(encounter, player.id, tier, share, n, capped, settings.reducedPercent(), player.apexPayoutsToday == 1);
             ledger.mint(player, day, pay.materials());
             player.attune(pay.attunement());
+            if (research != null && tier != RaidRewardBands.Tier.WORLD_BOSS) research.raidWon(player, com.cobbleascend.domain.v1.FieldResearch.RaidTier.valueOf(tier.name()));
             // Ecology: a caught raid boss, never below the tier's rarity floor (CobbleRaids CaptureRarityFloor).
             if (random.nextDouble() < model.raidCatchChance) {
                 Rarity floor = switch (tier) { case STARTER -> Rarity.UNCOMMON; case POWERHOUSE, LEGENDARY -> Rarity.RARE; default -> Rarity.EPIC; };

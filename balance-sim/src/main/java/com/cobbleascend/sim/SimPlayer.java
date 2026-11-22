@@ -19,6 +19,8 @@ public final class SimPlayer {
     int apexPayoutsToday;
     /** Whether they played today; the Pokemon they caught today and do not want; and whether they use the Reclaimer / the Wager Altar (the sink prototypes). */
     boolean playedToday;
+    /** Minutes played today (0 on a day off). */
+    double sessionMinutes;
     final java.util.List<Rarity> unwanted = new java.util.ArrayList<>();
     boolean reclaimer, gambler;
     /** First day (0-based) the team held a Legendary / a Mythic; -1 if never. */

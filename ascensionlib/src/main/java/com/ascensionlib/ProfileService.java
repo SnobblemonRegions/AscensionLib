@@ -458,6 +458,7 @@ public final class ProfileService {
             if (pokemon.isBattleClone() || !player.getUUID().equals(pokemon.getOwnerUUID()) || !owns(player, pokemon))
                 throw new IllegalArgumentException("Both Pokemon must be yours");
             if (CraftLocks.locked(pokemon)) throw new IllegalStateException(CraftLocks.REASON);
+            if (com.ascensionlib.research.ResearchLocks.locked(pokemon)) throw new IllegalStateException(com.ascensionlib.research.ResearchLocks.REASON);
         }
         if (com.cobblemon.mod.common.battles.BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player) != null)
             throw new IllegalStateException("Not during a battle");
@@ -496,6 +497,7 @@ public final class ProfileService {
             if (pokemon.isBattleClone() || !player.getUUID().equals(pokemon.getOwnerUUID()) || !inParty(player, pokemon))
                 throw new IllegalArgumentException("Both Pokemon must be in your party");
             if (CraftLocks.locked(pokemon)) throw new IllegalStateException(CraftLocks.REASON);
+            if (com.ascensionlib.research.ResearchLocks.locked(pokemon)) throw new IllegalStateException(com.ascensionlib.research.ResearchLocks.REASON);
             if (com.ascensionlib.compat.FusionNbt.isFusion(pokemon)) throw new IllegalArgumentException("A fusion cannot be fused again");
         }
         if (com.cobblemon.mod.common.battles.BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player) != null)

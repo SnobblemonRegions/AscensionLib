@@ -10,7 +10,10 @@ import org.junit.jupiter.api.Test;
 class CurrencyItemsTest {
     /** Items that are safe to repurpose: they stack to 64, do nothing when used, and have a plain generated model a pack can override. */
     private static final Set<String> INERT_STACKABLE = Set.of("minecraft:glowstone_dust", "minecraft:amethyst_shard", "minecraft:heart_of_the_sea",
-            "minecraft:echo_shard", "minecraft:nether_star", "minecraft:prismarine_crystals", "minecraft:nautilus_shell", "minecraft:disc_fragment_5", "minecraft:ghast_tear", "minecraft:prismarine_shard", "minecraft:phantom_membrane", "minecraft:shulker_shell");
+            "minecraft:echo_shard", "minecraft:nether_star", "minecraft:prismarine_crystals", "minecraft:nautilus_shell", "minecraft:disc_fragment_5", "minecraft:ghast_tear", "minecraft:prismarine_shard", "minecraft:phantom_membrane", "minecraft:shulker_shell",
+            // The serums (Field Research): only ever crafting ingredients; no right-click use, not furnace fuel, not a brewing ingredient (dragon's
+            // breath was ruled out: Cobblemon brews it into an Ability Capsule, so a serum voucher could have been turned into one).
+            "minecraft:popped_chorus_fruit", "minecraft:rabbit_hide", "minecraft:turtle_scute");
 
     @Test void everyItemHasARarityThatExistsAndTheTiersAreOrderedByValue() {
         for (var spec : CurrencyItems.all().values()) {

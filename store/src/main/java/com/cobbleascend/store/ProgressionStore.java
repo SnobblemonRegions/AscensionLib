@@ -247,6 +247,8 @@ public final class ProgressionStore implements AutoCloseable {
             createThreatTable();
             // Fuser bonds: likewise an extra table with no version bump. An older build ignores it and sees a bond as an ordinary fusion.
             createBondsTable();
+            // Field Research: extra tables with no version bump, like the two above; an older build never reads them.
+            createResearchTables();
             if (meta("wild_secret") == null) {
                 byte[] secret = new byte[32];
                 new SecureRandom().nextBytes(secret);
@@ -1166,6 +1168,596 @@ public final class ProgressionStore implements AutoCloseable {
             saveWallet(request.playerId(), before, after);
             return new Fresh(Kind.FUSE, request.playerId(), request.hostId(), next, after, cost, 0).moved(cost, Map.of(), "");
         });
+    }
+
+    // ---- Field Research (docs/FIELD-RESEARCH-DESIGN.md): research, Bench studies, bound items, serums ----------------------------------------
+    //
+    // Every change is one transaction under an operation ID, so a retried or doubled call replays. Refusals throw ResearchException before
+    // anything is written: nothing is recorded and the same request can be made again. The domain classes hold the rules; this section only
+    // loads the facts from the database (never from the caller where the database knows them) and writes the result.
+
+    private void createResearchTables() throws SQLException {
+        try (var statement = db.createStatement()) {
+            // Points and boss research per (player, species); the family meter is always recomputed from these, capped by the current shares.
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS research_awards(
+                        player_id TEXT NOT NULL,
+                        species TEXT NOT NULL,
+                        points INTEGER NOT NULL DEFAULT 0 CHECK(points >= 0),
+                        boss_percent INTEGER NOT NULL DEFAULT 0 CHECK(boss_percent BETWEEN 0 AND 100),
+                        PRIMARY KEY(player_id, species)) STRICT""");
+            // Per-player counters per UTC day or week (serum crafts, Beacons).
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS research_days(
+                        player_id TEXT NOT NULL,
+                        counter TEXT NOT NULL,
+                        period INTEGER NOT NULL,
+                        used INTEGER NOT NULL CHECK(used >= 0),
+                        PRIMARY KEY(player_id, counter, period)) STRICT""");
+            // Bound items: Boss Samples (per species) and Data Drives (species "").
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS research_items(
+                        player_id TEXT NOT NULL,
+                        item TEXT NOT NULL,
+                        species TEXT NOT NULL,
+                        count INTEGER NOT NULL CHECK(count >= 0),
+                        PRIMARY KEY(player_id, item, species)) STRICT""");
+            // One running study per player and per Pokemon: the unique keys are the hard guarantee behind the friendly checks.
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS research_jobs(
+                        job_id TEXT PRIMARY KEY,
+                        player_id TEXT NOT NULL UNIQUE,
+                        pokemon_id TEXT NOT NULL UNIQUE,
+                        species TEXT NOT NULL,
+                        kind TEXT NOT NULL,
+                        started_at INTEGER NOT NULL,
+                        ends_at INTEGER NOT NULL CHECK(ends_at > started_at)) STRICT""");
+            // One armed serum per (player, family).
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS research_armed(
+                        player_id TEXT NOT NULL,
+                        family_id TEXT NOT NULL,
+                        kind TEXT NOT NULL,
+                        stats TEXT NOT NULL,
+                        arm_operation TEXT NOT NULL,
+                        armed_at INTEGER NOT NULL,
+                        PRIMARY KEY(player_id, family_id)) STRICT""");
+            // What a serum did to a caught Pokemon: the IVs to project. A crash between this commit and the IV write is repaired from here
+            // (the write only raises values, so applying it twice is harmless); the Pokemon's ID as the key means one serum per capture.
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS research_serum_uses(
+                        pokemon_id TEXT PRIMARY KEY,
+                        player_id TEXT NOT NULL,
+                        kind TEXT NOT NULL,
+                        ivs TEXT NOT NULL,
+                        raised TEXT NOT NULL,
+                        projected INTEGER NOT NULL DEFAULT 0,
+                        used_at INTEGER NOT NULL) STRICT""");
+            statement.execute("CREATE INDEX IF NOT EXISTS research_serum_uses_pending ON research_serum_uses(projected)");
+        }
+    }
+
+    /** One player's research. */
+    public synchronized ResearchLedger researchLedger(UUID playerId) {
+        return read(() -> loadResearch(playerId));
+    }
+
+    /** The bound items of one kind a player holds, by species ("" for a Data Drive); only positive counts. */
+    public synchronized Map<String, Integer> researchItems(UUID playerId, FieldResearch.Item item) {
+        return read(() -> loadItems(playerId, item));
+    }
+
+    /** The player's running Bench study, if any. */
+    public synchronized Optional<BenchStudies.Study> researchStudy(UUID playerId) {
+        return read(() -> loadStudy("player_id", playerId));
+    }
+
+    /** The study a Pokemon is in, if any: the runtime refuses battle, trade, release, fusion and listings while one exists. */
+    public synchronized Optional<BenchStudies.Study> researchStudyOfPokemon(UUID pokemonId) {
+        return read(() -> loadStudy("pokemon_id", pokemonId));
+    }
+
+    /** Every Pokemon in a study, for the runtime's locks (one small query). */
+    public synchronized Set<UUID> pokemonInResearch() {
+        return read(() -> {
+            var out = new HashSet<UUID>();
+            try (var statement = db.createStatement(); var rows = statement.executeQuery("SELECT pokemon_id FROM research_jobs")) {
+                while (rows.next()) out.add(UUID.fromString(rows.getString(1)));
+            }
+            return out;
+        });
+    }
+
+    /** The serums a player has armed, by family. */
+    public synchronized Map<String, Serums.Armed> armedSerums(UUID playerId) {
+        return read(() -> {
+            var out = new TreeMap<String, Serums.Armed>();
+            try (var statement = db.prepareStatement("SELECT family_id, kind, stats FROM research_armed WHERE player_id = ?")) {
+                statement.setString(1, playerId.toString());
+                try (var rows = statement.executeQuery()) {
+                    while (rows.next()) out.put(rows.getString(1), new Serums.Armed(Serums.Kind.fromId(rows.getString(2)), rows.getString(1), stats(rows.getString(3))));
+                }
+            }
+            return out;
+        });
+    }
+
+    /** How many times a counter was used this period (a serum kind's crafts today or this week, Beacons today). */
+    public synchronized int researchCounter(UUID playerId, String counter, long period) {
+        return read(() -> counter(playerId, counter, period));
+    }
+
+    /**
+     * Credits research to a species (a Laboratory locker, an admin grant; raids and the Bench have their own calls). A full share is not an
+     * error: the operation is recorded and nothing changes, so a retry still replays. Unknown species or a bad amount: {@link ResearchException}.
+     */
+    public synchronized Outcome grantResearch(UUID operationId, UUID playerId, ResearchFamilies.Catalog catalog, String species, int amount, String reason) {
+        String id = knownSpecies(catalog, species);
+        if (amount < 1 || amount > FieldResearch.MAX_GRANT) throw new ResearchException(ResearchException.Reason.BAD_AMOUNT, Integer.toString(amount));
+        Objects.requireNonNull(reason);
+        return run(operationId, "RESEARCH_GRANT|" + playerId + "|" + id + "|" + amount + "|" + reason, () -> {
+            creditResearch(playerId, catalog, id, amount);
+            return new Fresh(Kind.RESEARCH, playerId, null, null, null, Map.of(), 0).moved(Map.of(), Map.of(), "research:" + id + "+" + amount + ":" + reason);
+        });
+    }
+
+    /**
+     * Pays one player for one won raid (decision 11): research for the boss's species by tier and one Boss Sample of it, together. Use the
+     * operation {@code FieldResearch.operation("raid", <boss entity UUID>, player)}, so a doubled callback pays once.
+     */
+    public synchronized Outcome settleResearchRaid(UUID operationId, UUID playerId, ResearchFamilies.Catalog catalog, String bossSpecies,
+                                                   FieldResearch.RaidTier tier) {
+        String id = knownSpecies(catalog, bossSpecies);
+        Objects.requireNonNull(tier);
+        return run(operationId, "RESEARCH_RAID|" + playerId + "|" + id + "|" + tier, () -> {
+            creditResearch(playerId, catalog, id, tier.research);
+            addItem(playerId, FieldResearch.Item.BOSS_SAMPLE, id, 1);
+            return new Fresh(Kind.RESEARCH, playerId, null, null, null, Map.of(), 0).moved(Map.of(), Map.of(), "raid:" + id + ":" + tier);
+        });
+    }
+
+    /** Gives a player bound research items (a Laboratory's Data Drive; an admin grant). Count 1 to 64. */
+    public synchronized Outcome grantResearchItem(UUID operationId, UUID playerId, ResearchFamilies.Catalog catalog, FieldResearch.Item item, String species, int count) {
+        String id = item.perSpecies ? knownSpecies(catalog, species) : "";
+        if (count < 1 || count > 64) throw new ResearchException(ResearchException.Reason.BAD_AMOUNT, Integer.toString(count));
+        return run(operationId, "RESEARCH_ITEM|" + playerId + "|" + item.id + "|" + id + "|" + count, () -> {
+            addItem(playerId, item, id, count);
+            return new Fresh(Kind.RESEARCH, playerId, null, null, null, Map.of(), 0).moved(Map.of(), Map.of(), "item:" + item.id + ":" + id + "+" + count);
+        });
+    }
+
+    /**
+     * Uses one Data Drive on a species the player chooses: {@link FieldResearch.Source#LAB_DATA_DRIVE} research. Refused (the drive kept) when
+     * the player has none or the species' share is already full, so a drive is never burnt for nothing.
+     */
+    public synchronized Outcome useDataDrive(UUID operationId, UUID playerId, ResearchFamilies.Catalog catalog, String species) {
+        String id = knownSpecies(catalog, species);
+        return run(operationId, "RESEARCH_DRIVE|" + playerId + "|" + id, () -> {
+            if (loadResearch(playerId).roomFor(catalog, id) <= 0) throw new ResearchException(ResearchException.Reason.SHARE_FULL, id);
+            takeItem(playerId, FieldResearch.Item.DATA_DRIVE, "", 1);
+            creditResearch(playerId, catalog, id, FieldResearch.Source.LAB_DATA_DRIVE.points);
+            return new Fresh(Kind.RESEARCH, playerId, null, null, null, Map.of(), 0).moved(Map.of(), Map.of(), "drive:" + id);
+        });
+    }
+
+    /**
+     * Starts a Bench study. The caller (the runtime) has checked that the player owns the Pokemon, that it is in their party or PC and not in a
+     * battle, and passes its species and Laboratory tier mark; everything else (a running study, room left, boss research, samples) is read
+     * here. An analysis consumes one Boss Sample of the species now (recall loses it, follow-up decision 3).
+     */
+    public synchronized Outcome startResearchStudy(UUID operationId, UUID playerId, ResearchFamilies.Catalog catalog, BenchStudies.Kind kind,
+                                                   UUID pokemonId, String species, int zoneTier, UUID jobId) {
+        Objects.requireNonNull(kind);
+        Objects.requireNonNull(pokemonId);
+        Objects.requireNonNull(jobId);
+        String id = ResearchFamilies.normalise(species);
+        return run(operationId, "RESEARCH_STUDY|" + playerId + "|" + kind + "|" + pokemonId + "|" + id + "|" + zoneTier + "|" + jobId, () -> {
+            var ledger = loadResearch(playerId);
+            var request = new BenchStudies.Request(kind, playerId, pokemonId, id, catalog.knows(id), id == null ? 0 : ledger.roomFor(catalog, id),
+                    id == null ? 0 : ledger.bossPercentOf(id), id == null ? 0 : loadItems(playerId, FieldResearch.Item.BOSS_SAMPLE).getOrDefault(id, 0),
+                    zoneTier, loadStudy("player_id", playerId).isPresent(), loadStudy("pokemon_id", pokemonId).isPresent(), options.clock().millis());
+            var check = BenchStudies.startCheck(request);
+            if (check != BenchStudies.StartCheck.OK) throw new ResearchException(ResearchException.Reason.STUDY, check.name());
+            var study = BenchStudies.start(request, jobId);
+            if (kind == BenchStudies.Kind.ANALYSIS) takeItem(playerId, FieldResearch.Item.BOSS_SAMPLE, id, 1);
+            try (var statement = db.prepareStatement(
+                    "INSERT INTO research_jobs(job_id, player_id, pokemon_id, species, kind, started_at, ends_at) VALUES(?, ?, ?, ?, ?, ?, ?)")) {
+                statement.setString(1, study.jobId().toString());
+                statement.setString(2, playerId.toString());
+                statement.setString(3, pokemonId.toString());
+                statement.setString(4, study.species());
+                statement.setString(5, kind.name());
+                statement.setLong(6, study.startedMillis());
+                statement.setLong(7, study.endsMillis());
+                statement.executeUpdate();
+            }
+            return new Fresh(Kind.RESEARCH_STUDY, playerId, pokemonId, null, null, Map.of(), 0).moved(Map.of(), Map.of(), "start:" + kind + ":" + id);
+        });
+    }
+
+    /**
+     * Collects the player's finished study: pays it (research for Quick and Standard, boss research for an analysis) and frees the Pokemon, in
+     * one transaction under the study's own operation ({@link BenchStudies#payOperation}). Refused when there is no study or it has not
+     * finished on the server clock.
+     */
+    public synchronized Outcome collectResearchStudy(UUID playerId, ResearchFamilies.Catalog catalog) {
+        var study = read(() -> loadStudy("player_id", playerId)).orElseThrow(() -> new ResearchException(ResearchException.Reason.NOTHING_TO_COLLECT, ""));
+        if (!study.finished(options.clock().millis()))
+            throw new ResearchException(ResearchException.Reason.NOT_FINISHED, Long.toString(study.remainingMillis(options.clock().millis())));
+        return run(BenchStudies.payOperation(study), "RESEARCH_COLLECT|" + study.jobId(), () -> {
+            // Re-read inside the transaction: the study must still be the same one.
+            var current = loadStudy("player_id", playerId);
+            if (current.isEmpty() || !current.get().jobId().equals(study.jobId()))
+                throw new ResearchException(ResearchException.Reason.NOTHING_TO_COLLECT, "");
+            if (study.kind() == BenchStudies.Kind.ANALYSIS) {
+                var ledger = loadResearch(playerId);
+                if (catalog.knows(study.species()) && ledger.bossPercentOf(study.species()) < FieldResearch.BOSS_MAX_PERCENT)
+                    saveResearch(playerId, ledger.analyze(catalog, study.species()).ledger(), study.species());
+            } else if (catalog.knows(study.species())) {
+                creditResearch(playerId, catalog, study.species(), study.kind().points);
+            }
+            deleteStudy(study.jobId());
+            return new Fresh(Kind.RESEARCH_STUDY, playerId, study.pokemon(), null, null, Map.of(), 0).moved(Map.of(), Map.of(), "collect:" + study.kind() + ":" + study.species());
+        });
+    }
+
+    /** Recalls the Pokemon from the player's study early: the study ends and pays nothing (an analysis' sample is lost). */
+    public synchronized Outcome recallResearchStudy(UUID operationId, UUID playerId) {
+        return run(operationId, "RESEARCH_RECALL|" + playerId, () -> {
+            var study = loadStudy("player_id", playerId).orElseThrow(() -> new ResearchException(ResearchException.Reason.NOTHING_TO_COLLECT, ""));
+            deleteStudy(study.jobId());
+            return new Fresh(Kind.RESEARCH_STUDY, playerId, study.pokemon(), null, null, Map.of(), 0).moved(Map.of(), Map.of(), "recall:" + study.kind() + ":" + study.species());
+        });
+    }
+
+    /**
+     * Crafts serums: the domain's craft check against the player's research, this period's count and their Boss Samples; the wallet cost and
+     * the samples are taken, the serums credited to the wallet (tradable, decision 8) and the counter raised, all in one transaction, so two
+     * crafts at once cannot both slip under the limit. Samples are taken from species already at 100% boss research first, then the most held.
+     */
+    public synchronized Outcome craftSerum(UUID operationId, UUID playerId, ResearchFamilies.Catalog catalog, Serums.Kind kind, int quantity,
+                                           long expectedWalletRevision) {
+        Objects.requireNonNull(kind);
+        return run(operationId, "SERUM_CRAFT|" + playerId + "|" + kind.id + "|" + quantity + "|" + expectedWalletRevision, () -> {
+            long period = kind.periodOf(options.clock().millis());
+            var ledger = loadResearch(playerId);
+            var samples = loadItems(playerId, FieldResearch.Item.BOSS_SAMPLE);
+            int held = samples.values().stream().mapToInt(Integer::intValue).sum();
+            var check = Serums.craftCheck(kind, ledger.highestLevel(catalog), counter(playerId, kind.id, period), held, quantity);
+            if (check != Serums.CraftCheck.OK) throw new ResearchException(ResearchException.Reason.CRAFT, check.name());
+            var before = loadWallet(playerId);
+            if (expectedWalletRevision != CraftRequest.ANY_REVISION && before.revision() != expectedWalletRevision)
+                throw new StoreException(Code.STALE_WALLET, "Wallet changed since it was shown");
+            var cost = Serums.costOf(kind, quantity);
+            var after = before.debit(cost).credit(Map.of(kind.material(), (long) quantity));
+            options.faults().at(Faults.Point.AFTER_VALIDATION);
+            int need = kind.bossSamples * quantity;
+            var order = new ArrayList<>(samples.keySet());
+            order.sort(Comparator.<String>comparingInt(s -> ledger.bossPercentOf(s) >= FieldResearch.BOSS_MAX_PERCENT ? 0 : 1)
+                    .thenComparing(s -> -samples.get(s)).thenComparing(s -> s));
+            for (var species : order) {
+                if (need == 0) break;
+                int take = Math.min(need, samples.get(species));
+                takeItem(playerId, FieldResearch.Item.BOSS_SAMPLE, species, take);
+                need -= take;
+            }
+            saveWallet(playerId, before, after);
+            bumpCounter(playerId, kind.id, period, quantity);
+            return new Fresh(Kind.SERUM, playerId, null, null, after, cost, 0).moved(cost, Map.of(kind.material(), (long) quantity), "craft:" + kind.id);
+        });
+    }
+
+    /**
+     * Arms a serum from the wallet for one family (decision 6 and follow-up 1): the player's research on that family must be the serum's level,
+     * the chosen stats valid and distinct, and no serum already armed for it. The serum leaves the wallet in the same transaction.
+     *
+     * @param familyExcluded whether every species of the family is excluded (the runtime knows the labels; Ditto's family, a legendary line)
+     */
+    public synchronized Outcome armSerum(UUID operationId, UUID playerId, ResearchFamilies.Catalog catalog, Serums.Kind kind, String familyId,
+                                         List<Serums.Stat> chosen, boolean familyExcluded) {
+        Objects.requireNonNull(kind);
+        String family = ResearchFamilies.normalise(familyId);
+        var stats = chosen == null ? List.<Serums.Stat>of() : new ArrayList<>(chosen);
+        return run(operationId, "SERUM_ARM|" + playerId + "|" + kind.id + "|" + family + "|" + statsText(stats) + "|" + familyExcluded, () -> {
+            boolean armed = armedFor(playerId, family);
+            var check = Serums.armCheck(kind, catalog, family, stats, loadResearch(playerId).familyLevel(catalog, family), armed, familyExcluded);
+            if (check != Serums.ArmCheck.OK) throw new ResearchException(ResearchException.Reason.ARM, check.name());
+            var before = loadWallet(playerId);
+            var cost = Map.of(kind.material(), 1L);
+            var after = before.debit(cost);
+            options.faults().at(Faults.Point.AFTER_VALIDATION);
+            saveWallet(playerId, before, after);
+            try (var statement = db.prepareStatement(
+                    "INSERT INTO research_armed(player_id, family_id, kind, stats, arm_operation, armed_at) VALUES(?, ?, ?, ?, ?, ?)")) {
+                statement.setString(1, playerId.toString());
+                statement.setString(2, family);
+                statement.setString(3, kind.id);
+                statement.setString(4, statsText(stats));
+                statement.setString(5, operationId.toString());
+                statement.setLong(6, options.clock().millis());
+                statement.executeUpdate();
+            }
+            return new Fresh(Kind.SERUM, playerId, null, null, after, cost, 0).moved(cost, Map.of(), "arm:" + kind.id + ":" + family);
+        });
+    }
+
+    /**
+     * Disarms the serum armed for a family and puts it back in the wallet. Always allowed, also for a family a catalog change removed, so an
+     * armed serum can never be stranded.
+     */
+    public synchronized Outcome disarmSerum(UUID operationId, UUID playerId, String familyId) {
+        String family = ResearchFamilies.normalise(familyId);
+        return run(operationId, "SERUM_DISARM|" + playerId + "|" + family, () -> {
+            String kindId = null;
+            try (var statement = db.prepareStatement("SELECT kind FROM research_armed WHERE player_id = ? AND family_id = ?")) {
+                statement.setString(1, playerId.toString());
+                statement.setString(2, family);
+                try (var rows = statement.executeQuery()) { if (rows.next()) kindId = rows.getString(1); }
+            }
+            if (kindId == null) throw new ResearchException(ResearchException.Reason.NOT_ARMED, family);
+            var kind = Serums.Kind.fromId(kindId);
+            try (var statement = db.prepareStatement("DELETE FROM research_armed WHERE player_id = ? AND family_id = ?")) {
+                statement.setString(1, playerId.toString());
+                statement.setString(2, family);
+                statement.executeUpdate();
+            }
+            var before = loadWallet(playerId);
+            var refund = Map.of(kind.material(), 1L);
+            var after = before.credit(refund);
+            saveWallet(playerId, before, after);
+            return new Fresh(Kind.SERUM, playerId, null, null, after, Map.of(), 0).moved(Map.of(), refund, "disarm:" + kind.id + ":" + family);
+        });
+    }
+
+    /** What a serum did at a capture, as recorded: the IVs to write and the stats it raised. */
+    public record SerumUse(UUID pokemonId, UUID playerId, Serums.Kind kind, int[] ivs, List<Serums.Stat> raised, boolean projected) {
+        public SerumUse {
+            ivs = ivs.clone();
+            raised = List.copyOf(raised);
+        }
+
+        @Override public int[] ivs() { return ivs.clone(); }
+    }
+
+    /**
+     * A wild capture: if the player has a serum armed for the caught Pokemon's family and it applies ({@link Serums#apply}, checked again here
+     * with the player's current research), the serum is consumed and the IVs to write are recorded, in one transaction keyed by the Pokemon
+     * (one serum per capture, a repeated call returns the same result). Empty when nothing applies; the serum then stays armed.
+     */
+    public synchronized Optional<SerumUse> useArmedSerum(UUID playerId, ResearchFamilies.Catalog catalog, Serums.CaptureFacts capture,
+                                                         UUID pokemonId, int[] ivs) {
+        Objects.requireNonNull(pokemonId);
+        var recorded = read(() -> loadSerumUse(pokemonId));
+        if (recorded.isPresent()) return recorded;
+        if (capture == null || ivs == null) return Optional.empty();
+        var family = catalog.familyOf(capture.species());
+        if (family.isEmpty()) return Optional.empty();
+        var armed = armedSerums(playerId).get(family.get().id());
+        if (armed == null) return Optional.empty();
+        String armOperation = read(() -> {
+            try (var statement = db.prepareStatement("SELECT arm_operation FROM research_armed WHERE player_id = ? AND family_id = ?")) {
+                statement.setString(1, playerId.toString());
+                statement.setString(2, family.get().id());
+                try (var rows = statement.executeQuery()) { return rows.next() ? rows.getString(1) : null; }
+            }
+        });
+        if (armOperation == null) return Optional.empty();
+        var outcome = Serums.apply(armed, catalog, capture, loadResearchUnlocked(playerId).familyLevel(catalog, family.get().id()), ivs,
+                Serums.seed(pokemonId, UUID.fromString(armOperation)));
+        if (!outcome.applied()) return Optional.empty();
+        var operation = FieldResearch.operation("serum-use", pokemonId.toString(), playerId);
+        run(operation, "SERUM_USE|" + playerId + "|" + pokemonId + "|" + armed.kind().id + "|" + Arrays.toString(outcome.ivs()), () -> {
+            if (loadSerumUse(pokemonId).isPresent()) throw new ResearchException(ResearchException.Reason.NOT_ARMED, "already used on this Pokemon");
+            try (var statement = db.prepareStatement("DELETE FROM research_armed WHERE player_id = ? AND family_id = ? AND arm_operation = ?")) {
+                statement.setString(1, playerId.toString());
+                statement.setString(2, family.get().id());
+                statement.setString(3, armOperation);
+                if (statement.executeUpdate() != 1) throw new ResearchException(ResearchException.Reason.NOT_ARMED, family.get().id());
+            }
+            try (var statement = db.prepareStatement(
+                    "INSERT INTO research_serum_uses(pokemon_id, player_id, kind, ivs, raised, projected, used_at) VALUES(?, ?, ?, ?, ?, 0, ?)")) {
+                statement.setString(1, pokemonId.toString());
+                statement.setString(2, playerId.toString());
+                statement.setString(3, armed.kind().id);
+                statement.setString(4, ivsText(outcome.ivs()));
+                statement.setString(5, statsText(outcome.raised()));
+                statement.setLong(6, options.clock().millis());
+                statement.executeUpdate();
+            }
+            return new Fresh(Kind.SERUM, playerId, pokemonId, null, null, Map.of(), 0).moved(Map.of(), Map.of(), "use:" + armed.kind().id + ":" + family.get().id());
+        });
+        return read(() -> loadSerumUse(pokemonId));
+    }
+
+    /** Serum results whose IVs were never confirmed written (a crash, an offline owner): write them again, then {@link #markSerumUseProjected}. */
+    public synchronized List<SerumUse> unprojectedSerumUses() {
+        return read(() -> {
+            var out = new ArrayList<SerumUse>();
+            try (var statement = db.createStatement(); var rows = statement.executeQuery(
+                    "SELECT pokemon_id, player_id, kind, ivs, raised, projected FROM research_serum_uses WHERE projected = 0")) {
+                while (rows.next()) out.add(readSerumUse(rows));
+            }
+            return out;
+        });
+    }
+
+    /** Records that a serum's IVs were written to the Pokemon. Safe to repeat. */
+    public synchronized void markSerumUseProjected(UUID pokemonId) {
+        transaction(() -> {
+            try (var statement = db.prepareStatement("UPDATE research_serum_uses SET projected = 1 WHERE pokemon_id = ?")) {
+                statement.setString(1, pokemonId.toString());
+                statement.executeUpdate();
+            }
+            return null;
+        });
+    }
+
+    /** The serum recorded for a Pokemon, if one was ever used on it (the runtime writes the {@code ascensionlib_serum} mark from this). */
+    public synchronized Optional<SerumUse> serumUse(UUID pokemonId) {
+        return read(() -> loadSerumUse(pokemonId));
+    }
+
+    // research row access
+
+    private String knownSpecies(ResearchFamilies.Catalog catalog, String species) {
+        String id = ResearchFamilies.normalise(species);
+        if (id == null || !catalog.knows(id)) throw new ResearchException(ResearchException.Reason.UNKNOWN_SPECIES, String.valueOf(species));
+        return id;
+    }
+
+    private ResearchLedger loadResearch(UUID playerId) throws SQLException {
+        var points = new HashMap<String, Integer>();
+        var boss = new HashMap<String, Integer>();
+        try (var statement = db.prepareStatement("SELECT species, points, boss_percent FROM research_awards WHERE player_id = ?")) {
+            statement.setString(1, playerId.toString());
+            try (var rows = statement.executeQuery()) {
+                while (rows.next()) {
+                    points.put(rows.getString(1), rows.getInt(2));
+                    boss.put(rows.getString(1), rows.getInt(3));
+                }
+            }
+        }
+        return new ResearchLedger(points, boss);
+    }
+
+    /** {@link #loadResearch} for code outside a transaction. */
+    private ResearchLedger loadResearchUnlocked(UUID playerId) {
+        return read(() -> loadResearch(playerId));
+    }
+
+    private void creditResearch(UUID playerId, ResearchFamilies.Catalog catalog, String species, int amount) throws SQLException {
+        var credit = loadResearch(playerId).credit(catalog, species, amount);
+        if (credit.applied() > 0) saveResearch(playerId, credit.ledger(), species);
+    }
+
+    /** Writes one species' row from the ledger (points capped by the ledger, boss research clamped by it). */
+    private void saveResearch(UUID playerId, ResearchLedger ledger, String species) throws SQLException {
+        try (var statement = db.prepareStatement("INSERT INTO research_awards(player_id, species, points, boss_percent) VALUES(?, ?, ?, ?)"
+                + " ON CONFLICT(player_id, species) DO UPDATE SET points = excluded.points, boss_percent = excluded.boss_percent")) {
+            statement.setString(1, playerId.toString());
+            statement.setString(2, species);
+            statement.setInt(3, ledger.speciesPoints().getOrDefault(species, 0));
+            statement.setInt(4, ledger.bossPercentOf(species));
+            statement.executeUpdate();
+        }
+    }
+
+    private Map<String, Integer> loadItems(UUID playerId, FieldResearch.Item item) throws SQLException {
+        var out = new TreeMap<String, Integer>();
+        try (var statement = db.prepareStatement("SELECT species, count FROM research_items WHERE player_id = ? AND item = ? AND count > 0")) {
+            statement.setString(1, playerId.toString());
+            statement.setString(2, item.id);
+            try (var rows = statement.executeQuery()) { while (rows.next()) out.put(rows.getString(1), rows.getInt(2)); }
+        }
+        return out;
+    }
+
+    private void addItem(UUID playerId, FieldResearch.Item item, String species, int count) throws SQLException {
+        try (var statement = db.prepareStatement("INSERT INTO research_items(player_id, item, species, count) VALUES(?, ?, ?, ?)"
+                + " ON CONFLICT(player_id, item, species) DO UPDATE SET count = count + excluded.count")) {
+            statement.setString(1, playerId.toString());
+            statement.setString(2, item.id);
+            statement.setString(3, species);
+            statement.setInt(4, count);
+            statement.executeUpdate();
+        }
+    }
+
+    /** Takes {@code count} items; refused (nothing written) when the player holds fewer. */
+    private void takeItem(UUID playerId, FieldResearch.Item item, String species, int count) throws SQLException {
+        try (var statement = db.prepareStatement("UPDATE research_items SET count = count - ? WHERE player_id = ? AND item = ? AND species = ? AND count >= ?")) {
+            statement.setInt(1, count);
+            statement.setString(2, playerId.toString());
+            statement.setString(3, item.id);
+            statement.setString(4, species);
+            statement.setInt(5, count);
+            if (statement.executeUpdate() != 1) throw new ResearchException(ResearchException.Reason.NO_ITEM, item.id + ":" + species);
+        }
+    }
+
+    private Optional<BenchStudies.Study> loadStudy(String column, UUID id) throws SQLException {
+        // column is one of two constants in this class, never caller text
+        if (!column.equals("player_id") && !column.equals("pokemon_id")) throw new IllegalArgumentException(column);
+        try (var statement = db.prepareStatement("SELECT job_id, player_id, pokemon_id, species, kind, started_at, ends_at FROM research_jobs WHERE " + column + " = ?")) {
+            statement.setString(1, id.toString());
+            try (var rows = statement.executeQuery()) {
+                if (!rows.next()) return Optional.empty();
+                return Optional.of(new BenchStudies.Study(UUID.fromString(rows.getString(1)), UUID.fromString(rows.getString(2)), UUID.fromString(rows.getString(3)),
+                        rows.getString(4), BenchStudies.Kind.valueOf(rows.getString(5)), rows.getLong(6), rows.getLong(7)));
+            }
+        }
+    }
+
+    private void deleteStudy(UUID jobId) throws SQLException {
+        try (var statement = db.prepareStatement("DELETE FROM research_jobs WHERE job_id = ?")) {
+            statement.setString(1, jobId.toString());
+            statement.executeUpdate();
+        }
+    }
+
+    private int counter(UUID playerId, String counter, long period) throws SQLException {
+        try (var statement = db.prepareStatement("SELECT used FROM research_days WHERE player_id = ? AND counter = ? AND period = ?")) {
+            statement.setString(1, playerId.toString());
+            statement.setString(2, counter);
+            statement.setLong(3, period);
+            try (var rows = statement.executeQuery()) { return rows.next() ? rows.getInt(1) : 0; }
+        }
+    }
+
+    private void bumpCounter(UUID playerId, String counter, long period, int by) throws SQLException {
+        try (var statement = db.prepareStatement("INSERT INTO research_days(player_id, counter, period, used) VALUES(?, ?, ?, ?)"
+                + " ON CONFLICT(player_id, counter, period) DO UPDATE SET used = used + excluded.used")) {
+            statement.setString(1, playerId.toString());
+            statement.setString(2, counter);
+            statement.setLong(3, period);
+            statement.setInt(4, by);
+            statement.executeUpdate();
+        }
+    }
+
+    private boolean armedFor(UUID playerId, String family) throws SQLException {
+        try (var statement = db.prepareStatement("SELECT 1 FROM research_armed WHERE player_id = ? AND family_id = ?")) {
+            statement.setString(1, playerId.toString());
+            statement.setString(2, family);
+            try (var rows = statement.executeQuery()) { return rows.next(); }
+        }
+    }
+
+    private Optional<SerumUse> loadSerumUse(UUID pokemonId) throws SQLException {
+        try (var statement = db.prepareStatement("SELECT pokemon_id, player_id, kind, ivs, raised, projected FROM research_serum_uses WHERE pokemon_id = ?")) {
+            statement.setString(1, pokemonId.toString());
+            try (var rows = statement.executeQuery()) { return rows.next() ? Optional.of(readSerumUse(rows)) : Optional.empty(); }
+        }
+    }
+
+    private static SerumUse readSerumUse(ResultSet rows) throws SQLException {
+        return new SerumUse(UUID.fromString(rows.getString(1)), UUID.fromString(rows.getString(2)), Serums.Kind.fromId(rows.getString(3)),
+                parseIvs(rows.getString(4)), stats(rows.getString(5)), rows.getInt(6) == 1);
+    }
+
+    private static String statsText(List<Serums.Stat> stats) {
+        var names = new ArrayList<String>();
+        for (var stat : stats) names.add(stat == null ? "null" : stat.name());
+        return String.join(",", names);
+    }
+
+    private static List<Serums.Stat> stats(String text) {
+        var out = new ArrayList<Serums.Stat>();
+        if (text != null && !text.isEmpty()) for (var part : text.split(",")) out.add(Serums.Stat.valueOf(part));
+        return out;
+    }
+
+    private static String ivsText(int[] ivs) {
+        var parts = new ArrayList<String>();
+        for (int v : ivs) parts.add(Integer.toString(v));
+        return String.join(",", parts);
+    }
+
+    private static int[] parseIvs(String text) {
+        var parts = text.split(",");
+        int[] out = new int[parts.length];
+        for (int i = 0; i < parts.length; i++) out[i] = Integer.parseInt(parts[i]);
+        return out;
     }
 
     // --- transaction machinery ------------------------------------------------------------------------

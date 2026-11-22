@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:generic",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:turtle_scute",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "ascensionlib": {
+                    "material": "prime_serum"
+                  }
+                },
+                "minecraft:custom_model_data": 8117,
+                "minecraft:custom_name": "{\"text\":\"Prime Serum\",\"color\":\"#ff7ad9\",\"italic\":false}",
+                "minecraft:lore": [
+                  "[\"\",{\"text\":\"EPIC\",\"color\":\"#af69ff\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Serum\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
+                  "{\"text\":\"Arm it at a Research Bench for a family\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"you have researched to level 4: your next\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"wild catch of that family gets a chosen\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"stat and one random stat set to 31.\",\"color\":\"gray\",\"italic\":false}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

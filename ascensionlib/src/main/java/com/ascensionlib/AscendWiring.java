@@ -132,6 +132,9 @@ final class AscendWiring {
                 dispatcher.register(TradeTestCommand.lockNode());
                 dispatcher.register(TradeTestCommand.escrowNode());
             }
+            // Test seam for Field Research's raid hook, only under -Dascensionlib.testResearch=true.
+            var raidResearchTest = com.ascensionlib.research.RaidResearchTestCommand.node();
+            if (raidResearchTest != null) dispatcher.register(raidResearchTest);
         });
         LOG.info("Capture and hatch rarity, wild and trainer ratings, level milestones and ascension inspection enabled. Battle effects act only when CobbleRaids is installed (they are untested in a live battle).");
     }
@@ -288,6 +291,8 @@ final class AscendWiring {
                         .then(Commands.argument("slot", IntegerArgumentType.integer(1, 6))
                                 .executes(ctx -> haunt(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot")))))
                 .then(Commands.literal("dex").executes(ctx -> dex(ctx.getSource())))
+                // /ascend research [family <species> | drive <species>]: the player's Field Research (docs/FIELD-RESEARCH-DESIGN.md).
+                .then(com.ascensionlib.research.ResearchCommands.player())
                 // /ascend calm [on|off]: no animation, flash or flare on the pages, for players who are sensitive to them. Also a button in every page's header.
                 .then(Commands.literal("calm")
                         .executes(ctx -> calm(ctx.getSource(), null))
@@ -304,6 +309,7 @@ final class AscendWiring {
                                 .then(Commands.argument("enemy", IntegerArgumentType.integer(1, 16))
                                         .executes(ctx -> scoutUse(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "enemy"))))))
                 .then(Commands.literal("admin").requires(source -> source.hasPermission(2))
+                        .then(com.ascensionlib.research.ResearchCommands.admin())
                         .then(Commands.literal("inspect")
                                 .executes(ctx -> inspect(ctx.getSource(), 1))
                                 .then(Commands.argument("slot", IntegerArgumentType.integer(1, 6))

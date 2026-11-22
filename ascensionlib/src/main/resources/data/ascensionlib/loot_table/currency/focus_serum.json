@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:generic",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:rabbit_hide",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "ascensionlib": {
+                    "material": "focus_serum"
+                  }
+                },
+                "minecraft:custom_model_data": 8116,
+                "minecraft:custom_name": "{\"text\":\"Focus Serum\",\"color\":\"#5aa9ff\",\"italic\":false}",
+                "minecraft:lore": [
+                  "[\"\",{\"text\":\"RARE\",\"color\":\"#38ccef\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Serum\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
+                  "{\"text\":\"Arm it at a Research Bench for a family\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"you have researched to level 3: your next\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"wild catch of that family gets two chosen\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"stats raised to at least 25.\",\"color\":\"gray\",\"italic\":false}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

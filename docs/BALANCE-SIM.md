@@ -32,3 +32,9 @@ Players: Casual, Regular, Tower-heavy, Raid-heavy, Grinder, saving Cores and Ape
 - Ecology: wild and raid captures replace a team's weakest Pokemon.
 - Economy: pay in, promotions out, per material.
 - Stability: last-30-day sink ratio (spent / minted) and median wallet at the end.
+
+**Field Research prototype** (`-PsimResearch=true`, optional `-PsimResearchScale=<percent>` to scale every research grant): `ResearchSink`
+runs the shipped domain rules (`ResearchFamilies`, `ResearchLedger`, `Serums`, `BenchStudies`, `FieldResearch`) on a synthetic dex, from
+its own random stream, and reports research pace, serum crafts and what they spend. Research mints nothing; its only flows are the serums'
+costs. `FieldResearchSimulationTest` checks the ledger, every research rule and craft limit, that research is a pure sink and that the
+economy is unchanged with it off. Results and the decisions they raise: `docs/FIELD-RESEARCH-DESIGN.md`, "Step 1 as built".

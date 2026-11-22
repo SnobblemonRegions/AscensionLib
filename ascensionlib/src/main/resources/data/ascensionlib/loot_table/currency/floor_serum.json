@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:generic",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:popped_chorus_fruit",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_data": {
+                  "ascensionlib": {
+                    "material": "floor_serum"
+                  }
+                },
+                "minecraft:custom_model_data": 8115,
+                "minecraft:custom_name": "{\"text\":\"Floor Serum\",\"color\":\"#6fd3a0\",\"italic\":false}",
+                "minecraft:lore": [
+                  "[\"\",{\"text\":\"UNCOMMON\",\"color\":\"#1bd7e8\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Serum\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
+                  "{\"text\":\"Arm it at a Research Bench for a family\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"you have researched to level 2: your next\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"wild catch of that family gets one chosen\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"stat raised to at least 20.\",\"color\":\"gray\",\"italic\":false}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

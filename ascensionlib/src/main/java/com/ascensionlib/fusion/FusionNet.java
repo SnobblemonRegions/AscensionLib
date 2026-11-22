@@ -52,7 +52,8 @@ public final class FusionNet {
     /** Why this pairing cannot be done now; empty when it can. The profiles, the wallet and the fused set are read once by the caller. */
     private static String blockFor(Pokemon host, ProfileV1 hostProfile, Pokemon donor, ProfileV1 donorProfile, MaterialWallet wallet,
                                    java.util.Set<UUID> fused) {
-        var locked = com.ascensionlib.CraftLocks.reason(host).or(() -> com.ascensionlib.CraftLocks.reason(donor));
+        var locked = com.ascensionlib.CraftLocks.reason(host).or(() -> com.ascensionlib.CraftLocks.reason(donor))
+                .or(() -> com.ascensionlib.research.ResearchLocks.reason(host)).or(() -> com.ascensionlib.research.ResearchLocks.reason(donor));
         if (locked.isPresent()) return locked.get();
         try {
             FusionRules.check(hostProfile, fused.contains(host.getUuid()), donorProfile, fused.contains(donor.getUuid()), wallet);

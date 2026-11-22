@@ -166,6 +166,20 @@ public final class ScoutEncounters {
     }
 
     /** Forgets the encounter and every reveal of it; its participants' screens go back to nothing. */
+    /** An encounter's boss as declared: its species id (as the declaring mod passed it) and level. */
+    public record DeclaredBoss(String speciesId, int level) {}
+
+    /**
+     * The boss declared for an encounter, if it is still active (Field Research reads it when CobbleRaids settles a won raid, which it does
+     * before it ends the encounter). The first enemy declared as a boss; empty when there is none.
+     */
+    public static synchronized java.util.Optional<DeclaredBoss> declaredBoss(String encounterId) {
+        var encounter = encounterId == null ? null : ACTIVE.get(encounterId);
+        if (encounter == null) return java.util.Optional.empty();
+        for (var enemy : encounter.enemies.values()) if (enemy.boss()) return java.util.Optional.of(new DeclaredBoss(enemy.speciesId(), enemy.level()));
+        return java.util.Optional.empty();
+    }
+
     public static synchronized void end(String encounterId) {
         Encounter ended = ACTIVE.remove(encounterId);
         // A player still armed for a finished encounter would otherwise fight natively (no wild rating either) until the server restarts.

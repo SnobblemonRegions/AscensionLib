@@ -534,6 +534,55 @@ def apex_shard():
     return c
 
 
+GLASS = ramp('3c5866', '6f95a6', 'a9cbd6', 'd8eef3', 'ffffff')
+CORK = ramp('4a2e17', '6e4524', '94612f', 'b98243', 'd9a868')
+
+
+def serum(liquid, bands, star=False):
+    """A Field Research serum: a stoppered glass vial of coloured liquid. Floor, Focus and Prime differ in colour, in the number of white
+    measuring bands on the glass (one, two, three) and Prime's sparkle, so they stay apart even for a colour-blind player."""
+    c = Canvas()
+    # the vial: a slim neck over a rounded body
+    c.poly([(13, 5), (19, 5), (19, 10), (13, 10)], GLASS[1])                          # neck
+    c.poly([(10, 10), (22, 10), (24, 14), (24, 25), (21, 28), (11, 28), (8, 25), (8, 14)], GLASS[1])   # body
+    # the liquid, filling the body to just below the shoulder, lit from the upper left
+    c.poly([(9, 15), (23, 15), (23, 25), (20.5, 27), (11.5, 27), (9, 25)], liquid[2])
+    c.poly([(9, 15), (23, 15), (23, 17), (9, 17)], liquid[3])                         # the meniscus catches the light
+    c.poly([(19, 18), (23, 18), (23, 25), (20.5, 27), (17, 27)], liquid[1])            # the shaded side
+    c.poly([(10, 25), (22, 25), (20.5, 27), (11.5, 27)], liquid[0])
+    for x, y in ((12, 20), (15, 22), (13, 24), (17, 19)): c.set(x, y, liquid[4])       # bubbles
+    # glass highlights over everything: a bright stripe down the left and a glint on the shoulder
+    for y in range(11, 25): c.set(10, y, GLASS[3])
+    for y in range(12, 22): c.set(11, y, GLASS[4] if y % 3 else GLASS[3])
+    c.set(14, 11, GLASS[4]); c.set(15, 11, GLASS[3])
+    for y in range(6, 10): c.set(14, y, GLASS[3])
+    # measuring bands: one for Floor, two for Focus, three for Prime
+    for i in range(bands):
+        y = 26 - 3 * i
+        for x in range(18, 23): c.set(x, y, GLASS[4])
+    # the cork
+    c.poly([(12, 2), (20, 2), (20, 6), (12, 6)], CORK[2])
+    for x in range(12, 20): c.set(x, 2, CORK[4]); c.set(x, 5, CORK[0])
+    c.set(13, 3, CORK[3]); c.set(17, 4, CORK[1])
+    if star:
+        c.sparkle(26, 6, rgb('fff3b0'), arm=2, core=rgb('ffffff'))
+        c.sparkle(6, 22, rgb('ffd6f2'), arm=1, core=rgb('ffffff'))
+    c.outline()
+    return c
+
+
+def floor_serum():
+    return serum(ramp('1f5c3d', '33895c', '4fb57f', '6fd3a0', 'c8f5dc'), 1)
+
+
+def focus_serum():
+    return serum(ramp('163a73', '2a62b0', '3f86e0', '5aa9ff', 'cfe6ff'), 2)
+
+
+def prime_serum():
+    return serum(ramp('6a1650', '9c2a7b', 'd04aa8', 'ff7ad9', 'ffd6f2'), 3, star=True)
+
+
 PAPER = ramp('8f8668', 'c4bb9b', 'e8e1c9', 'f6f1df', 'ffffff')
 WAX = ramp('5e1018', '8a1f2b', 'b72e3d', 'd23a46', 'ff9aa0')
 
@@ -578,6 +627,9 @@ ICONS = {
     'unique_respec': unique_respec,
     'spooky_essence': spooky_essence,
     'apex_shard': apex_shard,
+    'floor_serum': floor_serum,
+    'focus_serum': focus_serum,
+    'prime_serum': prime_serum,
 }
 
 

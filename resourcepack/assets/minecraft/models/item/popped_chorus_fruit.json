@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/popped_chorus_fruit"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 8115
+      },
+      "model": "ascensionlib:item/floor_serum"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9115
+      },
+      "model": "ascensionlib:item/floor_serum_voucher"
+    }
+  ]
+}
