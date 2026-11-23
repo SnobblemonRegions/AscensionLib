@@ -92,3 +92,7 @@ _Avoid_: Save file, Pokémon data (as the source of truth).
 **Craft lock**: The persistent-data flag `ascensionlib_craft_locked` marking a lent Pokémon (such as a Towers rental). It can be inspected but not crafted.
 
 **Profiler**: An opt-in timing aid, off by default, that logs screen and server-path timings.
+
+## Releases
+
+A version bump in build.gradle needs a matching newest entry in ascensionlib/src/main/resources/ascensionlib/CHANGELOG.md. It ships in the jar at ascensionlib/CHANGELOG.md and is shown to players in game by Snobblemon Server, so write it for players (what they will notice, no config keys or class names) and keep to its four line kinds: the '# AscensionLib changelog' title, '## <version> (YYYY-MM-DD)', '### New', '### Changed' or '### Fixed', and '- ' bullets. tools/validate_changelog.py enforces this. Call it the Player Changelog, not patch notes or release notes.
