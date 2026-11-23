@@ -16,10 +16,35 @@
         "rule": "dark-glow",
         "value": "*",
         "files": [
-          "ascensionlib/src/main/resources/web/ascensionlib/craft.html"
+          "ascensionlib/src/main/resources/web/ascensionlib/craft.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/party.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/inspect.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/wallet.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/fusion.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/guide.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/completion.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/hud.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/capture.html"
         ],
         "createdAt": "2026-11-15T17:11:09.316Z",
         "reason": "Claude: the glow is the incumbent Pokédex LCD world, defined once as --glow in ascension.css and used on every page; the Calm setting (html.calm) removes it"
+      },
+      {
+        "rule": "tiny-text",
+        "value": "*",
+        "files": [
+          "ascensionlib/src/main/resources/web/ascensionlib/craft.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/party.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/inspect.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/wallet.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/fusion.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/guide.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/completion.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/hud.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/capture.html"
+        ],
+        "createdAt": "2026-11-18T00:08:47.571Z",
+        "reason": "Claude: the pages are a fixed-size tablet that ui.js scales up to fill 82% of the game window (--ui-scale, about 1.4x at 1080p), so 11px Monocraft renders near 15px on screen; the pixel font is drawn for that size"
       }
     ]
   }

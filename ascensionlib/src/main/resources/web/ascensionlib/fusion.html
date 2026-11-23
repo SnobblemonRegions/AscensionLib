@@ -9,43 +9,43 @@
 <link rel="stylesheet" href="ascension.css">
 <style>
   .main { flex: 1; min-height: 0; display: grid; grid-template-columns: 210px 1fr 210px; gap: 12px; padding: 12px 14px; }
-  .well { background: radial-gradient(circle at 50% 70%, #11405a, #07131c 72%); height: 130px; border: 2px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6px; }
+  .well { background: radial-gradient(circle at 50% 70%, #11405a, #07131c 72%); height: 130px; border: 2px solid var(--line); box-shadow: var(--sunk); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6px; }
   .sprbox { display: flex; align-items: center; justify-content: center; }
   .name { margin-top: 8px; overflow-wrap: anywhere; text-shadow: var(--glow); }
   .rarity { text-transform: capitalize; }
   .result { overflow-y: auto; flex: 1; min-height: 0; padding-right: 4px; }
   .result p { margin: 0 0 6px; overflow-wrap: anywhere; }
-  .result h2 { margin: 0 0 6px; font-size: 15px; font-weight: 400; color: var(--acc); text-shadow: var(--glow); }
+  .result h2 { margin: 0 0 6px; font-size: var(--fs-name); font-weight: 400; color: var(--acc); text-shadow: var(--glow); }
   /* picker */
-  .picker { width: 600px; height: 520px; transform: scale(var(--ui-scale, 1)); display: flex; flex-direction: column; background: var(--panel); border: 2px solid var(--acc); box-shadow: var(--glow); }
+  .picker { width: 600px; height: 520px; transform: scale(var(--ui-scale, 1)); display: flex; flex-direction: column; background: var(--sheen), var(--panel); border: 2px solid var(--acc); box-shadow: var(--glow); }
   .picker .head { letter-spacing: .06em; }
   .picker .tools { display: flex; gap: 6px; padding: 8px 12px 0; }
-  .picker input { flex: 1; padding: 6px 8px; border: 2px solid var(--line); background: var(--head); font: inherit; color: var(--ink); }
+  .picker input { flex: 1; padding: 6px 8px; }
   .tabs { display: flex; gap: 6px; padding: 8px 12px 0; }
   .tabs button.on { background: var(--crimson); color: #fff; border-color: #eef2f7; text-shadow: none; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; padding: 10px 12px; overflow-y: auto; min-height: 150px; }
-  .tile { background: var(--row); border: 2px solid var(--line); border-top: 5px solid var(--line); padding: 6px; cursor: pointer; text-align: center; min-height: 84px; }
+  .tile { background: var(--sheen), var(--row); border: 2px solid var(--line); border-top: 5px solid var(--line); box-shadow: var(--raised); padding: 6px; cursor: pointer; text-align: center; min-height: 84px; }
   .tile:hover:not(.off) { border-color: var(--acc); box-shadow: var(--glow); }
   .tile.off { background: var(--head); color: var(--muted); cursor: not-allowed; opacity: .6; }
-  .tile .n { font-size: 12px; overflow-wrap: anywhere; } .tile .r { font-size: 10px; text-transform: capitalize; }
+  .tile .n { font-size: var(--fs-body); overflow-wrap: anywhere; } .tile .r { font-size: var(--fs-meta); text-transform: capitalize; }
   .spr { image-rendering: pixelated; }
   .empty { padding: 12px; color: var(--muted); }
-  .reason { padding: 6px 12px; min-height: 28px; color: var(--warn); font-size: 11px; }
-  [hidden] { display: none !important; }   /* the classes below set display, which would otherwise beat the hidden attribute */
+  .reason { padding: 6px 12px; min-height: 28px; color: var(--warn); font-size: var(--fs-body); }
+    [hidden] { display: none !important; }   /* the classes below set display, which would otherwise beat the hidden attribute */
   /* Fuser intro: shown once per player at the Fuser, above the chambers, until "Got it"; "How it works" brings it back. */
   .intro { background: var(--row); border-bottom: 2px solid var(--line); padding: 10px 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: start; }
-  .intro h2 { grid-column: 1 / -1; margin: 0; font-size: 13px; font-weight: 400; color: var(--acc); letter-spacing: .04em; }
+  .intro h2 { grid-column: 1 / -1; margin: 0; font-size: var(--fs-body); font-weight: 400; color: var(--acc); letter-spacing: .04em; }
   .intro ol { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-  .intro li { counter-increment: step; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
-  .intro li::before { content: counter(step); display: block; color: var(--acc); font-size: 11px; margin-bottom: 2px; }
+  .intro li { counter-increment: step; font-size: var(--fs-body); line-height: 1.45; overflow-wrap: anywhere; }
+  .intro li::before { content: counter(step); display: block; color: var(--acc); font-size: var(--fs-meta); margin-bottom: 2px; }
   .intro li b { color: #fff; font-weight: 400; }
-  .intro .more { grid-column: 1; font-size: 12px; }
+  .intro .more { grid-column: 1; font-size: var(--fs-body); }
   .intro .gotit { grid-column: 2; grid-row: 2 / span 2; align-self: end; }
 </style>
 </head>
 <body>
 <div class="frame">
-  <div class="head"><span id="title">FUSION</span><button id="how" hidden>How it works</button><button class="x" id="close" title="Close">X</button></div>
+  <div class="head"><span id="title">FUSION</span><button id="how" hidden>How it works</button><button class="x" id="close" title="Close">&times;</button></div>
   <div class="intro" id="intro" hidden>
     <h2>How a Transcendent bond works</h2>
     <ol>

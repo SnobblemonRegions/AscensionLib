@@ -9,49 +9,49 @@
 <link rel="stylesheet" href="ascension.css">
 <style>
   .main { flex: 1; min-height: 0; display: grid; grid-template-columns: 290px 1fr; gap: 12px; padding: 12px 14px 6px; }
-  .dexrow { display: flex; justify-content: space-between; align-items: center; background: var(--head); margin: -10px -10px 8px; padding: 6px 10px; font-size: 11px; color: var(--muted); border-bottom: 2px solid var(--line); text-shadow: var(--glow); }
-  .chip { color: #fff; font-size: 10px; padding: 1px 6px; border: 2px solid var(--outline); text-shadow: none; }
-  .art { height: 140px; } .sprbox { display: flex; align-items: center; justify-content: center; }
-  .nm { text-align: center; margin-top: 10px; font-size: 15px; overflow-wrap: anywhere; text-shadow: var(--glow); }
+  .dexrow { display: flex; justify-content: space-between; align-items: center; background: var(--sheen), var(--head); margin: -10px -10px 8px; padding: 6px 10px; font-size: var(--fs-meta); color: var(--muted); border-bottom: 2px solid var(--line); text-shadow: var(--glow); }
+  .chip { color: #fff; font-size: var(--fs-meta); padding: 1px 6px; border: 2px solid var(--outline); text-shadow: none; }
+  .art { height: 168px; } .sprbox { display: flex; align-items: center; justify-content: center; }
+  .nm { text-align: center; margin-top: 10px; font-size: var(--fs-name); overflow-wrap: anywhere; text-shadow: var(--glow); }
   .sub { text-align: center; color: var(--muted); }
   .stat { display: grid; grid-template-columns: 34px 1fr 30px; gap: 8px; align-items: center; margin-top: 4px; }
   .stat .k { color: var(--muted); } .stat .v { text-align: right; }
   .grade { margin-top: auto; text-align: center; padding: 8px; color: var(--common); background: var(--common-bg); letter-spacing: .16em; border: 2px solid var(--outline); }
   .right { min-height: 0; }
-  .rhead { display: flex; justify-content: space-between; margin: -10px -10px 8px; padding: 6px 10px; background: var(--head); border-bottom: 2px solid var(--line); text-shadow: var(--glow); font-size: 11px; color: var(--muted); }
+  .rhead { display: flex; justify-content: space-between; margin: -10px -10px 8px; padding: 6px 10px; background: var(--sheen), var(--head); border-bottom: 2px solid var(--line); text-shadow: var(--glow); font-size: var(--fs-meta); color: var(--muted); }
   .rows { flex: 1; min-height: 0; overflow-y: auto; display: grid; gap: 4px; align-content: start; }
-  .row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 2px solid transparent; background: var(--row); cursor: pointer; }
-  .row:hover { border-color: var(--line); } .row.sel { border-color: var(--acc); box-shadow: var(--glow); }
-  .row.uniq { background: #1b1a38; }
+  .row { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border: 2px solid transparent; background: var(--sheen), var(--row); box-shadow: var(--raised); cursor: pointer; }
+  .row:hover { border-color: var(--line); } .row.sel { border-color: var(--acc); box-shadow: var(--raised), var(--glow); }
+  .row.uniq { background: var(--sheen), #1b1a38; }
   .ic { width: 18px; height: 18px; flex: none; border: 2px solid var(--outline); }
-  .row .t1 { font-size: 13px; } .row .t2 { font-size: 10px; color: var(--muted); display: flex; gap: 8px; align-items: center; margin-top: 2px; }
-  .row .v { margin-left: auto; font-size: 14px; color: var(--acc); text-shadow: var(--glow); }
-  .pips { display: inline-flex; gap: 2px; } .pips i { width: 8px; height: 8px; background: var(--well); border: 1px solid var(--line); } .pips i.on { background: var(--acc); border-color: var(--acc); }
-  .theme { margin-left: 8px; font-size: 9px; letter-spacing: .08em; padding: 0 5px; border: 1px solid var(--line); color: var(--muted); text-transform: uppercase; }
-  .maxed { margin-left: 6px; font-size: 9px; padding: 0 5px; background: var(--gold); color: #1b120d; }
-  .sealedtag { margin-left: 6px; font-size: 9px; padding: 0 5px; border: 1px solid var(--warn); color: var(--warn); }
-  .reso { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 10px; }
+  .row .t1 { font-size: var(--fs-body); } .row .t2 { font-size: var(--fs-meta); color: var(--muted); display: flex; gap: 8px; align-items: center; margin-top: 2px; }
+  .row .v { margin-left: auto; font-size: var(--fs-name); color: var(--acc); text-shadow: var(--glow); }
+  .pips { display: inline-flex; gap: 2px; } .pips i { width: 8px; height: 8px; background: var(--well); border: 1px solid var(--line); box-shadow: inset 1px 1px 0 var(--lo); } .pips i.on { background: var(--acc); border-color: var(--acc); }
+  .theme { margin-left: 8px; font-size: var(--fs-meta); letter-spacing: .08em; padding: 0 5px; border: 1px solid var(--line); color: var(--muted); text-transform: uppercase; }
+  .maxed { margin-left: 6px; font-size: var(--fs-meta); padding: 0 5px; background: var(--gold); color: #1b120d; }
+  .sealedtag { margin-left: 6px; font-size: var(--fs-meta); padding: 0 5px; border: 1px solid var(--warn); color: var(--warn); }
+  .reso { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: var(--fs-meta); }
   .tier { padding: 1px 8px; border: 2px solid var(--line); color: var(--muted); letter-spacing: .06em; }
   .tier.on { border-color: var(--acc); color: var(--acc); box-shadow: var(--glow); text-shadow: var(--glow); }
-  .strip { margin-top: 8px; padding: 8px 10px; background: var(--head); border: 2px solid var(--line); min-height: 52px; }
-  .bottom { padding: 2px 16px 6px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .strip { margin-top: 8px; padding: 8px 10px; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); min-height: 52px; }
+  .bottom { padding: 2px 16px 6px; font-size: var(--fs-meta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .empty { padding: 14px; color: var(--muted); }
-  .ivnote { margin-top: 6px; font-size: 11px; line-height: 1.4; }
+  .ivnote { margin-top: 6px; font-size: var(--fs-body); line-height: 1.4; }
   [hidden] { display: none !important; }
   /* Transcendence: what this Pokemon became and carries, or how close it is to each role at a Fuser. */
-  .trans { margin-top: 8px; padding: 8px 10px; background: var(--head); border: 2px solid var(--line); display: grid; gap: 6px; font-size: 12px; }
-  .trans .tt { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
-  .trans .tn { color: var(--acc); font-size: 13px; overflow-wrap: anywhere; }
+  .trans { margin-top: 8px; padding: 8px 10px; background: var(--head); border: 2px solid var(--line); display: grid; gap: 6px; font-size: var(--fs-body); }
+  .trans .tt { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: var(--fs-body); letter-spacing: .06em; text-transform: uppercase; }
+  .trans .tn { color: var(--acc); font-size: var(--fs-name); overflow-wrap: anywhere; }
   .trans .role { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .trans .role > span:first-child { min-width: 56px; color: var(--muted); }
-  .trans .tier { font-size: 12px; }
+  .trans .tier { font-size: var(--fs-body); }
   .trans .head { display: flex; align-items: center; gap: 8px; }
   .trans .head .spr { width: 32px; height: 32px; flex: none; }
 </style>
 </head>
 <body>
 <div class="frame">
-  <div class="head"><span id="title">ASCENSION DEX</span><button class="x" id="close" title="Close">&times;</button></div>
+  <div class="head"><span id="title">ASCENSIONDEX</span><button class="x" id="close" title="Close">&times;</button></div>
   <div class="main">
     <div class="box left">
       <div class="dexrow"><span id="dex"></span><span class="chip" id="type" style="display:none"></span></div>
@@ -153,10 +153,10 @@
     var d = detail();
     var name = mode === 'owned' ? (owned ? owned.name : '') : (state && state.entries[idx] ? state.entries[idx].name : '');
     var speciesId = mode === 'owned' && owned && owned.extra ? owned.extra.speciesId : (mode === 'enemy' && state && state.entries[idx] ? (state.entries[idx].speciesId || '') : '');
-    A.text($('title'), mode === 'owned' ? 'ASCENSION DEX' : 'SCOUTING');
+    A.text($('title'), mode === 'owned' ? 'ASCENSIONDEX' : 'SCOUTING');
     A.text($('name'), name);
     var art = $('art'); art.innerHTML = '';
-    if (speciesId) art.appendChild(A.sprite(speciesId, 2));
+    if (speciesId) art.appendChild(A.sprite(speciesId, 3));
     else { var f = A.el('div', 'sprfb', name); art.appendChild(f); }
     A.text($('dex'), speciesId ? A.speciesName(speciesId) : '');
     var ty = $('type');

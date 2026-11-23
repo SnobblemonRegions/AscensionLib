@@ -97,8 +97,10 @@ public final class CraftNet {
             player.sendSystemMessage(Component.literal("That Pokémon has no ascension profile."));
             return false;
         }
-        PENDING.put(player.getUUID(), pokemon.getUuid().toString());
-        return WebUi.open(player, "craft.html");
+        String id = pokemon.getUuid().toString();
+        PENDING.put(player.getUUID(), id);
+        // Back reopens it by id, so a Pokemon released or traded since is refused by the same checks
+        return WebUi.open(player, "craft.html", "craft:" + id, p -> findOwned(p, id).map(again -> openFor(p, again)).orElse(false));
     }
 
     /** The player's own Pokemon in party or PC with this id, never a battle clone. */

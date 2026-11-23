@@ -30,7 +30,7 @@ public final class PartyWeb {
         });
     }
 
-    public static boolean open(ServerPlayer player) { return WebUi.open(player, "party.html"); }
+    public static boolean open(ServerPlayer player) { return WebUi.open(player, "party.html", "party", PartyWeb::open); }
 
     static View viewOf(ServerPlayer player) {
         var service = AscensionApi.service().orElse(null);

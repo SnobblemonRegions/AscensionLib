@@ -8,30 +8,40 @@
 <style>html, body { background: transparent; }</style>
 <link rel="stylesheet" href="ascension.css">
 <style>
-  .frame { width: 860px; height: 600px; }
+  /* the same 1040 x 600 tablet as every other Dex screen (ascension.css), so moving between screens never resizes the device */
   .main { flex: 1; min-height: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
-  .hint { color: var(--muted); font-size: 11px; }
+  .hint { color: var(--muted); font-size: var(--fs-body); }
   .grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 10px; }
-  .card { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 6px; min-height: 0;
-          background: var(--row); border: 2px solid var(--line); cursor: pointer; text-align: center; }
+  /* a party card: a raised panel with a sunk stage for the sprite, and a band along the bottom edge in the Pokemon's rarity colour (--rc, set per card) */
+  .card { --rc: var(--line); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; padding: 22px 10px 12px; min-height: 0;
+          background: var(--sheen), var(--row); border: 2px solid var(--line); cursor: pointer; text-align: center;
+          box-shadow: var(--raised), inset 0 -4px 0 var(--rc); }
   .card:hover { border-color: var(--acc); }
-  .card.sel { border-color: var(--gold); box-shadow: 0 0 0 2px var(--outline), 0 0 12px rgba(242, 207, 58, .45); background: var(--panel); }
-  .card.empty { cursor: default; opacity: .45; border-style: dashed; }
-  .card .slot { position: absolute; left: 6px; top: 4px; font-size: 10px; color: var(--muted); }
-  .card .badge { position: absolute; right: 6px; top: 4px; font-size: 10px; padding: 0 5px; background: #0d2a1c; color: var(--good); border: 1px solid var(--good); }
-  .card .spr { width: 96px; height: 80px; display: flex; align-items: center; justify-content: center; flex: none; }
-  .card .nm { font-size: 13px; text-shadow: var(--glow); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .card .sub { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; justify-content: center; }
-  .tag { font-size: 10px; font-weight: 700; padding: 0 6px; background: #46526a; color: #fff; }
-  .hp { width: 80%; height: 6px; background: var(--well); border: 1px solid var(--line); } .hp i { display: block; height: 100%; background: var(--good); }
-  .hp.low i { background: var(--gold); } .hp.crit i { background: var(--warn); }
-  .card.faint .nm { color: var(--warn); }
+  .card.sel { border-color: var(--gold); background: var(--sheen), var(--panel); box-shadow: var(--raised), inset 0 -4px 0 var(--rc), 0 0 0 2px var(--outline), 0 0 12px rgba(242, 207, 58, .45); }
+  .card.empty { cursor: default; border-style: dashed; background: transparent; box-shadow: var(--sunk); justify-content: center; }
+  .card.empty .sub { color: #3d6d80; }
+  .card .slot { position: absolute; left: -2px; top: -2px; min-width: 22px; padding: 1px 6px; font-size: var(--fs-meta); color: var(--muted); background: var(--head); border: 2px solid var(--line); box-shadow: inset 1px 1px 0 var(--hi); }
+  .card.sel .slot { color: var(--gold); border-color: var(--gold); }
+  .card .badge { position: absolute; right: 6px; top: 5px; font-size: var(--fs-meta); padding: 0 5px; background: #0d2a1c; color: var(--good); border: 1px solid var(--good); box-shadow: inset 0 -2px 0 rgba(0,0,0,.35); }
+  .card .spr { width: 100%; flex: 1; min-height: 64px; display: flex; align-items: center; justify-content: center; position: relative;
+               background: radial-gradient(ellipse 60% 70% at 50% 78%, rgba(74,216,246,.10), transparent 70%), var(--well); border: 2px solid #12384a; box-shadow: var(--sunk); }
+  .card .spr::after { content: ""; position: absolute; bottom: 12%; left: 30%; right: 30%; height: 4px; background: rgba(0,0,0,.35); }   /* the floor shadow under the sprite */
+  .card .spr > * { position: relative; z-index: 1; }
+  .card .nm { margin-top: 4px; font-size: var(--fs-name); text-shadow: var(--glow); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .sub { font-size: var(--fs-body); color: var(--muted); display: flex; gap: 6px; align-items: center; justify-content: center; }
+  .tag { font-size: var(--fs-meta); padding: 0 6px; background: #46526a; color: #fff; border: 1px solid var(--outline); }
+  /* HP as a segmented cell, like a handheld's battery meter */
+  .hp { --hpc: var(--good); width: 86%; height: 8px; padding: 1px; background: var(--scr); border: 1px solid var(--line); box-shadow: inset 1px 1px 0 var(--lo); }
+  .hp i { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--hpc) 0 5px, transparent 5px 7px); }
+  .hp.low { --hpc: var(--gold); } .hp.crit { --hpc: var(--warn); }
+  .card.faint .nm { color: var(--warn); } .card.faint .spr { filter: grayscale(1) brightness(.7); }
   .pane { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
   .pane[hidden] { display: none; }
   /* the tab bar sits at the bottom of the Dex, above the footer */
   .tabbar { display: flex; gap: 0; padding: 0 14px; background: var(--head); border-top: 2px solid var(--line); }
   .tabbar button { border-top: 0; border-radius: 0; padding: 8px 22px; margin-right: 4px; box-shadow: none; background: transparent; color: var(--muted); border-color: transparent; letter-spacing: .08em; }
-  .tabbar button.on { color: var(--acc); background: var(--panel); border: 2px solid var(--line); border-top: 3px solid var(--acc); border-bottom: 0; }
+  .tabbar button:hover:not(:disabled):not(.on) { color: var(--ink); }
+  .tabbar button.on { color: var(--acc); background: var(--sheen), var(--panel); border: 2px solid var(--line); border-top: 3px solid var(--acc); border-bottom: 0; box-shadow: inset 2px 0 0 var(--hi), inset -2px 0 0 var(--lo); text-shadow: var(--glow); }
   .foot .group[hidden] { display: none; } .foot .group { display: flex; gap: 10px; align-items: center; }
 </style>
 </head>
@@ -74,6 +84,17 @@
   var A = window.A, $ = A.$;
   var view = null, sel = -1, tab = 'party', wallet = null, guide = null, partyInfo = '';
 
+  /**
+   * The colour of the band along the bottom of a party card: what a player should read about this Pokemon at a glance across the room.
+   * s has rarityId ('common'..'mythical', or '' when it has no ascension profile), fainted, pending (upgrades waiting) and locked (on loan).
+   * Return any CSS colour; the rarity colours are var(--common) .. var(--mythical), and var(--line) is the plain panel edge.
+   */
+  function cardAccent(s) {
+    // Rarity is who the Pokemon is, so it holds the band in every state: fainting greys the sprite and pending upgrades have their badge,
+    // and neither should hide what it is. A Pokemon without a profile keeps the plain edge, so the band itself says "ascended".
+    return s.rarityId ? 'var(--' + s.rarityId + ')' : 'var(--line)';
+  }
+
   var cards = [];   // the drawn cards by slot, so choosing one only moves the highlight instead of rebuilding the grid and re-decoding every sprite
 
   function pick(i) { sel = i; select(); }
@@ -85,10 +106,11 @@
     view.slots.forEach(function (s, i) {
       var card = A.el('div', 'card' + (s.id ? '' : ' empty') + (s.fainted ? ' faint' : ''));
       cards.push(card);
+      if (s.id) card.style.setProperty('--rc', cardAccent(s));
       card.appendChild(A.el('span', 'slot', String(i + 1)));
       if (!s.id) { card.appendChild(A.el('div', 'sub', 'Empty slot')); grid.appendChild(card); return; }
       if (s.pending > 0) card.appendChild(A.el('span', 'badge', s.pending + (s.pending === 1 ? ' upgrade' : ' upgrades')));
-      var spr = A.el('div', 'spr'); spr.appendChild(A.sprite(s.speciesId, 2)); card.appendChild(spr);
+      var spr = A.el('div', 'spr'); spr.appendChild(A.sprite(s.speciesId, 3)); card.appendChild(spr);
       card.appendChild(A.el('div', 'nm', (s.shiny ? '★ ' : '') + s.name));
       var sub = A.el('div', 'sub'); sub.appendChild(A.el('span', '', 'Lv ' + s.level));
       var tag = A.el('span', 'tag', s.rarityId ? A.rarityName(s.rarityId) : 'No profile');
