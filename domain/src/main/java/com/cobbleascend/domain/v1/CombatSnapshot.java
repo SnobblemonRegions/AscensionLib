@@ -50,6 +50,16 @@ public record CombatSnapshot(Source source, String subjectId, Rarity rarity, int
                 if (type != null && !type.matches("[a-z]{3,16}")) throw new IllegalArgumentException("Invalid fusion type");
             }
         }
+
+        /** The same Transcendent with offence and defence types traded: a Fuser bond after a Genome Shift, the head now the body. */
+        public Fused swappedTypes() {
+            return new Fused(uniqueIds, benefitPercent, drawbackPercent, donorType, hostType, signature, twist, riderAffix, riderValue);
+        }
+    }
+
+    /** This snapshot with its Transcendent's types traded (see {@link Fused#swappedTypes}); unchanged when it has none. */
+    public CombatSnapshot withSwappedTypes() {
+        return transcendent == null ? this : new CombatSnapshot(source, subjectId, rarity, catalogVersion, slots, uniqueId, transcendent.swappedTypes());
     }
 
     public CombatSnapshot {

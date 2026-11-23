@@ -64,5 +64,20 @@ public final class ProfileZones {
 
     public static boolean isZone(ResourceLocation dimension) { return tierOf(dimension) > 0; }
 
+    /** The persistent-data key that fixes a Pokemon's own tier (set on Laboratory guards when they spawn). Never rename: captured Pokemon carry it. */
+    public static final String POKEMON_TIER_KEY = "ascensionlib_zone_tier";
+
+    /**
+     * The tier a particular wild or trainer Pokemon is rated at: its dimension's tier, raised to the tier marked on the Pokemon itself (a
+     * Laboratory guard keeps the tier it spawned with wherever it wanders, so its Scouter preview, battle and capture agree). A dimension the
+     * configuration turns off (tier 0) stays off whatever the mark says.
+     */
+    public static int tierOf(com.cobblemon.mod.common.pokemon.Pokemon pokemon, ResourceLocation dimension) {
+        int base = tierOf(dimension);
+        if (base < 1 || pokemon == null) return base;
+        int marked = pokemon.getPersistentData().getInt(POKEMON_TIER_KEY);
+        return Math.max(base, Math.min(marked, MAX_TIER));
+    }
+
     public static Map<ResourceLocation, Integer> zones() { return Collections.unmodifiableMap(ZONES); }
 }

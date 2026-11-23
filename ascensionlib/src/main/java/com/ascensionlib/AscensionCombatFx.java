@@ -31,7 +31,7 @@ public final class AscensionCombatFx {
         if (service.isEmpty()) return out;
         Optional<CombatSnapshot> snapshot;
         if (p.isPlayerOwned()) {
-            snapshot = service.get().snapshot(p.getUuid());
+            snapshot = service.get().snapshot(p);
         } else {
             var rating = service.get().previewWild(p, Math.max(1, Math.min(10, tier)));
             snapshot = Optional.of(new CombatSnapshot(CombatSnapshot.Source.ENEMY, p.getUuid().toString(), rating.rarity(),

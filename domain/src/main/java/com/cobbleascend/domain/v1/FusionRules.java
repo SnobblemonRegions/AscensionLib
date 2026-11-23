@@ -2,6 +2,7 @@ package com.cobbleascend.domain.v1;
 
 import com.cobbleascend.domain.Rarity;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,6 +39,36 @@ public final class FusionRules {
         cost.put(MaterialId.TOWER_MARK, (long) MARKS);
         if (Tunables.current().threat().enabled()) cost.put(MaterialId.APEX_SHARD, (long) APEX);
         return java.util.Collections.unmodifiableMap(cost);
+    }
+
+    /** One requirement and how far a Pokemon is towards it ({@code have} of {@code need}; 0 of 1 or 1 of 1 for a yes-or-no rule). */
+    public record Requirement(String id, String label, boolean met, int have, int need) {}
+
+    /**
+     * How close one Pokemon is to each role, rule by rule, so a screen can show progress before the player reaches a Fuser. The same rules
+     * as {@link #check} that concern one Pokemon alone; the pairing rules (different Uniques, the price) are judged at the Fuser.
+     */
+    public record Readiness(boolean transcendent, List<Requirement> host, List<Requirement> donor) {
+        public Readiness { host = List.copyOf(host); donor = List.copyOf(donor); }
+        public boolean hostReady() { return !transcendent && host.stream().allMatch(Requirement::met); }
+        public boolean donorReady() { return !transcendent && donor.stream().allMatch(Requirement::met); }
+    }
+
+    public static Readiness readiness(ProfileV1 profile, boolean isTranscendent) {
+        boolean unique = profile.unique() != null;
+        boolean mythic = profile.rarity() == Rarity.MYTHICAL;
+        boolean epic = profile.rarity().ordinal() >= Rarity.EPIC.ordinal();
+        int credits = Math.min(profile.spentUpgradeCredits(), HOST_CREDITS);
+        int attunement = (int) Math.min(profile.attunement(), HOST_ATTUNEMENT);
+        var host = List.of(
+                new Requirement("ascended", "Ascended", mythic, mythic ? 1 : 0, 1),
+                new Requirement("credits", "Upgrade credits spent", credits >= HOST_CREDITS, credits, HOST_CREDITS),
+                new Requirement("attunement", "Attunement", attunement >= HOST_ATTUNEMENT, attunement, HOST_ATTUNEMENT),
+                new Requirement("unique", "Holds a Unique", unique, unique ? 1 : 0, 1));
+        var donor = List.of(
+                new Requirement("epic", "Epic or better", epic, epic ? 1 : 0, 1),
+                new Requirement("unique", "Holds a Unique", unique, unique ? 1 : 0, 1));
+        return new Readiness(isTranscendent, host, donor);
     }
 
     /**

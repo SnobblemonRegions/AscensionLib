@@ -419,6 +419,15 @@ public final class ProfileService {
     }
 
     /**
+     * As {@link #snapshot(UUID)} for a Pokemon at hand: a Project Fusion fusion that Genome Shift has turned head-for-body fights with
+     * its Transcendent's offence and defence types traded, since the head's type now leads.
+     */
+    public Optional<CombatSnapshot> snapshot(Pokemon pokemon) {
+        var snapshot = snapshot(pokemon.getUuid());
+        return com.ascensionlib.compat.FusionNbt.shifted(pokemon) ? snapshot.map(CombatSnapshot::withSwappedTypes) : snapshot;
+    }
+
+    /**
      * The best item-reward bonus in the player's party, in percent: the plain 777 Unique gives its fixed percent, a Transcendent
      * built on 777 gives its signature's percent times its benefit share. Read from the canonical store.
      */
@@ -476,6 +485,58 @@ public final class ProfileService {
         return transcendent;
     }
 
+    /**
+     * The Fuser bond (owner decision 2026-11-20, "permanent bond"): the same checks, rules and price as {@link #fuse}, recorded as a
+     * {@link com.cobbleascend.store.Bond}, but the donor is not removed: the caller hands both Pokemon to a Project Fusion Fuser, which
+     * makes the donor the fusion's head. Both must be in the party, where the Fuser takes them from. If the Fuser cannot start, the
+     * caller undoes this at once with {@link #unbond}; if it never finishes, Project Fusion's refund (or the login sweep) does.
+     */
+    public Transcendence.Transcendent bond(ServerPlayer player, Pokemon host, Pokemon donor, long hostRevision, long donorRevision, long walletRevision) {
+        for (var pokemon : List.of(host, donor)) {
+            if (pokemon.isBattleClone() || !player.getUUID().equals(pokemon.getOwnerUUID()) || !inParty(player, pokemon))
+                throw new IllegalArgumentException("Both Pokemon must be in your party");
+            if (CraftLocks.locked(pokemon)) throw new IllegalStateException(CraftLocks.REASON);
+            if (com.ascensionlib.compat.FusionNbt.isFusion(pokemon)) throw new IllegalArgumentException("A fusion cannot be fused again");
+        }
+        if (com.cobblemon.mod.common.battles.BattleRegistry.INSTANCE.getBattleByParticipatingPlayer(player) != null)
+            throw new IllegalStateException("Not during a battle");
+        var hostProfile = store.profile(host.getUuid()).orElseThrow(() -> new IllegalArgumentException("The host has no profile"));
+        var donorProfile = store.profile(donor.getUuid()).orElseThrow(() -> new IllegalArgumentException("The donor has no profile"));
+        if (hostProfile.unique() == null || donorProfile.unique() == null)
+            throw new CraftException(CraftException.Reason.NO_UNIQUE, "Both Pokemon must hold a Unique");
+        var transcendent = Transcendence.shared().resolve(speciesId(host), hostProfile.unique().uniqueId(),
+                speciesId(donor), donorProfile.unique().uniqueId());
+        var outcome = store.bond(new com.cobbleascend.store.FuseRequest(
+                operationId("bond", host.getUuid() + ":" + donor.getUuid()), player.getUUID(), host.getUuid(), donor.getUuid(),
+                speciesId(host), speciesId(donor), hostRevision, donorRevision, walletRevision));
+        try {
+            project(host, outcome.profile());
+        } catch (RuntimeException exception) {
+            LOG.error("Bond committed but host {} could not be projected now; the next reconcile does it", host.getUuid(), exception);
+        }
+        return transcendent;
+    }
+
+    /**
+     * Undoes the Fuser bond held by {@code hostId} and refunds its price, because the Fuser never finished. Safe to call again: the
+     * operation ID is fixed per bond, so a repeat is a replay. Returns false when there is no bond to undo.
+     */
+    public boolean unbond(UUID hostId, String why) {
+        var bond = store.bondOf(hostId).filter(b -> b.hostId().equals(hostId));
+        if (bond.isEmpty()) return false;
+        store.unbond(operationId("unbond", hostId + ":" + bond.get().fuseOperationId()), hostId);
+        LOG.info("Fuser bond of Pokemon {} undone and refunded to {}: {}", hostId, bond.get().playerId(), why);
+        return true;
+    }
+
+    /** The Fuser bond this Pokemon is the host or donor of, if any. */
+    public Optional<com.cobbleascend.store.Bond> bondOf(UUID pokemonId) { return store.bondOf(pokemonId); }
+
+    private static boolean inParty(ServerPlayer player, Pokemon pokemon) {
+        for (var member : Cobblemon.INSTANCE.getStorage().getParty(player)) if (member == pokemon) return true;
+        return false;
+    }
+
     private static boolean owns(ServerPlayer player, Pokemon pokemon) {
         var storage = Cobblemon.INSTANCE.getStorage();
         for (var owned : storage.getParty(player)) if (owned == pokemon) return true;
@@ -515,6 +576,15 @@ public final class ProfileService {
         storage.getPC(player).forEach(all::add);
         for (var pokemon : all) {
             try {
+                // A Fuser bond's partner found on its own in storage: the Fuser never finished (a crash rolled the party back, or the
+                // Fuser handed both back and the refund hook did not run). A finished bond's host is a fusion and its donor lives inside
+                // it, so neither is ever here alone. Undo the bond and refund it; the donor stays, never removed.
+                var bond = store.bondOf(pokemon.getUuid());
+                if (bond.isPresent()) {
+                    if (!com.ascensionlib.compat.FusionNbt.isFusion(pokemon)) unbond(bond.get().hostId(), "partner found unfused at login");
+                    if (reconcile(pokemon).isPresent()) handled++;
+                    continue;
+                }
                 // A donor whose fusion committed but whose removal was cut short: finish it, never let it fight or craft again.
                 if (store.consumedBy(pokemon.getUuid()).isPresent()) {
                     removeFromStorage(player, pokemon);

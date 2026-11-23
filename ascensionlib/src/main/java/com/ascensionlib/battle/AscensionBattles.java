@@ -44,13 +44,17 @@ public final class AscensionBattles {
             var actors = new ArrayList<BattleFxPlanner.Actor>();
             // A wild Pokemon and a trainer's Pokemon are rated from the Pokemon itself (its types and level), so keep them by their real uuid.
             var wildByUuid = new HashMap<UUID, Pokemon>();
+            // Players' own Pokemon by id, so a Genome-Shifted Project Fusion bond fights with its Transcendent types traded.
+            var ownedByUuid = new HashMap<UUID, Pokemon>();
             boolean profileZone = false;
             int zoneTier = 1;
             for (var actor : battle.getActors()) {
                 // The dimension is the opponent's (a wild Pokemon's or a trainer's), not the player's; its tier rates the opponent. A dimension the
                 // configuration turns off (tier 0) is native. No entity (a scripted battle) is native too.
                 if (actor.getType() != ActorType.PLAYER && actor instanceof EntityBackedBattleActor<?> backed && backed.getEntity() != null) {
-                    int tier = ProfileZones.tierOf(backed.getEntity().level().dimension().location());
+                    int tier = backed.getEntity() instanceof com.cobblemon.mod.common.entity.pokemon.PokemonEntity wildEntity
+                            ? ProfileZones.tierOf(wildEntity.getPokemon(), backed.getEntity().level().dimension().location())
+                            : ProfileZones.tierOf(backed.getEntity().level().dimension().location());
                     if (tier >= 1) {
                         profileZone = true;
                         zoneTier = Math.max(zoneTier, tier);
@@ -63,6 +67,7 @@ public final class AscensionBattles {
                     Pokemon original = member.getOriginalPokemon();
                     combatants.add(new BattleFxPlanner.Combatant(member.getUuid().toString(), original.getUuid()));
                     if (kind != BattleFxPlanner.Kind.PLAYER) wildByUuid.put(original.getUuid(), original);
+                    else ownedByUuid.put(original.getUuid(), original);
                 }
                 actors.add(new BattleFxPlanner.Actor(kind, combatants));
             }
@@ -73,7 +78,7 @@ public final class AscensionBattles {
             // PvP is native for both sides until there is data to balance it (the planner returns nothing for it).
             var armed = ScoutEncounters.armedEnemies(playerIds);
             Map<String, List<BattleFx.Effect>> plan = BattleFxPlanner.plan(actors, battle.isPvP(), raid, profileZone, armed,
-                    pokemonId -> service.get().snapshot(pokemonId),
+                    pokemonId -> ownedByUuid.containsKey(pokemonId) ? service.get().snapshot(ownedByUuid.get(pokemonId)) : service.get().snapshot(pokemonId),
                     pokemonId -> Optional.ofNullable(wildByUuid.get(pokemonId)).map(wild -> {
                         var rating = service.get().previewWild(wild, tierForWild);
                         return new CombatSnapshot(CombatSnapshot.Source.ENEMY, pokemonId.toString(), rating.rarity(),

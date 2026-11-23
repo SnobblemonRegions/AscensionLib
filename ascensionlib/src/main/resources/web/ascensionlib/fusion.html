@@ -31,14 +31,34 @@
   .spr { image-rendering: pixelated; }
   .empty { padding: 12px; color: var(--muted); }
   .reason { padding: 6px 12px; min-height: 28px; color: var(--warn); font-size: var(--fs-body); }
+    [hidden] { display: none !important; }   /* the classes below set display, which would otherwise beat the hidden attribute */
+  /* Fuser intro: shown once per player at the Fuser, above the chambers, until "Got it"; "How it works" brings it back. */
+  .intro { background: var(--row); border-bottom: 2px solid var(--line); padding: 10px 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: start; }
+  .intro h2 { grid-column: 1 / -1; margin: 0; font-size: var(--fs-body); font-weight: 400; color: var(--acc); letter-spacing: .04em; }
+  .intro ol { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .intro li { counter-increment: step; font-size: var(--fs-body); line-height: 1.45; overflow-wrap: anywhere; }
+  .intro li::before { content: counter(step); display: block; color: var(--acc); font-size: var(--fs-meta); margin-bottom: 2px; }
+  .intro li b { color: #fff; font-weight: 400; }
+  .intro .more { grid-column: 1; font-size: var(--fs-body); }
+  .intro .gotit { grid-column: 2; grid-row: 2 / span 2; align-self: end; }
 </style>
 </head>
 <body>
 <div class="frame">
-  <div class="head"><span>FUSION</span><button class="x" id="close" title="Close">&times;</button></div>
+  <div class="head"><span id="title">FUSION</span><button id="how" hidden>How it works</button><button class="x" id="close" title="Close">&times;</button></div>
+  <div class="intro" id="intro" hidden>
+    <h2>How a Transcendent bond works</h2>
+    <ol>
+      <li>The <b>body</b> is the host and the <b>head</b> is the donor. Swap trades them. The host must be Ascended.</li>
+      <li><b>Transcend for good</b> fuses them and turns their two Uniques into one new power. The bond can never be separated.</li>
+      <li><b>Plain fusion</b> skips the Transcendence and can be separated later. Either way, collect the result from the Fuser with a Poké Ball.</li>
+    </ol>
+    <div class="more muted">Full rules and the price: Guide, Uniques and Transcendents.</div>
+    <button class="gotit" id="gotit">Got it</button>
+  </div>
   <div class="main">
     <div class="box" id="hostBox">
-      <div class="label">Host (kept)</div>
+      <div class="label" id="hostLabel">Host (kept)</div>
       <div class="well" id="hostWell"></div>
       <div class="name" id="hostName"></div>
       <div class="rarity" id="hostRarity"></div>
@@ -52,7 +72,7 @@
       <div style="text-align:center;margin-top:8px"><button id="swap" title="Swap host and donor">&#8596; Swap</button></div>
     </div>
     <div class="box" id="donorBox">
-      <div class="label">Donor (consumed)</div>
+      <div class="label" id="donorLabel">Donor (consumed)</div>
       <div class="well" id="donorWell"></div>
       <div class="name" id="donorName"></div>
       <div class="rarity" id="donorRarity"></div>
@@ -63,6 +83,7 @@
   </div>
   <div class="foot">
     <div class="msg" id="msg"></div>
+    <button id="plain" hidden title="Fuse in the Fuser without a Transcendence. Project Fusion's own fee applies, and the fusion can be separated later.">Plain fusion</button>
     <button class="primary" id="fuse" disabled>Review fusion</button>
     <button id="cancel">Close</button>
   </div>
@@ -86,7 +107,10 @@
   var $ = function (id) { return document.getElementById(id); };
   var RARITY = { common: '--common', uncommon: '--uncommon', rare: '--rare', epic: '--epic', legendary: '--legendary', mythical: '--mythical' };
   var host = null, hostBlock = '', donor = null, detail = null;
-  var phase = 'browse';          // browse | review | waiting
+  var phase = 'browse';          // browse | review | waiting | started (the Fuser took the pair)
+  // Opened by a Project Fusion Fuser: the pair is the Fuser's body (host) and head (donor), fixed except for Swap, and the choice is
+  // Transcend (for good, never separable) or a plain fusion. The Fuser then works and the result is collected with a Poke Ball.
+  var fuser = false, plainPending = false, started = '', introOpen = false;
   var pendingOp = '', banner = '', bannerOk = false, previewTimer = 0, waitTimer = 0, readyTries = 0;
   var pick = { role: 'donor', entries: null, pc: false, sort: 'rarity', search: '' };
 
@@ -113,7 +137,17 @@
 
   function renderResult() {
     var box = $('result'); box.innerHTML = '';
+    if (phase === 'started') { line(box, 'ok', started); line(box, 'muted', 'You can close this page. The Fuser keeps working without it.'); return; }
+    if (fuser && phase === 'waiting' && plainPending) { line(box, 'muted', 'Starting the Fuser…'); return; }
+    if (fuser && hostBlock) { line(box, 'bad', hostBlock); line(box, swapHint() ? 'gold' : 'muted', swapHint() || 'Swap the pair, or make a plain fusion.'); return; }
     if (hostBlock) { line(box, 'bad', hostBlock + ' Choose a different host.'); return; }
+    if (fuser && phase !== 'browse' && donor) {
+      line(box, '', 'Bond ' + donor.name + ' into ' + host.name + ' for good? The Fuser fuses them: ' + host.name + ' is the body, ' + donor.name +
+        ' lives on inside it as the head, and ' + host.name + ' becomes ' + (detail ? detail.name : 'a Transcendent') + '.');
+      line(box, 'bad', 'A Transcendent bond can never be separated.');
+      if (phase === 'waiting') line(box, 'muted', 'Waiting for the server…');
+      return;
+    }
     if (!donor) { line(box, 'muted', 'Choose a donor: Epic or better, with a Unique, and not a Transcendent.'); return; }
     if (phase !== 'browse') {
       line(box, '', 'Fuse ' + donor.name + ' into ' + host.name + '? ' + donor.name + ' is consumed and cannot be recovered. ' + host.name +
@@ -124,6 +158,7 @@
     if (!detail) { line(box, 'muted', 'Reading the pairing…'); return; }
     if (!detail.name) { line(box, 'bad', detail.block); return; }
     var h = document.createElement('h2'); h.textContent = detail.name; box.appendChild(h);
+    if (detail.namedRecipe) line(box, 'gold', 'A named recipe: these two have a story of their own.');
     line(box, '', 'Fused from: ' + detail.fromUniques);
     line(box, 'muted', A.cap(detail.harmony) + ' harmony: ' + detail.benefit + '% of the benefits, ' + detail.drawback + '% of the drawbacks');
     if (detail.blurb) line(box, 'muted', detail.blurb);
@@ -141,26 +176,74 @@
     var apex = p.length > 5 && p[5] > 0;
     line(box, 'gold', 'Price: ' + p[0] + ' Resonance Dust, ' + p[1] + ' Facets, ' + p[2] + ' Cores, ' + p[3] + ' Catalyst, ' + p[4] + ' Tower Marks' + (apex ? ', ' + p[5] + ' Apex Shards' : ''));
     line(box, 'muted', 'You have: ' + (apex ? b : b.slice(0, 5)).join(' / '));
-    if (detail.block) line(box, 'bad', detail.block);
+    // The rule that blocks it, unless it is only the price: the shortfall below says that more usefully.
+    var short = shortfall(p, b);
+    if (detail.block && !(short.length && /wallet/i.test(detail.block))) line(box, 'bad', detail.block + (fuser ? ' You can still make a plain fusion.' : ''));
+    if (short.length) line(box, 'bad', 'Short: ' + short.join('; ') + '.');
+    var hint = swapHint();
+    if (hint) line(box, 'gold', hint);
+  }
+
+  // What the price still needs, material by material, with where it comes from (the Guide's sources).
+  var MATERIALS = [
+    ['Resonance Dust', 'Towers, trials, dungeons and raids'], ['Facets', 'Towers, trials, dungeons and raids'],
+    ['Cores', 'Towers, trials, dungeons and raids'], ['Unique Catalyst', 'assemble one from Unique Fragments on the Wallet tab'],
+    ['Tower Marks', 'Tower completion chests'], ['Apex Shards', '']];
+  function shortfall(price, have) {
+    var out = [];
+    for (var i = 0; i < MATERIALS.length && i < price.length; i++) {
+      var miss = price[i] - (have[i] || 0);
+      if (miss > 0) out.push(miss + ' ' + MATERIALS[i][0] + (MATERIALS[i][1] ? ' (' + MATERIALS[i][1] + ')' : ''));
+    }
+    return out;
+  }
+
+  // The donor would make a valid host while the host cannot be one: the fix is one click, so say so.
+  function swapHint() {
+    if (!donor || !donor.canHost || phase !== 'browse') return '';
+    var hostWrong = hostBlock || (detail && detail.block && /host/i.test(detail.block));
+    return hostWrong ? donor.name + ' can be the host: press Swap.' : '';
   }
 
   function render() {
     chamber('host', host); chamber('donor', donor);
+    A.text($('title'), fuser ? 'FUSER' : 'FUSION');
+    $('intro').hidden = !(fuser && introOpen);
+    $('how').hidden = !fuser || introOpen;
+    A.text($('hostLabel'), fuser ? 'Body · host (kept)' : 'Host (kept)');
+    A.text($('donorLabel'), fuser ? 'Head · donor (bonded)' : 'Donor (consumed)');
+    $('changeHost').hidden = fuser; $('changeDonor').hidden = fuser;
     $('changeDonor').textContent = donor ? 'Change donor' : 'Choose donor';
     $('changeDonor').className = donor ? '' : 'primary';
     var idle = phase === 'browse';
     $('changeHost').disabled = !idle || !host;
     $('changeDonor').disabled = !idle || !host;
-    $('swap').disabled = !(idle && donor && donor.canHost && !hostBlock);
-    $('swap').title = $('swap').disabled && donor ? 'Only an Ascended Pokémon with a Unique and no fusion can trade places with the host.' : 'Swap host and donor';
+    // At a Fuser any body and head can trade places (the Fuser takes either way round); the page alone needs a valid host.
+    $('swap').disabled = !(idle && donor && (fuser || (donor.canHost && !hostBlock)));
+    $('swap').title = fuser ? 'Swap body and head' : $('swap').disabled && donor ? 'Only an Ascended Pokémon with a Unique and no fusion can trade places with the host.' : 'Swap host and donor';
     var fuse = $('fuse');
-    fuse.textContent = phase === 'review' ? 'Fuse for good' : 'Review fusion';
+    fuse.hidden = phase === 'started';
+    fuse.textContent = phase === 'review' ? (fuser ? 'Transcend for good' : 'Fuse for good') : (fuser ? 'Review Transcendence' : 'Review fusion');
     fuse.disabled = phase === 'waiting' || (phase === 'browse' && !(detail && !detail.block && detail.name));
-    $('cancel').textContent = idle ? 'Close' : 'Cancel';
+    var plain = $('plain');
+    plain.hidden = !fuser || phase === 'started' || phase === 'review';
+    plain.disabled = phase !== 'browse' || !donor;
+    $('cancel').textContent = idle || phase === 'started' ? 'Close' : 'Cancel';
     var m = $('msg');
     if (banner) { A.text(m, banner); m.className = 'msg ' + (bannerOk ? 'ok' : 'bad'); }
-    else { A.text(m, donor ? 'The donor is lost for good.' : ''); m.className = 'msg muted'; }
+    else { A.text(m, fuser ? (donor ? 'A Transcendent bond is permanent.' : '') : donor ? 'The donor is lost for good.' : ''); m.className = 'msg muted'; }
     renderResult();
+  }
+
+  function confirm(plainFusion) {
+    pendingOp = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+    plainPending = plainFusion; phase = 'waiting'; banner = ''; render();
+    send('ascension_fusion_confirm', { operationId: pendingOp, hostId: host.id, donorId: donor.id, plain: plainFusion,
+      hostRevision: detail ? detail.hostRevision : 0, donorRevision: detail ? detail.donorRevision : 0, walletRevision: detail ? detail.walletRevision : 0 });
+    waitTimer = setTimeout(function () {
+      if (phase === 'waiting') { phase = 'browse'; pendingOp = ''; banner = 'No answer from the server. Nothing was spent unless it shows in your wallet.'; bannerOk = false; render(); }
+    }, 15000);
   }
 
   function askPreview() {
@@ -238,6 +321,10 @@
     g.on('fusionCandidates', function (data) {
       var c = parse(data); readyTries = 99;
       host = c.host; hostBlock = c.hostBlock || '';
+      if (c.fuserDonor) {
+        if (!fuser && !c.introSeen) introOpen = true;   // first Fuser visit for this player: show the intro once
+        fuser = true; donor = c.fuserDonor; phase = 'browse'; banner = ''; askPreview(); return;
+      }
       if (phase === 'browse') { if (donor && donor.id === host.id) donor = null; askPreview(); } else render();
     });
     g.on('fusionPickList', function (data) {
@@ -254,7 +341,12 @@
       var r = parse(data);
       if (r.operationId !== pendingOp) return;
       clearTimeout(waitTimer); pendingOp = ''; phase = 'browse'; bannerOk = !!r.ok;
-      if (r.ok) {
+      if (r.ok && fuser) {
+        // The Fuser has both Pokemon now; nothing on this page can act on them again.
+        phase = 'started'; banner = '';
+        started = r.name ? 'The Fuser is working: ' + host.name + ' becomes ' + r.name + '. Collect it with a Poké Ball when it finishes.'
+          : 'The Fuser is working. Collect the fusion with a Poké Ball when it finishes.';
+      } else if (r.ok) {
         banner = host.name + ' became ' + r.name + '.'; donor = null; detail = null;
         send('ascension_fusion_refresh', { hostId: host.id });
       } else { banner = r.message || 'Not allowed.'; }
@@ -264,7 +356,10 @@
 
   // ---- buttons ----
   $('close').addEventListener('click', function () { send('close'); });
-  $('cancel').addEventListener('click', function () { if (phase === 'browse') send('close'); else { phase = 'browse'; render(); } });
+  $('cancel').addEventListener('click', function () { if (phase === 'browse' || phase === 'started') send('close'); else if (phase === 'review') { phase = 'browse'; render(); } });
+  $('gotit').addEventListener('click', function () { introOpen = false; send('ascension_fusion_intro_seen'); render(); });
+  $('how').addEventListener('click', function () { introOpen = true; render(); });
+  $('plain').addEventListener('click', function () { if (fuser && phase === 'browse' && donor && host) confirm(true); });
   $('changeHost').addEventListener('click', function () { openPicker('host'); });
   $('changeDonor').addEventListener('click', function () { openPicker('donor'); });
   $('pickClose').addEventListener('click', closePicker);
@@ -275,19 +370,14 @@
   $('search').addEventListener('input', function (ev) { pick.search = ev.target.value; drawPicker(); });
   $('swap').addEventListener('click', function () {
     if ($('swap').disabled) return;
+    // At a Fuser the server owns the pair: it trades the Fuser's body and head and sends the new pair back.
+    if (fuser) { detail = null; banner = ''; send('ascension_fusion_fuser_swap'); render(); return; }
     var old = host; host = donor; hostBlock = ''; donor = old; banner = ''; askPreview();
   });
   $('fuse').addEventListener('click', function () {
     if (phase === 'browse') { phase = 'review'; render(); return; }
     if (phase !== 'review' || !detail || detail.block || !donor) return;
-    pendingOp = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-      var r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
-    phase = 'waiting'; render();
-    send('ascension_fusion_confirm', { operationId: pendingOp, hostId: host.id, donorId: donor.id,
-      hostRevision: detail.hostRevision, donorRevision: detail.donorRevision, walletRevision: detail.walletRevision });
-    waitTimer = setTimeout(function () {
-      if (phase === 'waiting') { phase = 'browse'; pendingOp = ''; banner = 'No answer from the server. Nothing was spent unless it shows in your wallet.'; bannerOk = false; render(); }
-    }, 15000);
+    confirm(false);
   });
 
   // ---- start ----

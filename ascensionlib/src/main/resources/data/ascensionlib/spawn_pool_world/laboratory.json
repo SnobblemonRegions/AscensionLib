@@ -1,0 +1,103 @@
+{
+  "enabled": true,
+  "neededInstalledMods": [],
+  "neededUninstalledMods": [],
+  "spawns": [
+    {
+      "id": "ascensionlib-laboratory-porygon",
+      "pokemon": "porygon",
+      "type": "pokemon",
+      "spawnablePositionType": "grounded",
+      "bucket": "common",
+      "level": "18-35",
+      "weight": 500.0,
+      "condition": {
+        "structures": [
+          "ascensionlib:laboratory"
+        ],
+        "canSeeSky": false,
+        "maxSkyLight": 10
+      }
+    },
+    {
+      "id": "ascensionlib-laboratory-magnemite",
+      "pokemon": "magnemite",
+      "type": "pokemon",
+      "spawnablePositionType": "grounded",
+      "bucket": "common",
+      "level": "15-32",
+      "weight": 900.0,
+      "condition": {
+        "structures": [
+          "ascensionlib:laboratory"
+        ],
+        "canSeeSky": false,
+        "maxSkyLight": 10
+      }
+    },
+    {
+      "id": "ascensionlib-laboratory-voltorb",
+      "pokemon": "voltorb",
+      "type": "pokemon",
+      "spawnablePositionType": "grounded",
+      "bucket": "common",
+      "level": "15-32",
+      "weight": 900.0,
+      "condition": {
+        "structures": [
+          "ascensionlib:laboratory"
+        ],
+        "canSeeSky": false,
+        "maxSkyLight": 10
+      }
+    },
+    {
+      "id": "ascensionlib-laboratory-klink",
+      "pokemon": "klink",
+      "type": "pokemon",
+      "spawnablePositionType": "grounded",
+      "bucket": "common",
+      "level": "15-32",
+      "weight": 700.0,
+      "condition": {
+        "structures": [
+          "ascensionlib:laboratory"
+        ],
+        "canSeeSky": false,
+        "maxSkyLight": 10
+      }
+    },
+    {
+      "id": "ascensionlib-laboratory-ditto",
+      "pokemon": "ditto",
+      "type": "pokemon",
+      "spawnablePositionType": "grounded",
+      "bucket": "common",
+      "level": "18-35",
+      "weight": 300.0,
+      "condition": {
+        "structures": [
+          "ascensionlib:laboratory"
+        ],
+        "canSeeSky": false,
+        "maxSkyLight": 10
+      }
+    },
+    {
+      "id": "ascensionlib-laboratory-magneton",
+      "pokemon": "magneton",
+      "type": "pokemon",
+      "spawnablePositionType": "grounded",
+      "bucket": "common",
+      "level": "30-40",
+      "weight": 120.0,
+      "condition": {
+        "structures": [
+          "ascensionlib:laboratory"
+        ],
+        "canSeeSky": false,
+        "maxSkyLight": 10
+      }
+    }
+  ]
+}
