@@ -32,6 +32,9 @@ public final class AscensionLib implements ModInitializer {
             LOG.error("SQLite driver is NOT usable; progression will stay disabled", exception);
         }
         com.ascensionlib.scout.ScoutNet.register();
+        // Abandoned Laboratories: per-player container searches and guard tiers (the structure itself is datapack data in the jar).
+        com.ascensionlib.laboratory.LabContainers.register();
+        com.ascensionlib.laboratory.LabGuards.register();
         // Optional: with Polymer installed, the item art joins its server resource pack (the class is not loaded otherwise).
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("polymer-resource-pack")) com.ascensionlib.wallet.PolymerPack.register();
         ServerLifecycleEvents.SERVER_STARTING.register(this::start);
@@ -50,6 +53,9 @@ public final class AscensionLib implements ModInitializer {
             com.ascensionlib.scout.ScoutEncounters.endWild(id);
             com.ascensionlib.craft.CraftNet.forget(id);
             com.ascensionlib.fusion.FusionWeb.forget(id);
+            com.ascensionlib.fusion.TranscendReveal.forget(id);
+            if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(com.ascensionlib.compat.ProjectFusionGuard.MOD_ID))
+                com.ascensionlib.compat.bond.FuserBond.forget(id);
             com.ascensionlib.scout.ScoutEncounters.disarmBattle(java.util.List.of(id));
         });
         new AscendWiring().register();
@@ -58,6 +64,7 @@ public final class AscensionLib implements ModInitializer {
 
     private void start(MinecraftServer server) {
         CompatReport.log(LOG);
+        com.ascensionlib.compat.ProjectFusionGuard.check(LOG);
         var config = TunablesConfig.loadAndUse(TunablesConfig.file());
         var changed = TunablesConfig.differences(com.cobbleascend.domain.v1.Tunables.defaults(), config.tunables());
         if (!changed.isEmpty()) LOG.info("Configuration differs from the defaults: {}", changed);

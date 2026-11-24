@@ -35,6 +35,7 @@ public final class FusionNet {
 
     public static void register() {
         FusionWeb.register();
+        TranscendReveal.register();
         // The craft page's Fuse button names a host; the server opens the fusion page if it is allowed to.
         com.ascensionlib.web.WebUi.listen("ascension_fusion_open", (player, o) -> {
             if (!com.ascensionlib.net.RateLimit.allow(player.getUUID(), "fusion.open", 4, 2)) return;
@@ -107,8 +108,34 @@ public final class FusionNet {
         if (host == null) return;
         var profile = service.canonical(host);
         String block = hostBlock(host, profile, service.store().fusedPokemon());
-        FusionWeb.feed(player, java.util.List.of(host.getSpecies().getResourceIdentifier().toString()));
-        FusionWeb.emit(player, "fusionCandidates", new FusionPayloads.Candidates(entry(service, host, profile, inParty(player, host), block.isEmpty(), ""), cap(block, 250)));
+        // Opened by a Fuser: the head it holds is the donor, shown with it, and the page offers only this pairing.
+        String donorId = FusionWeb.fuserDonor(player);
+        var donor = donorId == null ? null : CraftNet.findOwned(player, donorId).orElse(null);
+        FusionPayloads.Entry fuserDonor = null;
+        if (donor != null) {
+            var donorProfile = service.canonical(donor);
+            fuserDonor = entry(service, donor, donorProfile, inParty(player, donor), hostBlock(donor, donorProfile, service.store().fusedPokemon()).isEmpty(),
+                    donorBlock(donor, donorProfile, service.store().fusedPokemon()));
+        }
+        FusionWeb.feed(player, donor == null ? java.util.List.of(host.getSpecies().getResourceIdentifier().toString())
+                : java.util.List.of(host.getSpecies().getResourceIdentifier().toString(), donor.getSpecies().getResourceIdentifier().toString()));
+        FusionWeb.emit(player, "fusionCandidates", new FusionPayloads.Candidates(entry(service, host, profile, inParty(player, host), block.isEmpty(), ""),
+                cap(block, 250), fuserDonor, FusionWeb.introSeen(player)));
+    }
+
+    /** Whether Transcendence is made at a Project Fusion Fuser on this server (then the page alone cannot make one). */
+    public static boolean madeAtFuser() {
+        return net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(com.ascensionlib.compat.ProjectFusionGuard.MOD_ID)
+                && com.ascensionlib.compat.bond.FuserBond.enabled();
+    }
+
+    /** At a Fuser: trades head and body, then shows the page the new pairing. */
+    static void fuserSwap(ServerPlayer player) {
+        if (FusionWeb.fuserDonor(player) == null || !madeAtFuser()) return;
+        com.ascensionlib.compat.bond.FuserBond.swap(player).ifPresent(offer -> {
+            FusionWeb.fuserSwapped(player, offer.bodyId().toString(), offer.headId().toString());
+            sendCandidates(player, offer.bodyId().toString());
+        });
     }
 
     /**
@@ -191,17 +218,17 @@ public final class FusionNet {
                         cost.getOrDefault(MaterialId.APEX_SHARD, 0L)},
                 new long[] {wallet.balance(MaterialId.RESONANCE_DUST), wallet.balance(MaterialId.FACET), wallet.balance(MaterialId.ASCENSION_CORE),
                         wallet.balance(MaterialId.UNIQUE_CATALYST), wallet.balance(MaterialId.TOWER_MARK), wallet.balance(MaterialId.APEX_SHARD)},
-                hostProfile.get().revision(), donorProfile.get().revision(), wallet.revision()));
+                hostProfile.get().revision(), donorProfile.get().revision(), wallet.revision(), t.recipeId() != null));
     }
 
     /** A Detail with only a reason, so the screen stops waiting and shows why. */
     private static void sendRefusal(ServerPlayer player, String hostId, String donorId, String reason) {
         FusionWeb.emit(player, "fusionDetail", new FusionPayloads.Detail(cap(hostId, 36), cap(donorId, 36), cap(reason, 250), "", "", "", 1, 1, "", "", "", "", "", "", "",
-                "", "", new long[5], new long[5], 0, 0, -1));
+                "", "", new long[5], new long[5], 0, 0, -1, false));
     }
 
     /** What a page sends to make a fusion: the operation it chose and the revisions it was shown. */
-    record ConfirmRequest(String operationId, String hostId, String donorId, long hostRevision, long donorRevision, long walletRevision) {}
+    record ConfirmRequest(String operationId, String hostId, String donorId, long hostRevision, long donorRevision, long walletRevision, boolean plain) {}
 
     static void confirm(ServerPlayer player, ConfirmRequest request) {
         if (!com.ascensionlib.net.RateLimit.allow(player.getUUID(), "fusion.confirm", 2, 1)) {
@@ -214,7 +241,20 @@ public final class FusionNet {
         var host = CraftNet.findOwned(player, request.hostId()).orElse(null);
         var donor = CraftNet.findOwned(player, request.donorId()).orElse(null);
         if (host == null || donor == null) { fail(player, request, "Those Pokémon are no longer yours to fuse."); return; }
+        boolean atFuser = FusionWeb.fuserDonor(player) != null;
+        if (!atFuser && madeAtFuser()) {
+            fail(player, request, "Transcendence is made at a Fuser: put the host in as the body and the donor as the head, then press Fuse.");
+            return;
+        }
         try {
+            if (atFuser) {
+                if (!madeAtFuser()) { fail(player, request, "Transcendence at the Fuser is off on this server."); return; }
+                String name = com.ascensionlib.compat.bond.FuserBond.confirm(player, host.getUuid(), donor.getUuid(), !request.plain(),
+                        request.hostRevision(), request.donorRevision(), request.walletRevision());
+                FusionWeb.fuserDone(player);
+                FusionWeb.emit(player, "fusionResult", new FusionPayloads.Result(request.operationId(), true, "", name));
+                return;
+            }
             var made = service.fuse(player, host, donor, request.hostRevision(), request.donorRevision(), request.walletRevision());
             LOG.info("fusion committed: {} fused {} into {} -> {} (operation {})", player.getGameProfile().getName(), donor.getUuid(), host.getUuid(),
                     made.id(), request.operationId());

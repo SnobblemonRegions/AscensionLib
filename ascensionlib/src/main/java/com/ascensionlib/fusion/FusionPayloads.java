@@ -19,7 +19,10 @@ public final class FusionPayloads {
     public static final int MAX_PICK = 36;
 
     /** Server to page: the host for the host chamber; {@code hostBlock} is why it cannot be a host (empty when it can). */
-    public record Candidates(Entry host, String hostBlock) {}
+    /** {@code fuserDonor} is set when a Fuser opened the page; {@code introSeen} is whether this player already dismissed the Fuser intro. */
+    public record Candidates(Entry host, String hostBlock, Entry fuserDonor, boolean introSeen) {
+        public Candidates(Entry host, String hostBlock) { this(host, hostBlock, null, true); }
+    }
 
     /** Server to page: the Pokemon a chamber could hold: party first, then the first page of the PC. */
     public record PickList(boolean hostRole, List<Entry> entries) {}
@@ -30,7 +33,8 @@ public final class FusionPayloads {
      */
     public record Detail(String hostId, String donorId, String block, String name, String fromUniques, String harmony, int benefit, int drawback,
                          String blurb, String core, String clutch, String drawbackText, String twistName, String twistText, String riderText,
-                         String hostType, String donorType, long[] price, long[] balances, long hostRevision, long donorRevision, long walletRevision) {}
+                         String hostType, String donorType, long[] price, long[] balances, long hostRevision, long donorRevision, long walletRevision,
+                         boolean namedRecipe) {}
 
     /** Server to page: how a confirmation ended. */
     public record Result(String operationId, boolean ok, String message, String name) {}

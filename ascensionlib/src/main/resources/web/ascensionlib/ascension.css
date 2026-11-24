@@ -69,11 +69,11 @@ button.term { display: inline; padding: 0; border: 0; background: none; box-shad
 button.term:hover:not(:disabled) { color: var(--acc); text-decoration-color: var(--acc); border: 0; }
 button.term:active:not(:disabled) { transform: none; box-shadow: none; }
 /* a screen's first-open intro (ui.js A.firstTime): a card over the content, the rest of the tablet still there behind it */
-.intro { position: absolute; inset: 0; z-index: 14; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 12, .62); }
-.intro-card { width: min(460px, 90%); padding: 14px 16px; background: var(--sheen), var(--panel); border: 2px solid var(--acc); box-shadow: var(--raised), 0 0 0 2px var(--outline); }
-.intro-t { color: var(--acc); font-size: var(--fs-name); letter-spacing: .08em; text-transform: uppercase; text-shadow: var(--glow); margin-bottom: 8px; }
-.intro-card ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; line-height: 1.45; }
-.intro-go { display: flex; justify-content: flex-end; margin-top: 12px; }
+.firstrun { position: absolute; inset: 0; z-index: 14; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 12, .62); }
+.firstrun-card { width: min(460px, 90%); padding: 14px 16px; background: var(--sheen), var(--panel); border: 2px solid var(--acc); box-shadow: var(--raised), 0 0 0 2px var(--outline); }
+.firstrun-t { color: var(--acc); font-size: var(--fs-name); letter-spacing: .08em; text-transform: uppercase; text-shadow: var(--glow); margin-bottom: 8px; }
+.firstrun-card ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; line-height: 1.45; }
+.firstrun-go { display: flex; justify-content: flex-end; margin-top: 12px; }
 /* a rare result stamped over the Traits detail (craft.html): RANK V, MAX ROLL, ASCENDED */
 .stamp { position: absolute; left: 50%; top: 42%; z-index: 12; transform: translate(-50%, -50%) rotate(-6deg); padding: 6px 16px; pointer-events: none;
          font-size: var(--fs-hero); letter-spacing: .2em; color: var(--gold); background: var(--scr); border: 3px solid var(--gold); box-shadow: 0 0 0 2px var(--outline);

@@ -54,6 +54,16 @@
   .stat.best .seg i.on { background: var(--gold); }
   .empty { padding: 14px; color: var(--muted); }
   .ivnote { margin-top: 6px; font-size: var(--fs-body); line-height: 1.4; }
+  [hidden] { display: none !important; }
+  /* Transcendence: what this Pokemon became and carries, or how close it is to each role at a Fuser. */
+  .trans { margin-top: 8px; padding: 8px 10px; background: var(--head); border: 2px solid var(--line); display: grid; gap: 6px; font-size: var(--fs-body); }
+  .trans .tt { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: var(--fs-body); letter-spacing: .06em; text-transform: uppercase; }
+  .trans .tn { color: var(--acc); font-size: var(--fs-name); overflow-wrap: anywhere; }
+  .trans .role { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .trans .role > span:first-child { min-width: 56px; color: var(--muted); }
+  .trans .tier { font-size: var(--fs-body); }
+  .trans .head { display: flex; align-items: center; gap: 8px; }
+  .trans .head .spr { width: 32px; height: 32px; flex: none; }
 </style>
 </head>
 <body>
@@ -75,6 +85,7 @@
       <div class="rows" id="rows"></div>
       <div class="reso" id="reso" style="display:none"></div>
       <div class="strip" id="strip">Click a trait to see what it does.</div>
+      <div class="trans" id="trans" hidden></div>
     </div>
   </div>
   <div class="bottom muted" id="bottom"></div>
@@ -95,7 +106,51 @@
   var STATS = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'];
   var TYPES = A.TYPES;
   var mode = '';           // owned | enemy
-  var owned = null, state = null, idx = 0, sel = 0, sigilArmed = false, rowEls = [];
+  var owned = null, state = null, idx = 0, sel = 0, sigilArmed = false, rowEls = [], trans = null;
+
+  // ---- Transcendence panel (owner view only) ----
+  function chip(text, on, title) { var c = A.el('span', 'tier' + (on ? ' on' : ''), text); if (title) c.title = title; return c; }
+  function roleRow(label, reqs, ready) {
+    var row = A.el('div', 'role'); row.appendChild(A.el('span', '', label));
+    if (ready) { row.appendChild(chip('Ready', true)); return row; }
+    reqs.forEach(function (r) {
+      var text = r.need > 1 ? r.label + ' ' + r.have + '/' + r.need : r.label;
+      row.appendChild(chip(text, r.met, r.met ? 'Done.' : 'Not yet.'));
+    });
+    return row;
+  }
+  function drawTrans() {
+    var box = $('trans');
+    var t = mode === 'owned' && owned && trans && trans.pokemonId === owned.pokemonId ? trans : null;
+    if (!t || (!t.hasProfile && !t.fusion)) { box.hidden = true; return; }
+    box.hidden = false; box.innerHTML = '';
+    var tt = A.el('div', 'tt'); tt.appendChild(A.el('span', '', t.transcendentName ? 'Transcendent' : t.fusion ? 'Fusion' : 'Transcendence'));
+    if (t.bonded) tt.appendChild(A.el('span', '', 'Bonded for good'));
+    box.appendChild(tt);
+    if (t.transcendentName) box.appendChild(A.el('div', 'tn', t.transcendentName));
+    if (t.head) {
+      var h = A.el('div', 'head');
+      var sp = A.sprite(t.head.speciesId, 1); sp.classList.add('spr'); h.appendChild(sp);
+      var bits = ['Head: ' + t.head.name];
+      if (t.head.rarityId) bits.push(A.rarityName(t.head.rarityId));
+      if (t.head.uniqueName) bits.push(t.head.uniqueName);
+      h.appendChild(A.el('span', '', bits.join(' · ')));
+      box.appendChild(h);
+      box.appendChild(A.el('div', 'muted', t.bonded ? 'A Transcendent bond can never be separated.' : 'It can be separated at a Fuser.'));
+      return;
+    }
+    if (t.transcendentName) { box.appendChild(A.el('div', 'muted', 'Its power cannot be replaced.')); return; }
+    box.appendChild(roleRow('Host', t.host, t.hostReady));
+    box.appendChild(roleRow('Donor', t.donor, t.donorReady));
+    if (t.recipes && t.recipes.length) {
+      var seen = {}, leads = [];
+      t.recipes.forEach(function (r) { var k = r.recipeName; (seen[k] = seen[k] || []).push(r.partnerName); if (seen[k].length === 1) leads.push(k); });
+      box.appendChild(A.el('div', '', 'Named recipes: ' + leads.map(function (k) { return k.charAt(0).toUpperCase() + k.slice(1) + ' with ' + seen[k].join(' or '); }).join('; ') + '.'));
+    }
+    box.appendChild(A.el('div', 'muted', t.atFuser
+      ? 'Bring a ready host and a ready donor to a Fuser. The host is the body, the donor the head.'
+      : 'A ready host and a ready donor can be fused into a Transcendent.'));
+  }
 
   function detail() { return mode === 'owned' ? (owned && owned.detail) : (state && state.entries[idx] ? state.entries[idx].detail : null); }
   function rowsOf(d) {
@@ -160,6 +215,7 @@
     else { A.text(gr, 'RARITY ?'); gr.style.background = '#16303f'; gr.style.color = 'var(--muted)'; A.setBezel(''); }
     drawRows(d);
     drawBottom(d);
+    drawTrans();
     buttons();
   }
 
@@ -261,6 +317,7 @@
   }
 
   A.on('inspectOwned', function (o) { mode = 'owned'; owned = o; sel = 0; render(); introOnce(); });
+  A.on('inspectTranscend', function (t) { trans = t; drawTrans(); });
   A.on('inspectScout', function (s) { if (mode === '') mode = 'enemy'; if (mode !== 'enemy') return; state = s; idx = Math.min(idx, Math.max(0, s.entries.length - 1)); render(); });
 
   $('close').addEventListener('click', function () { A.send('close'); });

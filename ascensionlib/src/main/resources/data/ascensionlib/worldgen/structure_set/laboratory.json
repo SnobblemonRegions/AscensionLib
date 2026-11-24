@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "ascensionlib:laboratory",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 48,
+    "separation": 16,
+    "salt": 1120334291
+  }
+}

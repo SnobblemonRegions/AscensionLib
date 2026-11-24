@@ -34,7 +34,7 @@ window.GUIDE = {
       "Earn materials. Tower runs, trials, dungeons and raids pay Resonance Dust, Facets, Cores and more into your wallet (the Wallet tab of the Dex).",
       "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Ascended.",
       "Scout enemies. A Scouter reveals an enemy's rarity and traits before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.",
-      "Go deep. At rank V you can Perfect and Overreach a trait; a Catalyst installs a Unique power; two Ascended Pokémon can be fused into a Transcendent."
+      "Go deep. At rank V you can Perfect and Overreach a trait; a Catalyst installs a Unique power; two Pokémon that each hold a Unique can be bonded at a Fuser into a Transcendent."
      ]
     },
     {
@@ -368,15 +368,27 @@ window.GUIDE = {
     },
     {
      "type": "p",
-     "text": "Fusion makes a Transcendent: an Ascended host that holds a Unique and an Epic-or-better donor holding a different one become one Pokémon with a completely new power. The host is kept; the donor is consumed. It is permanent."
+     "text": "A Transcendent is made at a Fuser, the lab machine from Project Fusion. Two Pokémon that each hold a Unique are fused for good: one becomes the body, the other lives on inside it as the head, and their two Uniques become one completely new power. It can never be separated."
+    },
+    {
+     "type": "steps",
+     "items": [
+      "Put both Pokémon in your party and open a Fuser. Choose the body and the head, then press Fuse. The Fuser only takes two Pokémon that each hold a Unique.",
+      "The Transcendence page opens on that pair. The body is the host, the head is the donor; Swap trades them. Read the new power, its drawback and the price.",
+      "Press Review Transcendence, then Transcend for good. Or press Plain fusion to fuse them without a Transcendence, for Project Fusion's own fee; a plain fusion can be separated later.",
+      "The Fuser works for a moment. Collect the result by right-clicking the Fuser with a Poké Ball. A Transcendent is revealed as you collect it, and you can share it in chat."
+     ]
     },
     {
      "type": "ul",
      "items": [
-      "Host: Ascended, every upgrade credit spent, at least 150 attunement, holding a Unique.",
-      "Donor: Epic or better, holding a different Unique, and not already a Transcendent.",
+      "Host (the body): Ascended, every upgrade credit spent, at least 150 attunement, holding a Unique.",
+      "Donor (the head): Epic or better, holding a different Unique, and not already a Transcendent.",
       "Price: 600 dust, 30 facets, 10 cores, 1 Catalyst and 5 Tower Marks.",
-      "The Fuse button is on the Traits screen and the Dex. A Transcendent's power cannot be replaced."
+      "If the Fuser is interrupted (the server stops while it works), both Pokémon come back and the price is refunded.",
+      "Genome Shift still works on a Transcendent: it swaps head and body, and the power's attack and defence types swap with them.",
+      "Inspect any of your Pokémon to see how close it is to being a host or a donor, and which named recipes its species belongs to.",
+      "A Transcendent's power cannot be replaced, and a Transcendent bond can never be separated."
      ]
     }
    ],
@@ -384,7 +396,7 @@ window.GUIDE = {
    "glance": [
     "A Catalyst and 1 Tower Mark install one",
     "One Unique per Pokémon",
-    "Fusion consumes the donor for good",
+    "Fuse two at a Project Fusion Fuser",
     "A Transcendent's power is permanent"
    ],
    "icon": "unique_catalyst"

@@ -226,6 +226,9 @@ public final class BalanceLog {
             if (rarity != null) {
                 e.addProperty("teamRarity", Math.round(rarity[0] * 100.0) / 100.0);
                 e.addProperty("teamRarityMax", (int) rarity[1]);
+                // Project Fusion fusions and Transcendents in the team, so their win rates can be told apart from the rest.
+                e.addProperty("teamFusions", (int) rarity[2]);
+                e.addProperty("teamTranscendents", (int) rarity[3]);
             }
             parameters.forEach((key, value) -> {
                 if (value instanceof Boolean b) e.addProperty(key, b);
@@ -241,14 +244,17 @@ public final class BalanceLog {
         return rarity == null ? -1 : rarity[0];
     }
 
-    /** {mean, max} rarity ordinal of the participants' profiled party Pokemon, or null when none is online or profiled. Never throws. */
+    /**
+     * {mean, max} rarity ordinal of the participants' profiled party Pokemon, then how many of them are Project Fusion fusions and how many
+     * are Transcendents; null when none is online or profiled. Never throws.
+     */
     private static double[] teamRarity(java.util.Collection<UUID> players) {
         if (players == null || players.isEmpty()) return null;
         var service = AscensionApi.service().orElse(null);
         MinecraftServer server = AscensionApi.server();
         if (service == null || server == null) return null;
         try {
-            int count = 0, sum = 0, max = 0;
+            int count = 0, sum = 0, max = 0, fusions = 0, transcendents = 0;
             for (UUID id : players) {
                 ServerPlayer player = server.getPlayerList().getPlayer(id);
                 if (player == null) continue;
@@ -257,11 +263,13 @@ public final class BalanceLog {
                     if (profile.isEmpty()) continue;
                     int ordinal = profile.get().rarity().ordinal();
                     sum += ordinal;
+                    if (com.ascensionlib.compat.FusionNbt.isFusion(pokemon)) fusions++;
+                    if (service.store().fusion(pokemon.getUuid()).isPresent()) transcendents++;
                     max = Math.max(max, ordinal);
                     count++;
                 }
             }
-            return count == 0 ? null : new double[] {(double) sum / count, max};
+            return count == 0 ? null : new double[] {(double) sum / count, max, fusions, transcendents};
         } catch (RuntimeException exception) {
             LOG.debug("Team rarity skipped: {}", exception.toString());
             return null;
@@ -311,12 +319,15 @@ public final class BalanceLog {
                 var entry = new JsonObject();
                 entry.addProperty("species", ProfileService.speciesIdOf(pokemon));
                 entry.addProperty("level", pokemon.getLevel());
+                if (com.ascensionlib.compat.FusionNbt.isFusion(pokemon)) entry.addProperty("fusion", true);
                 if (profile.isPresent()) {
                     var p = profile.get();
                     entry.addProperty("rarity", p.rarity().id());
                     entry.addProperty("attunement", p.attunement());
                     entry.addProperty("pending", p.pendingCredits());
                     if (p.unique() != null) entry.addProperty("unique", p.unique().uniqueId());
+                    if (service.store().fusion(pokemon.getUuid()).isPresent()) entry.addProperty("transcendent", true);
+                    if (service.bondOf(pokemon.getUuid()).filter(b -> b.hostId().equals(pokemon.getUuid())).isPresent()) entry.addProperty("bonded", true);
                     entry.add("slots", slots(p));
                 }
                 party.add(entry);

@@ -1019,12 +1019,12 @@ await check('interest: each Dex card says its next step, a screen intro shows on
   const card = (id, extra) => Object.assign({ id, name: id, speciesId: 'cobblemon:ditto', level: 30, rarityId: 'rare', hp: 100, pending: 0, types: ['normal'], attack: [1], guard: [], attackSlots: 1, guardSlots: 1, nextMilestone: 40, attunement: 0, attunementNeeded: 30 }, extra);
   await emit(p, 'partyView', { slots: [card('a1', { pending: 2 }), card('b2', { attunement: 30 }), card('c3', {}), card('d4', { rarityId: '' }), { id: '' }, { id: '' }] });
   eq(await p.locator('.goal').allTextContents(), ['2 upgrades to spend', 'Attunement ready to promote', 'Next upgrade at Lv 40', 'Start: a Sigil gives it a profile'], 'each card says its most useful next step');
-  eq(await p.locator('.intro').count(), 0, 'no intro before the server says what this player has seen');
+  eq(await p.locator('.firstrun').count(), 0, 'no intro before the server says what this player has seen');
   await emit(p, 'uiScale', { percent: 100, min: 60, max: 160, calm: false, seen: [] });
-  eq(await p.locator('.intro').count(), 1, 'the Dex intro shows on a first open');
-  await p.click('.intro button');
+  eq(await p.locator('.firstrun').count(), 1, 'the Dex intro shows on a first open');
+  await p.click('.firstrun button');
   eq((await sent(p)).filter(m => m.channel === 'ascension_ui_set').pop().seen, 'dex.home', 'Got it records it on the server');
-  eq(await p.locator('.intro').count(), 0, 'and closes it');
+  eq(await p.locator('.firstrun').count(), 0, 'and closes it');
   noErrors(p);
 
   p = await open(null, 'craft.html');

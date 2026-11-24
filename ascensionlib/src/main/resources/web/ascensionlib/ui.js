@@ -214,17 +214,17 @@
    */
   A.firstTime = function (id, title, lines) {
     function show() {
-      if (!A.seen || A.hasSeen(id) || document.querySelector('.intro')) return;
+      if (!A.seen || A.hasSeen(id) || document.querySelector('.firstrun')) return;
       var frame = document.querySelector('.frame'); if (!frame) return;
       var area = frame.querySelector('.main') || frame;
       if (getComputedStyle(area).position === 'static') area.style.position = 'relative';
-      var wrap = A.el('div', 'intro'); wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-label', title);
-      var card = A.el('div', 'intro-card');
-      card.appendChild(A.el('div', 'intro-t', title));
+      var wrap = A.el('div', 'firstrun'); wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-label', title);
+      var card = A.el('div', 'firstrun-card');
+      card.appendChild(A.el('div', 'firstrun-t', title));
       var ul = A.el('ul'); lines.forEach(function (l) { ul.appendChild(A.el('li', '', l)); }); card.appendChild(ul);
       var ok = A.el('button', 'primary', 'Got it');
       ok.addEventListener('click', function () { A.markSeen(id); wrap.parentNode.removeChild(wrap); });
-      var row = A.el('div', 'intro-go'); row.appendChild(ok); card.appendChild(row);
+      var row = A.el('div', 'firstrun-go'); row.appendChild(ok); card.appendChild(row);
       wrap.appendChild(card); area.appendChild(wrap);
       ok.focus();
     }

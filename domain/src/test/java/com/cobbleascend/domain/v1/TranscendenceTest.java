@@ -178,4 +178,13 @@ class TranscendenceTest {
         }
         assertFalse(ids.isEmpty());
     }
+
+    @Test void recipeHintsNameThePartnersThatCompleteANamedRecipe() {
+        var kyogre = BOOK.recipesFor("kyogre", 3);
+        assertTrue(kyogre.stream().anyMatch(h -> h.partnerSpecies().equals("groudon")), "Kyogre's pair recipe names Groudon");
+        assertTrue(kyogre.stream().noneMatch(h -> h.partnerSpecies().equals("kyogre")), "a species is never its own partner");
+        assertTrue(BOOK.recipesFor("not_a_species", 3).isEmpty());
+        for (var species : new String[] {"bulbasaur", "pikachu", "eevee", "gyarados"})
+            BOOK.recipesFor(species, 2).forEach(h -> assertFalse(h.recipeName().isBlank()));
+    }
 }

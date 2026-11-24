@@ -77,3 +77,37 @@ Nothing can produce a Transcendent in a real game yet, because a profile cannot 
 3. Should discovered recipes be recorded, so the screen shows a recipe book that fills in, or should previews always be open?
 4. The 45 pair recipes and 35 groups are a first batch. Which others matter to you (rival trainers, anime pairs, regional legends)?
 5. May a Transcendent ever be fused again, as host or donor? (Proposed: no. A Pokemon transcends once and its Transcendent cannot be a donor.)
+
+## Fuser bond with Project Fusion (owner decision 2026-11-20, "permanent bond")
+
+With Cobblemon Project Fusion installed, Transcendence is made at its Fuser, together with the physical fusion, for good.
+
+- The Fuser fuses only two Pokemon that each hold a Unique (owner rule 2026-11-20): any other pair is refused with "Both Pokemon must hold a
+  Unique to be fused." before Project Fusion takes its fee (same hook as the loan guard, `FusionService.validate`). Wild fusions are untouched.
+- Onboarding: until a player dismisses the page's one-time intro, opening an idle Fuser shows "Fuse two Pokémon that each hold a Unique
+  to make a Transcendent." in the Fuser screen's own status line (hook on Project Fusion's three-argument `open`). The page's intro
+  (three steps, Got it, How it works) and the refusal text ("...Install one with a Unique Catalyst on the Craft page.") do the rest.
+- The player picks a body and a head on the Fuser's screen and presses Fuse. AscensionLib stops the Fuser's start (refunding Project
+  Fusion's fee) and opens this fusion page in Fuser mode on that pair: body = host, head = donor. Swap trades them.
+- **Transcend for good:** the usual rules and price (`ProfileService.bond`, store `bond`), recorded in the `bonds` table with the price
+  paid; then the Fuser starts as Project Fusion would. The donor is not consumed: it lives on as the fusion's head.
+- **Plain fusion:** Project Fusion's own fee and an ordinary, separable fusion.
+- A bond can never be split (Project Fusion's split is refused). Genome Shift still works and trades the Transcendent's offence and
+  defence types (`CombatSnapshot.withSwappedTypes`, applied when the battle snapshot is taken).
+- If the Fuser cannot start the bond is undone at once; if it never finishes (server stopped, failure) Project Fusion's refund hook
+  undoes it and refunds the recorded price (`store.unbond`); the login sweep catches a bond partner found unfused in storage.
+- The page alone no longer makes a Transcendent while Project Fusion is installed; without it the original consuming path is unchanged.
+
+Code: `compat/bond/FuserBond`, `mixin/ProjectFusionBondMixin`, `mixin/ProjectFusionRefundMixin`, `compat/ProjectFusionGuard` (start-up
+check: every hook must have applied or the bond stays off). Compiled against Project Fusion 2.1.0 only (`ascensionlib/libs/README.md`).
+
+### Player experience (built 2026-11-20)
+
+- **Inspect, Transcendence panel** (`scout/TranscendView`, `inspectTranscend`): readiness as host and donor rule by rule (`FusionRules.readiness`),
+  named recipes the species belongs to (`Transcendence.recipesFor`), or for a fusion its head, rarity, Unique and whether it is bonded.
+- **Fusion page:** a Swap hint when the donor would make a valid host; the price shortfall itemised with where each material comes from;
+  a "named recipe" line for curated pairs.
+- **Reveal on collect** (`fusion/TranscendReveal`, `transcend.html`, hook on `FuserBlockEntity.collect`): body and head meet, the name and
+  power appear; "Share in chat" is the opt-in announcement (once per bond).
+- **Fuser status line** after the intro: "A Transcendent bond in your party can never be separated." when the party carries a bond.
+- **Telemetry:** `encounter` events carry `teamFusions` and `teamTranscendents`; session party entries carry `fusion`, `transcendent`, `bonded`.
