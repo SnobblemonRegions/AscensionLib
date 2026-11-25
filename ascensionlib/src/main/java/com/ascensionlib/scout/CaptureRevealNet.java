@@ -21,7 +21,7 @@ public final class CaptureRevealNet {
     }
 
     /** One owned modifier row: its rolled value, the band that rank rolls in, and what it does (catalog text, nothing secret). */
-    static ScoutPayloads.Slot slotOf(ProfileService service, com.cobbleascend.domain.v1.OrdinarySlot slot) {
+    public static ScoutPayloads.Slot slotOf(ProfileService service, com.cobbleascend.domain.v1.OrdinarySlot slot) {
         var affix = service.rules().affix(slot.affixId());
         var band = affix.band(slot.rank());
         String type = slot.type();
