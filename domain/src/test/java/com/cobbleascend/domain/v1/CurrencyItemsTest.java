@@ -20,7 +20,7 @@ class CurrencyItemsTest {
             assertFalse(spec.kind().isBlank());
         }
         assertEquals("EPIC", CurrencyItems.rarity("epic").label());
-        assertEquals("ASCENDED", CurrencyItems.rarity("mythical").label(), "the top tier reads Ascended, as on the pages");
+        assertEquals("RADIANT", CurrencyItems.rarity("mythical").label(), "the top tier reads Radiant, as on the pages");
         assertEquals("common", CurrencyItems.rarity("no-such-tier").id(), "an unknown tier falls back to common");
         assertEquals("common", CurrencyItems.all().get(MaterialId.RESONANCE_DUST).rarity(), "the everyday currency is common");
         assertEquals("legendary", CurrencyItems.all().get(MaterialId.UNIQUE_CATALYST).rarity(), "the rarest is legendary");

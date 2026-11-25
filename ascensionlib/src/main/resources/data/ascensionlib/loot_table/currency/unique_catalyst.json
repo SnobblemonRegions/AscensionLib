@@ -19,7 +19,7 @@
                 "minecraft:custom_model_data": 8105,
                 "minecraft:custom_name": "{\"text\":\"Unique Catalyst\",\"color\":\"#b04fa0\",\"italic\":false}",
                 "minecraft:lore": [
-                  "[\"\",{\"text\":\"RADIANT\",\"color\":\"#ffd437\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Currency\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
+                  "[\"\",{\"text\":\"AWAKENED\",\"color\":\"#ffd437\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Currency\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
                   "{\"text\":\"Installs or replaces a Unique power.\",\"color\":\"gray\",\"italic\":false}"
                 ]
               }

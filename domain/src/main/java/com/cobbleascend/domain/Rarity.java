@@ -10,7 +10,7 @@ public enum Rarity {
     public static Rarity fromId(String id) { return valueOf(id.toUpperCase(Locale.ROOT)); }
 
     /**
-     * The name players see. The top two tiers are shown as Radiant and Ascended (owner decision, 2026-11-15) so they cannot be read as
+     * The name players see. The top two tiers are shown as Awakened and Radiant (owner decisions 2026-11-15 and 2026-11-25) so they cannot be read as
      * Cobblemon's Legendary and Mythical species. Keep in step with A.rarityName in ui.js and RARITY_NAMES in tools/build_guide.py.
      */
     public String displayName() {
@@ -19,8 +19,8 @@ public enum Rarity {
             case UNCOMMON -> "Uncommon";
             case RARE -> "Rare";
             case EPIC -> "Epic";
-            case LEGENDARY -> "Radiant";
-            case MYTHICAL -> "Ascended";
+            case LEGENDARY -> "Awakened";
+            case MYTHICAL -> "Radiant";
         };
     }
 }

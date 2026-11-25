@@ -5,11 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 class RarityTest {
-    @Test void topTiersReadAsRadiantAndAscendedSoTheyAreNotCobblemonSpeciesCategories() {
+    @Test void topTiersReadAsAwakenedAndRadiantSoTheyAreNotCobblemonSpeciesCategories() {
         assertEquals("Common", Rarity.COMMON.displayName());
         assertEquals("Epic", Rarity.EPIC.displayName());
-        assertEquals("Radiant", Rarity.LEGENDARY.displayName());
-        assertEquals("Ascended", Rarity.MYTHICAL.displayName());
+        assertEquals("Awakened", Rarity.LEGENDARY.displayName());
+        assertEquals("Radiant", Rarity.MYTHICAL.displayName());
     }
 
     @Test void renamingTheDisplayNameNeverChangesTheStoredId() {

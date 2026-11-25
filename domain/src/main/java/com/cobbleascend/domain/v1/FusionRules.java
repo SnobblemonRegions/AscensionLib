@@ -61,7 +61,7 @@ public final class FusionRules {
         int credits = Math.min(profile.spentUpgradeCredits(), HOST_CREDITS);
         int attunement = (int) Math.min(profile.attunement(), HOST_ATTUNEMENT);
         var host = List.of(
-                new Requirement("ascended", "Ascended", mythic, mythic ? 1 : 0, 1),
+                new Requirement("ascended", "Radiant", mythic, mythic ? 1 : 0, 1),
                 new Requirement("credits", "Upgrade credits spent", credits >= HOST_CREDITS, credits, HOST_CREDITS),
                 new Requirement("attunement", "Attunement", attunement >= HOST_ATTUNEMENT, attunement, HOST_ATTUNEMENT),
                 new Requirement("unique", "Holds a Unique", unique, unique ? 1 : 0, 1));
@@ -82,7 +82,7 @@ public final class FusionRules {
         if (hostIsTranscendent || donorIsTranscendent)
             throw new CraftException(CraftException.Reason.ALREADY_TRANSCENDENT, "A Transcendent can be neither host nor donor again");
         if (host.rarity() != Rarity.MYTHICAL)
-            throw new CraftException(CraftException.Reason.FUSION_HOST_RARITY, "The host must be Ascended");
+            throw new CraftException(CraftException.Reason.FUSION_HOST_RARITY, "The host must be Radiant");
         if (host.spentUpgradeCredits() < HOST_CREDITS)
             throw new CraftException(CraftException.Reason.FUSION_HOST_RANKS, "The host must have spent all " + HOST_CREDITS + " upgrade credits");
         if (donor.rarity().ordinal() < Rarity.EPIC.ordinal())

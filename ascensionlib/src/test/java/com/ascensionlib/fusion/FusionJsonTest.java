@@ -16,10 +16,10 @@ class FusionJsonTest {
     }
 
     @Test void candidatesCarryTheHostEntryAndItsBlock() {
-        var json = JsonParser.parseString(gson.toJson(new FusionPayloads.Candidates(entry(), "Only an Ascended Pokémon can be the host."))).getAsJsonObject();
+        var json = JsonParser.parseString(gson.toJson(new FusionPayloads.Candidates(entry(), "Only a Radiant Pokémon can be the host."))).getAsJsonObject();
         var host = json.getAsJsonObject("host");
         for (var key : List.of("id", "name", "speciesId", "rarityId", "uniqueName", "inParty", "canHost", "block")) assertTrue(host.has(key), key);
-        assertEquals("Only an Ascended Pokémon can be the host.", json.get("hostBlock").getAsString());
+        assertEquals("Only a Radiant Pokémon can be the host.", json.get("hostBlock").getAsString());
     }
 
     @Test void pickListCarriesTheRoleAndEntries() {

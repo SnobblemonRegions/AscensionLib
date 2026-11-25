@@ -57,7 +57,7 @@
   <div class="intro" id="intro" hidden>
     <h2>How a Transcendent bond works</h2>
     <ol>
-      <li>The <b>body</b> is the host and the <b>head</b> is the donor. Swap trades them. The host must be Ascended.</li>
+      <li>The <b>body</b> is the host and the <b>head</b> is the donor. Swap trades them. The host must be Radiant.</li>
       <li><b>Transcend for good</b> fuses them and turns their two Uniques into one new power. The bond can never be separated.</li>
       <li><b>Plain fusion</b> skips the Transcendence and can be separated later. Either way, collect the result from the Fuser with a Poké Ball.</li>
     </ol>
@@ -152,7 +152,7 @@
     function head(t) { var li = document.createElement('li'); li.className = 'who'; li.textContent = t; ul.appendChild(li); }
     function item(state, t) { var li = document.createElement('li'); li.className = state; li.appendChild(document.createElement('span')).textContent = t; ul.appendChild(li); }
     head('Host' + (host ? ': ' + host.name : ''));
-    item(host ? (host.rarityId === 'mythical' ? 'ok' : 'no') : '', 'Ascended rarity');
+    item(host ? (host.rarityId === 'mythical' ? 'ok' : 'no') : '', 'Radiant rarity');
     item(host ? (host.uniqueName ? 'ok' : 'no') : '', 'Has a Unique');
     item(host ? (hostBlock ? 'no' : 'ok') : '', 'Not already a Transcendent, not on loan');
     head('Donor: not chosen');
@@ -248,7 +248,7 @@
     $('changeDonor').disabled = !idle || !host;
     // At a Fuser any body and head can trade places (the Fuser takes either way round); the page alone needs a valid host.
     $('swap').disabled = !(idle && donor && (fuser || (donor.canHost && !hostBlock)));
-    $('swap').title = fuser ? 'Swap body and head' : $('swap').disabled && donor ? 'Only an Ascended Pokémon with a Unique and no fusion can trade places with the host.' : 'Swap host and donor';
+    $('swap').title = fuser ? 'Swap body and head' : $('swap').disabled && donor ? 'Only a Radiant Pokémon with a Unique and no fusion can trade places with the host.' : 'Swap host and donor';
     var fuse = $('fuse');
     fuse.hidden = phase === 'started';
     fuse.textContent = phase === 'review' ? (fuser ? 'Transcend for good' : 'Fuse for good') : (fuser ? 'Review Transcendence' : 'Review fusion');
@@ -290,7 +290,7 @@
   function openPicker(role) {
     if (phase !== 'browse' || !host) return;
     pick.role = role; pick.entries = null; pick.pc = false; pick.search = ''; $('search').value = '';
-    $('pickTitle').textContent = role === 'host' ? 'Choose the host (kept): Ascended, with a Unique' : 'Choose the donor (consumed)';
+    $('pickTitle').textContent = role === 'host' ? 'Choose the host (kept): Radiant, with a Unique' : 'Choose the donor (consumed)';
     $('tabParty').className = 'on'; $('tabPc').className = '';
     $('scrim').className = 'scrim on';
     drawPicker();
@@ -314,7 +314,7 @@
     });
     if (!list.length) {
       var e0 = document.createElement('div'); e0.className = 'empty';
-      e0.textContent = pick.role === 'host' ? 'No Pokémon here can be the host: it must be Ascended, hold a Unique and not be a Transcendent.'
+      e0.textContent = pick.role === 'host' ? 'No Pokémon here can be the host: it must be Radiant, hold a Unique and not be a Transcendent.'
         : pick.pc ? 'Nothing in the first page of your PC matches.' : 'Nothing in your party matches.';
       grid.appendChild(e0); return;
     }

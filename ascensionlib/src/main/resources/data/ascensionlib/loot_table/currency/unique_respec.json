@@ -19,7 +19,7 @@
                 "minecraft:custom_model_data": 8112,
                 "minecraft:custom_name": "{\"text\":\"Unbinding Prism\",\"color\":\"#ffe08a\",\"italic\":false}",
                 "minecraft:lore": [
-                  "[\"\",{\"text\":\"RADIANT\",\"color\":\"#ffd437\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Respec\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
+                  "[\"\",{\"text\":\"AWAKENED\",\"color\":\"#ffd437\",\"bold\":true,\"italic\":false},{\"text\":\" \\u00b7 Respec\",\"color\":\"dark_gray\",\"bold\":false,\"italic\":false}]",
                   "{\"text\":\"Swaps a Pokemon's Unique for another,\",\"color\":\"gray\",\"italic\":false}",
                   "{\"text\":\"with no Catalyst and no Tower Mark.\",\"color\":\"gray\",\"italic\":false}"
                 ]

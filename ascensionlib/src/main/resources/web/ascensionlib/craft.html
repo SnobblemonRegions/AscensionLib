@@ -313,13 +313,13 @@
     wrap.appendChild(list); box.appendChild(wrap);
   }
   /**
-   * The rare results worth a moment: a promotion to Ascended, a trait reaching rank V, a value at the top of its range. Judged on the fresh view after a craft
+   * The rare results worth a moment: a promotion to Radiant, a trait reaching rank V, a value at the top of its range. Judged on the fresh view after a craft
    * (the craft result alone does not carry the new band), so it reflects what the server saved. Returns the stamp text, or ''.
    */
   var landed = null;
   function stampFor(l, v) {
     if (!l) return '';
-    if (l.mode === 'promote') return v.rarityId === 'mythical' && l.rarity !== 'mythical' ? 'ASCENDED' : '';
+    if (l.mode === 'promote') return v.rarityId === 'mythical' && l.rarity !== 'mythical' ? 'RADIANT' : '';
     var s = null; v.slots.forEach(function (x) { if (x.slotId === l.slotId) s = x; });
     if (!s || (l.mode !== 'upgrade' && l.mode !== 'refine' && l.mode !== 'reforge')) return '';
     if (l.mode === 'upgrade' && s.rank === 5 && l.oldRank < 5) return 'RANK V';

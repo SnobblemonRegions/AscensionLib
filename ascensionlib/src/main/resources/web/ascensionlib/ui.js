@@ -164,9 +164,9 @@
   };
   A.text = function (el, value) { el.textContent = value == null ? '' : String(value); };
   A.cap = function (s) { return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : ''; };
-  // The name players see for a stored rarity id. Legendary and Mythical are shown as Radiant and Ascended so they cannot be read as Cobblemon's
+  // The name players see for a stored rarity id. Legendary and Mythical are shown as Awakened and Radiant so they cannot be read as Cobblemon's
   // Legendary and Mythical species; the ids (and CSS classes) stay. Keep in step with Rarity.displayName() and tools/build_guide.py.
-  var RARITY_NAMES = { legendary: 'Radiant', mythical: 'Ascended' };
+  var RARITY_NAMES = { legendary: 'Awakened', mythical: 'Radiant' };
   A.rarityName = function (id) { return id ? (RARITY_NAMES[id] || A.cap(id)) : ''; };
   A.roman = ['', 'I', 'II', 'III', 'IV', 'V'];
   // A modifier's crest (icons/affix/<id>.png, drawn by tools/affix_art.py). The id is the display name lower-cased with every non-alphanumeric as _; `unique` is a Unique power.
