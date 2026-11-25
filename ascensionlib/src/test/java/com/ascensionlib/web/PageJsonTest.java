@@ -21,7 +21,7 @@ class PageJsonTest {
     @Test void craftViewCarriesEverythingCraftHtmlReads() {
         var price = new CraftPayloads.Price(1, 2, 3);
         var slot = new CraftPayloads.SlotView("p1", "prefix", "Burn Boost", "cond", 2, 12, 10, 14, 15, 19, "", "", "", 4, "Needs rank V", 0, 10,
-                "Needs rank V", false, 60, 2, 45, 35, 40);
+                "Needs rank V", false, 60, 2, 45, 35, 40, List.of(new CraftPayloads.Odds("Burn Boost", 250, true)));
         var unique = new CraftPayloads.UniqueState("", 1, 2, 3, List.of(new CraftPayloads.UniqueOption("u1", "777", "b", "d", false)), "");
         var view = new CraftPayloads.View("id", "Name", "cobblemon:mewtwo", List.of(), 50, "mythical", "777", 1, 60, 7, 8, 100, 20, 3, 4, 2,
                 price, price, new CraftPayloads.Promotion("", price, 10, 90, ""), unique,

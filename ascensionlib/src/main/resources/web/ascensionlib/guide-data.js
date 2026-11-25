@@ -30,7 +30,7 @@ window.GUIDE = {
      "type": "steps",
      "items": [
       "Catch or hatch a Pokémon. Right-click your AscensionDex (get one with /ascend dex), pick it and press Inspect to see its rarity and traits.",
-      "Level it up. Every 10 levels earns one upgrade credit (up to 10). Spend it in Craft, on the Upgrade tab: one trait goes up a rank and rerolls its value. It never fails.",
+      "Level it up. Every 10 levels earns one upgrade credit (up to 10). Spend it on the Traits screen (Upgrade): one trait goes up a rank and rerolls its value. It never fails.",
       "Earn materials. Tower runs, trials, dungeons and raids pay Resonance Dust, Facets, Cores and more into your wallet (the Wallet tab of the Dex).",
       "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Ascended.",
       "Scout enemies. A Scouter reveals an enemy's rarity and traits before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.",
@@ -41,7 +41,36 @@ window.GUIDE = {
      "type": "tip",
      "text": "Every page has a − and + in its header to make it bigger or smaller. It is remembered for you."
     }
-   ]
+   ],
+   "tldr": "Every Pokémon gets a rarity and traits. You grow it instead of replacing it.",
+   "glance": [
+    {
+     "icon": "ascension_dex",
+     "text": "Catch it, then Inspect it in your Dex"
+    },
+    {
+     "icon": "ascension_core",
+     "text": "Every 10 levels: one free upgrade"
+    },
+    {
+     "icon": "resonance_dust",
+     "text": "Earn materials in Towers, dungeons and raids"
+    },
+    {
+     "icon": "ascension_sigil",
+     "text": "Win battles to promote its rarity"
+    },
+    {
+     "icon": "scouter",
+     "text": "Scout enemies before you fight"
+    },
+    {
+     "icon": "unique_catalyst",
+     "text": "At the top: Uniques and Fusion"
+    }
+   ],
+   "icon": "ascension_dex",
+   "path": true
   },
   {
    "id": "cobblemon",
@@ -88,7 +117,7 @@ window.GUIDE = {
        "Traits",
        "Battle bonuses in those slots",
        "Filled when a slot opens",
-       "Upgrade, Refine and Reforge in Craft"
+       "Upgrade, Refine and Reforge on the Traits screen"
       ]
      ]
     },
@@ -96,7 +125,15 @@ window.GUIDE = {
      "type": "tip",
      "text": "Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Ascended. Check IVs, EVs and nature on Cobblemon's Summary screen as usual."
     }
-   ]
+   ],
+   "tldr": "Nature, IVs and EVs work as always. Ascension adds rarity and traits on top.",
+   "glance": [
+    "Rarity sets how many traits it holds (1 to 6)",
+    "Traits are battle bonuses you upgrade",
+    "Rarity has nothing to do with IVs or shininess",
+    "IVs and EVs stay on Cobblemon's Summary"
+   ],
+   "icon": "ascension_sigil"
   },
   {
    "id": "rarity",
@@ -165,7 +202,15 @@ window.GUIDE = {
      "type": "p",
      "text": "Two traits of the same family never share a Pokémon. Themes (Tempo, Toxin, Predator, Bulwark, Vitality) strengthen each other: two traits of one theme give x1.15, three or more x1.30. The inspector shows the theme strip."
     }
-   ]
+   ],
+   "tldr": "Rarity sets how many traits a Pokémon holds. Each trait ranks from I to V.",
+   "glance": [
+    "Attack traits: more damage dealt",
+    "Guard traits: less damage taken, or more healing",
+    "A higher rank rolls a higher range",
+    "Traits of one theme boost each other"
+   ],
+   "icon": "facet"
   },
   {
    "id": "growing",
@@ -173,7 +218,7 @@ window.GUIDE = {
    "blocks": [
     {
      "type": "p",
-     "text": "Open Craft from the inspector (Upgrade button). Nothing is spent until you press Review and then Confirm."
+     "text": "Open the Traits screen with the Traits button, from the Dex or Inspect. Nothing is spent until you press Review and then Confirm."
     },
     {
      "type": "table",
@@ -195,7 +240,7 @@ window.GUIDE = {
       ],
       [
        "Reforge",
-       "Swap one trait for a different one. The rank stays and the value rerolls.",
+       "Reroll which trait one slot holds. The rank stays and the value rerolls; the same trait can come back.",
        "24 dust + 1 facet"
       ],
       [
@@ -258,7 +303,15 @@ window.GUIDE = {
      "type": "warn",
      "text": "Overreach is a point of no return. A Pokémon with an Overreached slot can never use an Hourglass of Undoing."
     }
-   ]
+   ],
+   "tldr": "Upgrade, reroll and promote on the Traits screen. Nothing is spent until you confirm.",
+   "glance": [
+    "Upgrade: free, one rank up, never fails",
+    "Refine: reroll the value",
+    "Reforge: reroll the trait",
+    "Promote: attunement and materials add a slot"
+   ],
+   "icon": "ascension_core"
   },
   {
    "id": "uniques",
@@ -338,7 +391,15 @@ window.GUIDE = {
       "A Transcendent's power cannot be replaced, and a Transcendent bond can never be separated."
      ]
     }
-   ]
+   ],
+   "tldr": "A Unique is one strong power with a drawback. Fusion turns two holders into a Transcendent.",
+   "glance": [
+    "A Catalyst and 1 Tower Mark install one",
+    "One Unique per Pokémon",
+    "Fuse two at a Project Fusion Fuser",
+    "A Transcendent's power is permanent"
+   ],
+   "icon": "unique_catalyst"
   },
   {
    "id": "wallet",
@@ -346,7 +407,7 @@ window.GUIDE = {
    "blocks": [
     {
      "type": "p",
-     "text": "Materials live in your wallet, which is saved with the world. Loot that drops as an item joins the wallet by itself when you carry it. Open it from the Wallet tab of the AscensionDex, the Wallet button in Craft."
+     "text": "Materials live in your wallet, which is saved with the world. Loot that drops as an item joins the wallet by itself when you carry it. Open it from the Wallet tab of the AscensionDex, or the Wallet button on the Traits screen."
     },
     {
      "type": "table",
@@ -439,7 +500,15 @@ window.GUIDE = {
      "type": "tip",
      "text": "A voucher is a bearer item: whoever holds it can deposit it, and each batch can only ever be redeemed for what it still holds, so a copied stack is worth nothing."
     }
-   ]
+   ],
+   "tldr": "Your materials live in your wallet. Loot you pick up joins it by itself.",
+   "glance": [
+    "Take materials out as tradable vouchers",
+    "A {fee.percent}% fee on each withdrawal",
+    "Deposit vouchers to get them back",
+    "Tower Marks are bound to you"
+   ],
+   "icon": "resonance_dust"
   },
   {
    "id": "towers",
@@ -514,7 +583,15 @@ window.GUIDE = {
      "type": "p",
      "text": "Dungeons and trials pay smaller amounts of dust and facets, never Cores. Raids keep their own rewards but still give attunement."
     }
-   ]
+   ],
+   "tldr": "Towers are the only place that pays Cores. Clear bosses for chests; play clean for a better tier.",
+   "glance": [
+    "Floor 5 boss: a mini chest",
+    "Champion: a completion chest and its crown",
+    "Score: cards taken, cycles, no faints",
+    "The first {budget.full} chests a day pay in full"
+   ],
+   "icon": "tower_mark"
   },
   {
    "id": "battle",
@@ -532,7 +609,15 @@ window.GUIDE = {
       "Cobblemon's own statuses (burn, poison and the rest) work as normal; Smoldering and Venomous strengthen your own burns and poison."
      ]
     }
-   ]
+   ],
+   "tldr": "Traits work inside normal battle rules, against wild Pokémon, trainers, Towers and raids.",
+   "glance": [
+    "Fights between players stay native",
+    "A Scouter reveals an enemy's traits",
+    "Bleeding shows as a red badge on the overlay",
+    "Battle effects need CobbleRaids"
+   ],
+   "icon": "scouter"
   },
   {
    "id": "respec",
@@ -540,7 +625,7 @@ window.GUIDE = {
    "blocks": [
     {
      "type": "p",
-     "text": "Two rare items undo an investment. They drop from Tower completion chests, and the Hourglass can also be bought with Tower Marks. Both are tradable. Use them in the Respec tab (Hourglass) or the Unique tab (Prism) of Craft."
+     "text": "Two rare items undo an investment. They drop from Tower completion chests, and the Hourglass can also be bought with Tower Marks. Both are tradable. Use them in the Respec tab (Hourglass) or the Unique tab (Prism) of the Traits screen."
     },
     {
      "type": "table",
@@ -566,7 +651,15 @@ window.GUIDE = {
      "type": "warn",
      "text": "A Pokémon that has Overreached can never be respecced: the Hourglass is refused and not used up. A Transcendent's power cannot be swapped."
     }
-   ]
+   ],
+   "tldr": "Two rare items undo an investment: the Hourglass resets ranks, the Prism swaps a Unique.",
+   "glance": [
+    "Hourglass: every trait back to rank I",
+    "Your upgrade credits come back",
+    "Prism: swap a Unique for free",
+    "Materials are never refunded"
+   ],
+   "icon": "rank_respec"
   },
   {
    "id": "commands",
@@ -593,7 +686,10 @@ window.GUIDE = {
       ]
      ]
     }
-   ]
+   ],
+   "tldr": "Three commands cover everything.",
+   "icon": "ascension_dex",
+   "open": true
   },
   {
    "id": "faq",
@@ -610,7 +706,10 @@ window.GUIDE = {
       "Nothing happened after I confirmed: every action is checked and committed once by the server. If you see \"already used\" it had already gone through; reopen the page to see the result."
      ]
     }
-   ]
+   ],
+   "tldr": "Quick fixes for the common problems.",
+   "icon": "unique_respec",
+   "open": true
   }
  ]
 };

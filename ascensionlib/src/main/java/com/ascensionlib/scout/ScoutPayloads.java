@@ -13,7 +13,38 @@ public final class ScoutPayloads {
     private ScoutPayloads() {}
 
     /** One modifier row of a scouted enemy; {@code category} is {@code prefix} or {@code suffix}. */
-    public record Slot(String category, String name, int rank, int value, int min, int max, String condition, String theme, boolean sealed) {
+    public record Slot(String category, String name, int rank, int value, int min, int max, String condition, String theme, boolean sealed, String unit) {
+        /** A row with no unit: what the percent measures is left to the condition text (an enemy's rows). */
+        public Slot(String category, String name, int rank, int value, int min, int max, String condition, String theme, boolean sealed) {
+            this(category, name, rank, value, min, max, condition, theme, sealed, "");
+        }
+
+        /**
+         * The few words after a trait's percent that say what it measures, from its catalog channel: "+14% damage", "+6% less damage taken". A mechanic trait
+         * is a chance, except Swift Strike, which raises Speed.
+         */
+        public static String unitOf(String affixId, String channel) {
+            // the traits whose percent measures something narrower than their channel (design/affixes.json conditions)
+            if (affixId != null) switch (affixId) {
+                case "swift_strike": return "Speed";
+                case "momentum": return "damage per KO";
+                case "smoldering": return "burn damage";
+                case "venomous": return "poison damage";
+                case "rending": return "bleed damage";
+                case "triumphant": return "max HP per KO";
+                default: break;
+            }
+            if (channel == null) return "";
+            return switch (channel) {
+                case "outgoingDamage" -> "damage";
+                case "incomingReduction" -> "less damage taken";
+                case "healing" -> "healing";
+                case "residual" -> "status damage";
+                case "mechanic" -> "chance";
+                default -> "";
+            };
+        }
+
         /** A row with a theme and no seal. */
         public Slot(String category, String name, int rank, int value, int min, int max, String condition, String theme) {
             this(category, name, rank, value, min, max, condition, theme, false);

@@ -45,6 +45,18 @@
         ],
         "createdAt": "2026-11-18T00:08:47.571Z",
         "reason": "Claude: the pages are a fixed-size tablet that ui.js scales up to fill 82% of the game window (--ui-scale, about 1.4x at 1080p), so 11px Monocraft renders near 15px on screen; the pixel font is drawn for that size"
+      },
+      {
+        "rule": "marquee",
+        "value": "*",
+        "files": [
+          "ascensionlib/src/main/resources/web/ascensionlib/completion.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/craft.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/inspect.html",
+          "ascensionlib/src/main/resources/web/ascensionlib/party.html"
+        ],
+        "createdAt": "2026-11-18T22:29:12.478Z",
+        "reason": "Claude: the only loop is .boot-bar, the CONNECTING indicator ui.js shows while a page waits for its first server data and removes when data arrives; it carries no content, and Calm stops it"
       }
     ]
   }

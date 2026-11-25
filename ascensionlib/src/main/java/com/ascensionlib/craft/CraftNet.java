@@ -166,7 +166,13 @@ public final class CraftNet {
                     + (overreachPrice.containsKey(MaterialId.APEX_SHARD) ? " + " + overreachPrice.get(MaterialId.APEX_SHARD) + " Apex Shard" : "") : "";
             // The affixes this slot could become: its category, minus the families the other slots already hold (the same filter a reforge draws from).
             var others = profile.ordinarySlots().stream().filter(s -> !s.slotId().equals(slot.slotId())).map(s -> rules.affix(s.affixId()).family()).toList();
-            int pool = (int) rules.affixes().stream().filter(a -> a.category() == slot.category() && !others.contains(a.family())).count();
+            var eligible = rules.affixes().stream().filter(a -> a.category() == slot.category() && !others.contains(a.family())).toList();
+            int pool = eligible.size();
+            // the odds a Reforge draws each trait with: by weight, exactly as RankedProgression.draw does, the current trait included
+            int totalWeight = Math.max(1, eligible.stream().mapToInt(a -> a.weight()).sum());
+            var odds = eligible.stream()
+                    .map(a -> new CraftPayloads.Odds(a.base().name(), (int) Math.round(1000.0 * a.weight() / totalWeight), a.id().equals(slot.affixId())))
+                    .sorted(java.util.Comparator.comparingInt(CraftPayloads.Odds::permille).reversed()).toList();
             String reforgeBlock = pool == 0 ? "No other trait can take this slot" : !canReforge ? "Needs " + describe(reforgeCost) : "";
             slots.add(new CraftPayloads.SlotView(slot.slotId(), slot.category().id(), slotName(service, slot),
                     affix.base().condition() == null ? "" : affix.base().condition(), slot.rank(), slot.rolledValue(), band.min(), band.max(),
@@ -175,7 +181,7 @@ public final class CraftNet {
                     RankedProgression.OVERREACH_FACETS, RankedProgression.OVERREACH_CHANCE_PERCENT,
                     band.max() + Math.max(1, Math.round(band.max() * RankedProgression.OVERREACH_MIN_PERCENT / 100f)),
                     Math.min(RankedRules.overreachCeiling(band.max()),
-                            band.max() + Math.max(1, Math.round(band.max() * RankedProgression.OVERREACH_MAX_PERCENT / 100f)))));
+                            band.max() + Math.max(1, Math.round(band.max() * RankedProgression.OVERREACH_MAX_PERCENT / 100f))), odds));
         }
         CraftPayloads.Promotion promotion;
         if (profile.rarity() == Rarity.MYTHICAL) {
@@ -207,8 +213,7 @@ public final class CraftNet {
         for (var slot : profile.ordinarySlots()) resets.add(new CraftPayloads.ResetLine(slotName(service, slot), slot.rank(), slot.floor()));
         var respec = new CraftPayloads.Respec(hourglasses, prisms, wallet.balance(MaterialId.TOWER_MARK), Tunables.current().respecMarksPrice(),
                 profile.spentUpgradeCredits(), hourglassBlock, prismBlock, resets);
-        int nextMilestone = 0;
-        for (int m = 10; m <= 100; m += 10) if (m > profile.highestLevelObserved()) { nextMilestone = m; break; }
+        int nextMilestone = com.ascensionlib.ProgressFacts.nextMilestone(profile);
         return new CraftPayloads.View(pokemon.getUuid().toString(), pokemon.getDisplayName(false).getString(),
                 pokemon.getSpecies().getResourceIdentifier().toString(), new ArrayList<>(pokemon.getAspects()), pokemon.getLevel(),
                 profile.rarity().id(), service.uniqueLabel(profile),

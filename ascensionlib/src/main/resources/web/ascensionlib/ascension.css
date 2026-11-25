@@ -63,6 +63,25 @@ button.primary:disabled { background: #2a1a22; color: #7c5560; border-color: #3a
 .rar-common { color: #aeb6c4; } .rar-uncommon { color: #3fe0ee; } .rar-rare { color: #5bc6ee; } .rar-epic { color: #af69ff; }
 .rar-legendary { color: #ffd437; } .rar-mythical { color: #ff5a6c; }
 .spr { image-rendering: pixelated; image-rendering: crisp-edges; }
+/* a game word that opens its Guide topic: plain text with a dotted underline, never a raised key */
+button.term { display: inline; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit;
+              text-decoration: underline dotted var(--muted); text-underline-offset: 3px; cursor: help; }
+button.term:hover:not(:disabled) { color: var(--acc); text-decoration-color: var(--acc); border: 0; }
+button.term:active:not(:disabled) { transform: none; box-shadow: none; }
+/* a screen's first-open intro (ui.js A.firstTime): a card over the content, the rest of the tablet still there behind it */
+.firstrun { position: absolute; inset: 0; z-index: 14; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 12, .62); }
+.firstrun-card { width: min(460px, 90%); padding: 14px 16px; background: var(--sheen), var(--panel); border: 2px solid var(--acc); box-shadow: var(--raised), 0 0 0 2px var(--outline); }
+.firstrun-t { color: var(--acc); font-size: var(--fs-name); letter-spacing: .08em; text-transform: uppercase; text-shadow: var(--glow); margin-bottom: 8px; }
+.firstrun-card ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; line-height: 1.45; }
+.firstrun-go { display: flex; justify-content: flex-end; margin-top: 12px; }
+/* a rare result stamped over the Traits detail (craft.html): RANK V, MAX ROLL, ASCENDED */
+.stamp { position: absolute; left: 50%; top: 42%; z-index: 12; transform: translate(-50%, -50%) rotate(-6deg); padding: 6px 16px; pointer-events: none;
+         font-size: var(--fs-hero); letter-spacing: .2em; color: var(--gold); background: var(--scr); border: 3px solid var(--gold); box-shadow: 0 0 0 2px var(--outline);
+         text-shadow: 0 0 8px rgba(242, 207, 58, .6); animation: stamp 1.9s steps(6) 1 forwards; }
+@keyframes stamp { 0% { transform: translate(-50%, -50%) rotate(-6deg) scale(1.6); opacity: 0; } 15% { transform: translate(-50%, -50%) rotate(-6deg) scale(1); opacity: 1; }
+                   80% { opacity: 1; } 100% { opacity: 0; } }
+.typechip { display: inline-block; padding: 0 6px; font-size: var(--fs-meta); letter-spacing: .06em; color: #fff; border: 1px solid var(--outline);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.25), inset 0 -2px 0 rgba(0,0,0,.25); text-shadow: 1px 1px 0 rgba(0,0,0,.45); }
 .afx { width: 26px; height: 26px; flex: none; image-rendering: pixelated; image-rendering: crisp-edges; }
 .sprfb { display: flex; align-items: center; justify-content: center; text-align: center; color: var(--muted); word-break: break-word; }
 
@@ -91,6 +110,18 @@ button.primary:disabled { background: #2a1a22; color: #7c5560; border-color: #3a
 input, select, textarea { font: inherit; color: var(--ink); background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); caret-color: var(--acc); }
 input:focus { border-color: var(--acc); outline: none; }
 .num, .v, .pct { font-variant-numeric: tabular-nums; }
+
+/* ---- waiting for the server (ui.js bootScreen): the screen says it is connecting, then what to do if nothing answers ---- */
+.boot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 15; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+        background-color: var(--scr); background-image: linear-gradient(var(--tint) 1px, transparent 1px), linear-gradient(90deg, var(--tint) 1px, transparent 1px); background-size: 3px 3px; }
+.boot-t { color: var(--acc); letter-spacing: .3em; font-size: var(--fs-name); text-shadow: var(--glow); }
+.boot-t::after { content: "_"; animation: blink 1s steps(1) infinite; }
+.boot-bar { width: 220px; height: 10px; padding: 1px; border: 2px solid var(--line); box-shadow: var(--sunk); overflow: hidden; }
+.boot-bar i { display: block; width: 30%; height: 100%; background: repeating-linear-gradient(90deg, var(--acc) 0 6px, transparent 6px 8px); animation: scan 1.4s steps(14) infinite; }
+.boot-s { color: var(--muted); max-width: 420px; text-align: center; }
+.boot.stuck .boot-t { color: var(--warn); text-shadow: none; } .boot.stuck .boot-t::after, .boot.stuck .boot-bar { display: none; }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes scan { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
 
 /* ---- Halloween 2026 (the server sets html.halloween while the event window is open, see HalloweenEvent.java): the same tablet in violet and pumpkin,
    with cobwebs in the top corners. Colours only, plus one slow flicker that calm effects removes. ---- */

@@ -20,7 +20,29 @@
     '.gp .tip::before { content: "TIP  "; color: var(--acc); } .gp .warn { border-color: #6b2a22; background: #2b1612; } .gp .warn::before { content: "NOTE  "; color: var(--warn); }',
     '.gp table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); } .gp th { text-align: left; color: var(--muted); font-weight: 400; padding: 5px 8px; border-bottom: 2px solid var(--line); }',
     '.gp td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.4; } .gp td:first-child { color: var(--ink); white-space: nowrap; }',
-    '.gp .nav { display: flex; justify-content: space-between; margin-top: 6px; }'
+    '.gp .nav { display: flex; justify-content: space-between; margin-top: 6px; }',
+    '.gp .side { width: 200px; flex: none; display: flex; flex-direction: column; gap: 6px; min-height: 0; } .gp .side .topics { width: auto; flex: 1; }',
+    '.gp .find { width: 100%; padding: 5px 8px; } .gp .find::placeholder { color: var(--muted); opacity: 1; }',
+    '.gp .topics button[hidden] { display: none; } .gp .none { color: var(--muted); padding: 6px 2px; }',
+    '.gp mark { background: var(--acc); color: var(--scr); padding: 0 1px; }',
+    /* the skim layer: the topic art and title, one sentence in the large step, the points as a grid of short facts (or numbered steps), details folded */
+    '.gp .ghead { display: flex; align-items: center; gap: 12px; } .gp .ghead h2 { margin: 0; }',
+    '.gp .gicon { width: 44px; height: 44px; flex: none; display: flex; align-items: center; justify-content: center; background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); }',
+    '.gp .gicon img { width: 32px; height: 32px; image-rendering: pixelated; }',
+    '.gp .tldr { margin: 0; font-size: var(--fs-name); line-height: 1.4; color: var(--ink); max-width: 62ch; }',
+    '.gp .glance { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }',
+    '.gp .pt { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--sheen), var(--row); border: 2px solid var(--line); box-shadow: var(--raised); line-height: 1.35; }',
+    '.gp .pt .mark { width: 8px; height: 8px; flex: none; background: var(--acc); box-shadow: 0 0 0 1px var(--outline); }',
+    '.gp .pt .pic, .gp .step .pic { width: 24px; height: 24px; flex: none; image-rendering: pixelated; }',
+    '.gp .path { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }',
+    '.gp .step { display: grid; grid-template-columns: 24px 24px 1fr; gap: 8px; align-items: center; padding: 8px 10px; background: var(--sheen), var(--row); border: 2px solid var(--line); box-shadow: var(--raised); line-height: 1.3; }',
+    '.gp .step .num { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; background: var(--crimson); color: #fff; border: 2px solid #eef2f7; font-size: var(--fs-meta); }',
+    '.gp details.more { border: 2px solid var(--line); background: var(--well); box-shadow: var(--sunk); }',
+    '.gp details.more > summary { list-style: none; cursor: pointer; padding: 7px 10px; color: var(--acc); letter-spacing: .06em; } .gp details.more > summary::-webkit-details-marker { display: none; }',
+    '.gp details.more > summary::before { content: "+"; display: inline-block; width: 14px; } .gp details.more[open] > summary::before { content: "\\2212"; }',
+    '.gp details.more > summary:hover { color: #fff; } .gp details.more > summary:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }',
+    '.gp details.more .mins { color: var(--muted); letter-spacing: 0; }',
+    '.gp .morebody { padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid var(--line); }'
   ].join('\n');
 
   function el(tag, cls, text) { return A.el(tag, cls, text); }
@@ -55,9 +77,30 @@
     root.className = (root.className ? root.className + ' ' : '') + 'gp';
     root.innerHTML = '';
     var data = window.GUIDE && window.GUIDE.topics ? window.GUIDE.topics : [];
-    var list = el('div', 'topics'), content = el('div', 'content');
-    root.appendChild(list); root.appendChild(content);
-    var buttons = {}, current = -1;
+    var side = el('div', 'side'), find = el('input', 'find'), list = el('div', 'topics'), none = el('div', 'none', 'No topic mentions that.'), content = el('div', 'content');
+    find.type = 'search'; find.placeholder = 'Search the guide'; find.setAttribute('aria-label', 'Search the guide');
+    none.hidden = true;
+    side.appendChild(find); side.appendChild(list); side.appendChild(none);
+    root.appendChild(side); root.appendChild(content);
+    // every word of a topic (title, text, list items, table cells), lower-cased, for the search box
+    function words(v) { return typeof v === 'string' ? fill(v) : Array.isArray(v) ? v.map(words).join(' ') : v && typeof v === 'object' ? Object.keys(v).filter(function (k) { return k !== 'type' && k !== 'live' && k !== 'icon'; }).map(function (k) { return words(v[k]); }).join(' ') : ''; }
+    var haystack = {};
+    var buttons = {}, current = -1, detailsOpen = false;
+
+    /** The at-a-glance points: a grid of short facts, or (a path topic) numbered steps with each step's item art. */
+    function glance(topic) {
+      var box = el('div', topic.path ? 'path' : 'glance');
+      topic.glance.forEach(function (g, i) {
+        var text = fill(typeof g === 'string' ? g : g.text), icon = typeof g === 'string' ? '' : g.icon;
+        var item = el('div', topic.path ? 'step' : 'pt');
+        if (topic.path) item.appendChild(el('span', 'num', String(i + 1)));
+        if (icon) { var img = new Image(); img.alt = ''; img.src = 'icons/' + icon + '.png'; img.className = 'pic'; item.appendChild(img); }
+        else if (!topic.path) item.appendChild(el('span', 'mark'));
+        item.appendChild(el('span', 'txt', text));
+        box.appendChild(item);
+      });
+      return box;
+    }
 
     function show(id) {
       var index = 0;
@@ -66,8 +109,25 @@
       var topic = data[index];
       Object.keys(buttons).forEach(function (k) { buttons[k].className = k === topic.id ? 'on' : ''; });
       content.innerHTML = '';
-      content.appendChild(el('h2', '', topic.title));
-      topic.blocks.forEach(function (b) { content.appendChild(block(b)); });
+      // skim first: the topic's art and title, one sentence, a few points; warnings always show; the rest waits behind Full details
+      var head = el('div', 'ghead');
+      if (topic.icon) { var art = el('span', 'gicon'), img = new Image(); img.alt = ''; img.src = 'icons/' + topic.icon + '.png'; art.appendChild(img); head.appendChild(art); }
+      head.appendChild(el('h2', '', topic.title));
+      content.appendChild(head);
+      if (topic.tldr) content.appendChild(el('p', 'tldr', fill(topic.tldr)));
+      if (topic.glance && topic.glance.length) content.appendChild(glance(topic));
+      var warns = topic.blocks.filter(function (b) { return b.type === 'warn'; }), rest = topic.blocks.filter(function (b) { return b.type !== 'warn'; });
+      warns.forEach(function (b) { content.appendChild(block(b)); });
+      if (topic.open || !topic.tldr) rest.forEach(function (b) { content.appendChild(block(b)); });
+      else if (rest.length) {
+        var more = el('details', 'more'); more.open = detailsOpen;
+        var minutes = Math.max(1, Math.round(words(rest).split(/\s+/).length / 200));
+        var sum = el('summary', '', 'Full details'); sum.appendChild(el('span', 'mins', ' · about ' + minutes + ' min'));
+        more.appendChild(sum);
+        var body = el('div', 'morebody'); rest.forEach(function (b) { body.appendChild(block(b)); }); more.appendChild(body);
+        more.addEventListener('toggle', function () { detailsOpen = more.open; });   // a reader who opens it keeps it open on the next topic
+        content.appendChild(more);
+      }
       var nav = el('div', 'nav');
       var prev = el('button', '', index > 0 ? '< ' + data[index - 1].title : ''); prev.style.visibility = index > 0 ? 'visible' : 'hidden';
       prev.addEventListener('click', function () { show(data[current - 1].id); });
@@ -79,11 +139,26 @@
 
     if (!data.length) { content.appendChild(el('div', 'p', 'The guide is not available.')); return { show: function () {} }; }
     data.forEach(function (t) {
+      haystack[t.id] = (t.title + ' ' + (t.tldr || '') + ' ' + words(t.glance || []) + ' ' + words(t.blocks)).toLowerCase();
       var b = el('button', '', t.title);
       b.addEventListener('click', function () { show(t.id); });
       buttons[t.id] = b; list.appendChild(b);
     });
     show(data[0].id);
+    // search: hides the topics that do not mention every word typed, and opens the first that does
+    find.addEventListener('input', function () {
+      var q = find.value.toLowerCase().split(/\s+/).filter(Boolean), first = null;
+      data.forEach(function (t) {
+        var hit = q.every(function (w) { return haystack[t.id].indexOf(w) >= 0; });
+        buttons[t.id].hidden = !hit;
+        if (hit && !first) first = t.id;
+      });
+      none.hidden = !!first;
+      if (first && q.length && (current < 0 || buttons[data[current].id].hidden)) show(first);
+    });
+    find.addEventListener('keydown', function (e) { if (e.key === 'Escape' && find.value) { e.stopPropagation(); find.value = ''; find.dispatchEvent(new Event('input')); } });
+    // another page asked for this guide at one topic (GuideWeb.java)
+    A.on('guideTopic', function (m) { if (m && m.topic && buttons[m.topic]) show(m.topic); });
     // the live numbers: asked for once, and redrawn when they arrive
     A.on('guideFacts', function (m) {
       if (m && m.facts) Object.keys(m.facts).forEach(function (k) { facts[k] = m.facts[k]; });

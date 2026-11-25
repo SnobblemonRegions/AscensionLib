@@ -17,8 +17,8 @@ const MOCK = `<script>
   var PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFUlEQVR42mP8z8Dwn4EIwDiqkL4KAfE8Bv9hHFSfAAAAAElFTkSuQmCC';
   var price = { dust: 20, facets: 2, cores: 0 };
   var slots = [
-    { slotId: 'p1', category: 'prefix', name: 'Smoldering', condition: 'Burns you inflict deal 50% more damage.', rank: 2, value: 12, bandMin: 10, bandMax: 14, nextMin: 15, nextMax: 19, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6, overreachBlock: 'Needs rank V', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 },
-    { slotId: 'p2', category: 'prefix', name: 'Physical Force', condition: '', rank: 1, value: 8, bandMin: 6, bandMax: 9, nextMin: 10, nextMax: 13, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6, overreachBlock: 'Needs rank V', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 },
+    { slotId: 'p1', category: 'prefix', name: 'Smoldering', condition: 'Burns you inflict deal 50% more damage.', rank: 2, value: 12, bandMin: 10, bandMax: 14, nextMin: 15, nextMax: 19, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, reforgeOdds: [{ name: 'Venomous', permille: 312, current: false }, { name: 'Smoldering', permille: 312, current: true }, { name: 'Rending', permille: 250, current: false }, { name: 'Keen Edge', permille: 125, current: false }],  perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6, overreachBlock: 'Needs rank V', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 },
+    { slotId: 'p2', category: 'prefix', name: 'Physical Force', condition: '', rank: 1, value: 8, bandMin: 6, bandMax: 9, nextMin: 10, nextMax: 13, upgradeBlock: '', refineBlock: '', reforgeBlock: '', reforgePool: 4, reforgeOdds: [{ name: 'Venomous', permille: 312, current: false }, { name: 'Smoldering', permille: 312, current: true }, { name: 'Rending', permille: 250, current: false }, { name: 'Keen Edge', permille: 125, current: false }],  perfectBlock: 'Needs rank V', perfectCost: 0, floor: 6, overreachBlock: 'Needs rank V', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 },
     { slotId: 's1', category: 'suffix', name: 'Stubborn', condition: '', rank: 5, value: 30, bandMin: 28, bandMax: 32, nextMin: -1, nextMax: -1, upgradeBlock: 'Already at the top rank', refineBlock: '', reforgeBlock: '', reforgePool: 3, perfectBlock: '', perfectCost: 40, floor: 29, overreachBlock: '', sealed: false, overreachDust: 60, overreachFacets: 2, overreachChance: 45, overreachMin: 35, overreachMax: 40 } ];
   var view = { pokemonId: 'mew2', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', aspects: [], level: 52, rarityId: 'mythical', uniqueName: '777', pending: 2, nextMilestone: 60,
     profileRevision: 7, walletRevision: 8, dust: 1234, facets: 40, cores: 3, scouters: 5, marks: 6, refine: price, reforge: price,
@@ -30,7 +30,7 @@ const MOCK = `<script>
     slots: slots, message: '', open: false };
   var E = function (n, id, rar, party, canHost, block) { return { id: id, name: n, speciesId: 'cobblemon:' + n.toLowerCase(), rarityId: rar, uniqueName: 'Overmind', inParty: party, canHost: canHost, block: block }; };
   var detail = function (rar) { return { level: 40, types: ['fire', 'flying'], baseStats: [90, 100, 80, 110, 80, 95], rarityId: rar, uniqueName: '777',
-    slots: [{ category: 'prefix', name: 'Smoldering', rank: 3, value: 14, min: 12, max: 16, condition: 'Burns you inflict deal 50% more damage.' }, { category: 'suffix', name: 'Stubborn', rank: 1, value: 6, min: 5, max: 8, condition: '' }] }; };
+    slots: [{ category: 'prefix', name: 'Smoldering', rank: 3, value: 14, min: 12, max: 16, condition: 'Burns you inflict deal 50% more damage.', unit: 'burn damage' }, { category: 'suffix', name: 'Stubborn', rank: 1, value: 6, min: 5, max: 8, condition: '', unit: 'chance' }] }; };
   var scouted = {};
   function scoutState() { return { encounterId: 'enc-1', scouters: 3, entries: [{ subjectId: 's1', name: 'Growlithe', detail: scouted.s1 ? detail('rare') : undefined }, { subjectId: 's2', name: 'Houndoom', detail: detail('epic') }] }; }
   function emit(e, d) { setTimeout(function () { (handlers[e] || []).forEach(function (fn) { fn(Math.random() < .5 ? d : JSON.stringify(d)); }); }, 60); }
@@ -66,7 +66,7 @@ const MOCK = `<script>
           emit('sprites', { arcanine: PNG });
           if (location.search.indexOf('enemy') >= 0) emit('inspectScout', scoutState());
           else emit('inspectOwned', { pokemonId: 'a1', name: 'Arcanine', species: 'Arcanine', pending: 2, attunement: 9, detail: detail('epic'),
-            extra: { speciesId: 'cobblemon:arcanine', aspects: [], origin: 'wild_capture', initialRarity: 'rare', highestLevel: 40, milestones: 3, prefixCap: 2, suffixCap: 2, craftLocked: false } });
+            extra: { speciesId: 'cobblemon:arcanine', aspects: [], origin: 'wild_capture', initialRarity: 'rare', highestLevel: 40, milestones: 3, prefixCap: 2, suffixCap: 2, craftLocked: false, attunementNeeded: 30 } });
           break;
         case 'ascension_inspect_use': scouted[m.subjectId] = true; emit('inspectScout', scoutState()); emit('hudScout', scoutState()); break;
         case 'ascension_inspect_open': location.href = 'inspect.html' + (m.kind === 'enemy' ? '?enemy' : ''); break;
@@ -77,15 +77,22 @@ const MOCK = `<script>
             .map(function (a) { return { id: a[0], name: a[1], color: a[2], amount: a[3], carried: a[4] }; }) }); break;
         case 'ascension_wallet_open': location.href = 'wallet.html'; break;
         case 'ascension_back': history.back(); break;
+        // the Tower completion reveal: a Mythic run with a pile and two crowns (the same sample as the page test)
+        case 'ascension_completion_ready':
+          emit('completionView', { tier: 'mythic', tierName: 'MYTHIC', score: 9, cycle: 1, cards: 5, flawless: true, attunement: 3, preview: false,
+            tiers: [{ id: 'bronze', name: 'BRONZE', from: 0 }, { id: 'silver', name: 'SILVER', from: 2 }, { id: 'gold', name: 'GOLD', from: 5 }, { id: 'mythic', name: 'MYTHIC', from: 8 }],
+            pile: [['resonance_dust', 'Resonance Dust', '#d9a441', 1800], ['facet', 'Facet', '#4f9ad9', 13], ['unique_fragment', 'Unique Fragment', '#8c63c7', 7], ['scouter', 'Scouter', '#6f9a52', 4], ['tower_mark', 'Tower Mark', '#e8e1c9', 5]]
+              .map(function (a) { return { id: a[0], name: a[1], color: a[2], amount: a[3] }; }),
+            crowns: [{ kind: 'core', id: 'ascension_core', label: 'Ascension Core', color: '#c9694f', amount: 1, big: true }, { kind: 'armor', id: '', label: 'Tower armor piece', color: '#c9d4e0', amount: 1, big: false }] }); break;
         // the Dex home: a full party with every state a card can show (pending upgrades, no profile, low and fainted HP, shiny, an empty slot)
         case 'ascension_party_ready':
           emit('sprites', { arcanine: PNG, mewtwo: PNG, ditto: PNG, growlithe: PNG, gyarados: PNG });
           emit('partyView', { slots: [
-            { id: 'a1', name: 'Arcanine', speciesId: 'cobblemon:arcanine', level: 40, rarityId: 'epic', hp: 100, pending: 2 },
-            { id: 'a2', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', level: 52, rarityId: 'mythical', hp: 64, pending: 0 },
-            { id: 'a3', name: 'Gyarados', speciesId: 'cobblemon:gyarados', level: 33, rarityId: 'rare', hp: 38, pending: 1, shiny: true },
-            { id: 'a4', name: 'Ditto', speciesId: 'cobblemon:ditto', level: 12, rarityId: '', hp: 18, pending: 0 },
-            { id: 'a5', name: 'Growlithe', speciesId: 'cobblemon:growlithe', level: 9, rarityId: 'common', hp: 0, pending: 0, fainted: true },
+            { id: 'a1', name: 'Arcanine', speciesId: 'cobblemon:arcanine', level: 40, rarityId: 'epic', hp: 100, pending: 2, types: ['fire'], attack: [3, 1], guard: [2], attackSlots: 2, guardSlots: 2, nextMilestone: 50, attunement: 9, attunementNeeded: 30 },
+            { id: 'a2', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', level: 52, rarityId: 'mythical', hp: 64, pending: 0, types: ['psychic'], attack: [5, 4, 2], guard: [5, 3, 1], attackSlots: 3, guardSlots: 3, nextMilestone: 60, attunement: 40, attunementNeeded: 0 },
+            { id: 'a3', name: 'Gyarados', speciesId: 'cobblemon:gyarados', level: 33, rarityId: 'rare', hp: 38, pending: 0, shiny: true, types: ['water', 'flying'], attack: [2], guard: [1], attackSlots: 2, guardSlots: 1, nextMilestone: 40, attunement: 30, attunementNeeded: 30 },
+            { id: 'a4', name: 'Ditto', speciesId: 'cobblemon:ditto', level: 12, rarityId: '', hp: 18, pending: 0, types: ['normal'] },
+            { id: 'a5', name: 'Growlithe', speciesId: 'cobblemon:growlithe', level: 9, rarityId: 'common', hp: 0, pending: 0, fainted: true, types: ['fire'], attack: [1], guard: [], attackSlots: 1, guardSlots: 0, nextMilestone: 10, attunement: 0, attunementNeeded: 30 },
             { id: '' } ] }); break;
         case 'ascension_hud_ready':
           emit('sprites', { arcanine: PNG });

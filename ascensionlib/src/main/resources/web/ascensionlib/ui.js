@@ -61,6 +61,37 @@
   sizeControl();
   calmControl();
   backControl();
+  var boot = null, bootTimer = 0;
+  /**
+   * The screen while a page that asked with A.ready waits for its first data: the tablet "connecting" over the body, so a slow server reads as the device working, not
+   * as a broken page. It lifts when the first event arrives (booted); after 10 s with nothing it says what to do. The overlay and pages without
+   * WebGUI never show it.
+   */
+  function bootScreen() {
+    var frame = document.querySelector('.frame'), head = frame && frame.querySelector('.head');
+    if (!g || !frame || !head || g.isHud) return;
+    boot = document.createElement('div'); boot.className = 'boot'; boot.setAttribute('role', 'status');
+    var t = document.createElement('div'); t.className = 'boot-t'; t.textContent = 'CONNECTING'; boot.appendChild(t);
+    var bar = document.createElement('div'); bar.className = 'boot-bar'; bar.appendChild(document.createElement('i')); boot.appendChild(bar);
+    var s = document.createElement('div'); s.className = 'boot-s'; s.textContent = 'Asking the server for this screen'; boot.appendChild(s);
+    // over the content only: the header, tab bar and footer stay usable while it waits (Close, another tab)
+    var area = frame.querySelector('[data-boot]') || frame.querySelector('.main') || frame;   // a page can name the part that waits (the Dex: only its party pane)
+    if (area !== frame && getComputedStyle(area).position === 'static') area.style.position = 'relative';
+    if (area === frame) boot.style.top = (head.offsetTop + head.offsetHeight) + 'px'; else boot.style.top = '0';
+    area.appendChild(boot);
+    bootTimer = setTimeout(function () {
+      if (!boot) return;
+      boot.classList.add('stuck'); t.textContent = 'NO ANSWER';
+      s.textContent = 'The server has not answered. Close this screen and open it again; if it keeps happening, tell a server admin.';
+    }, 10000);
+  }
+  function booted() { clearTimeout(bootTimer); if (boot && boot.parentNode) boot.parentNode.removeChild(boot); boot = null; }
+  /** Escape goes Back when there is somewhere to go back to (otherwise the game's own Escape closes the screen). */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || e.defaultPrevented) return;
+    var b = document.getElementById('backbtn');
+    if (b && !b.hidden && !b.disabled && !document.querySelector('.scrim.on')) { e.preventDefault(); b.click(); }
+  });
   /**
    * Back, at the left of the header: reopens the page this one replaced (the Dex from Inspect, Inspect from Traits). Hidden until the server says
    * there is one (uiScale.back, see PageNav.java), so a page opened straight from the item or a command shows none.
@@ -116,7 +147,7 @@
     if (!g) return;
     g.on(event, function (data) {
       var t = performance.now();
-      if (!firstData && event !== 'sprites' && event !== 'uiScale') { firstData = true; A.perf.add('firstData', t); }   // ms since the page began loading
+      if (!firstData && event !== 'sprites' && event !== 'uiScale') { firstData = true; A.perf.add('firstData', t); booted(); }   // ms since the page began loading
       try { fn(typeof data === 'string' ? JSON.parse(data) : data); } catch (e) { if (window.console) console.error(event, e); }
       A.perf.add('render.' + event, performance.now() - t);
     });
@@ -124,6 +155,7 @@
   /** Asks the server for the page's data, and asks again (up to 3 more times, 2 s apart) while loaded() is still false: the first ask can beat the page's listener. */
   A.ready = function (channel, loaded, notice) {
     if (!g) { A.text(notice, 'This page needs the WebGUI mod.'); return; }
+    if (!firstData && !boot) bootScreen();
     var asked = 0;
     (function ask() {
       A.send(channel);
@@ -155,6 +187,48 @@
     };
     img.src = known || 'icons/affix/' + key + '.png';
     return img;
+  };
+  /** Cobblemon's type colours, and a small chip for one type (Inspect, the Dex home). */
+  A.TYPES = { normal: '#a8a77a', fire: '#ee8130', water: '#6390f0', electric: '#f7d02c', grass: '#7ac74c', ice: '#96d9d6', fighting: '#c22e28', poison: '#a33ea1',
+    ground: '#e2bf65', flying: '#a98ff3', psychic: '#f95587', bug: '#a6b91a', rock: '#b6a136', ghost: '#735797', dragon: '#6f35fc', dark: '#705746', steel: '#b7b7ce', fairy: '#d685ad' };
+  A.typeChip = function (type) {
+    var c = A.el('span', 'typechip', String(type || '').toUpperCase());
+    c.style.background = A.TYPES[type] || '#7f869b';
+    return c;
+  };
+  /**
+   * One of the game's own words (attunement, Transcendent...) drawn as a link to the Guide topic that explains it. The Guide opens at that topic and
+   * Back returns here (GuideWeb.java). Only words the Guide actually explains get one.
+   */
+  A.TERMS = { attunement: 'growing', milestones: 'growing', overreach: 'growing', transcendent: 'uniques', unique: 'uniques' };
+  A.term = function (text, key) {
+    var topic = A.TERMS[(key || text).toLowerCase()];
+    if (!topic || !g) return A.el('span', '', text);
+    var t = A.el('button', 'term', text); t.type = 'button'; t.title = 'What is this? Opens the Guide';
+    t.addEventListener('click', function (e) { e.stopPropagation(); A.send('ascension_guide_open', { topic: topic }); });
+    return t;
+  };
+  /**
+   * A screen's first-open intro: a short card over its content, once per player (the same dismissed-tutorial list as the Traits cards, TutorialPrefs.java).
+   * Shown only after the server has said what this player has seen, so a returning player never sees it flash. lines: two or three short sentences.
+   */
+  A.firstTime = function (id, title, lines) {
+    function show() {
+      if (!A.seen || A.hasSeen(id) || document.querySelector('.firstrun')) return;
+      var frame = document.querySelector('.frame'); if (!frame) return;
+      var area = frame.querySelector('.main') || frame;
+      if (getComputedStyle(area).position === 'static') area.style.position = 'relative';
+      var wrap = A.el('div', 'firstrun'); wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-label', title);
+      var card = A.el('div', 'firstrun-card');
+      card.appendChild(A.el('div', 'firstrun-t', title));
+      var ul = A.el('ul'); lines.forEach(function (l) { ul.appendChild(A.el('li', '', l)); }); card.appendChild(ul);
+      var ok = A.el('button', 'primary', 'Got it');
+      ok.addEventListener('click', function () { A.markSeen(id); wrap.parentNode.removeChild(wrap); });
+      var row = A.el('div', 'firstrun-go'); row.appendChild(ok); card.appendChild(row);
+      wrap.appendChild(card); area.appendChild(wrap);
+      ok.focus();
+    }
+    if (A.seen) show(); else A.onSeen(show);
   };
   A.num = function (n) { n = Number(n) || 0; return n >= 10000000 ? (n / 1000000).toFixed(1) + 'M' : n.toLocaleString('en-US'); };
   A.speciesPath = function (speciesId) { var i = (speciesId || '').indexOf(':'); return i >= 0 ? speciesId.slice(i + 1) : (speciesId || ''); };

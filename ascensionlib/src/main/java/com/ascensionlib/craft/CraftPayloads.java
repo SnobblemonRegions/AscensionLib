@@ -19,7 +19,10 @@ public final class CraftPayloads {
     public record SlotView(String slotId, String category, String name, String condition, int rank, int value, int bandMin, int bandMax,
                            int nextMin, int nextMax, String upgradeBlock, String refineBlock, String reforgeBlock, int reforgePool,
                            String perfectBlock, int perfectCost, int floor, String overreachBlock, boolean sealed, int overreachDust,
-                           int overreachFacets, int overreachChance, int overreachMin, int overreachMax) {}
+                           int overreachFacets, int overreachChance, int overreachMin, int overreachMax, List<Odds> reforgeOdds) {}
+
+    /** One trait a Reforge can roll into this slot and its chance in tenths of a percent (weighted, as the draw is); {@code current} marks the trait it holds now. */
+    public record Odds(String name, int permille, boolean current) {}
 
     /** A material cost: dust, facets, cores, and Apex Shards (only priced while the Threat system is on). */
     public record Price(int dust, int facets, int cores, int apex) {
