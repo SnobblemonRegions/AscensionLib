@@ -10,6 +10,14 @@
   --common: #c1c5cf; --uncommon: #1bd7e8; --rare: #38ccef; --epic: #af69ff; --legendary: #ffd437; --mythical: #ff3448;
   --common-bg: #293547; --uncommon-bg: #073442; --rare-bg: #103e79; --epic-bg: #2a1263; --legendary-bg: #25305b; --mythical-bg: #620512;
   --outline: #1b120d;
+  /* depth: hard 2px pixel bevels, never a blurred shadow (WebGUI draws blur as a black halo). Raised = lit top-left, dark bottom-right; sunk = reversed. */
+  --hi: rgba(255, 255, 255, .06); --lo: rgba(0, 0, 0, .34);
+  --raised: inset 2px 2px 0 var(--hi), inset -2px -2px 0 var(--lo);
+  --sunk: inset 2px 2px 0 var(--lo), inset -2px -2px 0 var(--hi);
+  --sheen: linear-gradient(to bottom, rgba(255, 255, 255, .045), rgba(255, 255, 255, 0) 38%, rgba(0, 0, 0, .10));   /* a panel lit from above */
+  --tint: rgba(74, 216, 246, .045);   /* the LCD's sub-pixel grid, in the accent colour */
+  /* type: four steps only, none under 11px (the floor for text a player reads or clicks). meta = labels, chips and small print; body = everything read; name = Pokemon names, panel titles, values; hero = the one big figure */
+  --fs-meta: 11px; --fs-body: 12px; --fs-name: 15px; --fs-hero: 22px;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; font: 12px/1.4 "Monocraft", ui-monospace, monospace; color: var(--ink); }
@@ -18,25 +26,27 @@ body.hud { background: transparent; display: block; }
 b, strong { font-weight: 400; }
 
 /* ---- the tablet: a stepped pixel bezel (hard edges only; a blurred shadow renders as a black halo in WebGUI) ---- */
-.frame { width: 1040px; height: 600px; transform: scale(var(--ui-scale, 1)); display: flex; flex-direction: column; background: var(--scr); background-clip: padding-box;
+.frame { width: 1040px; height: 600px; transform: scale(var(--ui-scale, 1)); display: flex; flex-direction: column; background-clip: padding-box;
+         background-color: var(--scr);   /* the screen: a 3px sub-pixel grid under everything, the LCD's own texture */
+         background-image: linear-gradient(var(--tint) 1px, transparent 1px), linear-gradient(90deg, var(--tint) 1px, transparent 1px); background-size: 3px 3px;
          position: relative; border: 18px solid transparent; border-image: var(--bezel, none) 8 / 18px stretch; image-rendering: pixelated; }
 .frame::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 20; will-change: transform; contain: strict;   /* own layer: a click underneath no longer repaints the scanlines */
          background: repeating-linear-gradient(to bottom, rgba(0,0,0,.22) 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,.42)); }
-.head { background: var(--head); padding: 8px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--line); text-shadow: var(--glow); letter-spacing: .1em; color: var(--acc); }
+.head { background: var(--sheen), var(--head); box-shadow: inset 0 2px 0 var(--hi); padding: 8px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--line); text-shadow: var(--glow); letter-spacing: .1em; color: var(--acc); }
 .head::before { content: ""; flex: none; width: 14px; height: 14px; margin-right: 76px; background: #4ad8f6;
          box-shadow: 0 0 0 2px var(--outline), 0 0 0 4px #eef2f7, 0 0 0 6px var(--outline), 28px -3px 0 -3px #e0434e, 28px -3px 0 -1px var(--outline), 42px -3px 0 -3px #f2cf3a,
                      42px -3px 0 -1px var(--outline), 56px -3px 0 -3px #52c24a, 56px -3px 0 -1px var(--outline); }
 .head .x { margin-left: auto; }
-.x { background: var(--panel); border: 2px solid var(--line); box-shadow: inset 0 -3px 0 rgba(0,0,0,.3); font-size: 12px; cursor: pointer; color: var(--ink); padding: 1px 8px; letter-spacing: 0; }
-.uisize { margin-left: auto; display: flex; align-items: center; gap: 4px; margin-right: 6px; } .uisize .pct { min-width: 44px; text-align: center; color: var(--muted); font-size: 11px; letter-spacing: 0; }
+.x { background: var(--panel); border: 2px solid var(--line); box-shadow: inset 0 -3px 0 rgba(0,0,0,.3); font-size: var(--fs-body); cursor: pointer; color: var(--ink); padding: 1px 8px; letter-spacing: 0; }
+.uisize { margin-left: auto; display: flex; align-items: center; gap: 4px; margin-right: 6px; } .uisize .pct { min-width: 44px; text-align: center; color: var(--muted); font-size: var(--fs-meta); letter-spacing: 0; }
 .head .uisize + .x, .uisize .x { margin-left: 0; }
 .x:hover { color: #fff; border-color: var(--acc); }
 
-.box { background: var(--panel); border: 2px solid var(--line); padding: 10px; min-height: 0; display: flex; flex-direction: column; }
-.label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.box { background: var(--sheen), var(--panel); border: 2px solid var(--line); box-shadow: var(--raised); padding: 10px; min-height: 0; display: flex; flex-direction: column; }
+.label { color: var(--muted); font-size: var(--fs-meta); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
 .muted { color: var(--muted); } .bad { color: var(--warn); } .gold { color: var(--gold); } .ok { color: var(--good); }
 .spacer { flex: 1; }
-.foot { background: var(--head); padding: 8px 14px; display: flex; gap: 10px; align-items: center; border-top: 2px solid var(--line); }
+.foot { background: linear-gradient(to bottom, rgba(0,0,0,.14), transparent 40%), var(--head); padding: 8px 14px; display: flex; gap: 10px; align-items: center; border-top: 2px solid var(--line); }
 .foot .msg { flex: 1; }
 
 /* pixel keys: raised, they press down */
@@ -53,6 +63,25 @@ button.primary:disabled { background: #2a1a22; color: #7c5560; border-color: #3a
 .rar-common { color: #aeb6c4; } .rar-uncommon { color: #3fe0ee; } .rar-rare { color: #5bc6ee; } .rar-epic { color: #af69ff; }
 .rar-legendary { color: #ffd437; } .rar-mythical { color: #ff5a6c; }
 .spr { image-rendering: pixelated; image-rendering: crisp-edges; }
+/* a game word that opens its Guide topic: plain text with a dotted underline, never a raised key */
+button.term { display: inline; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit;
+              text-decoration: underline dotted var(--muted); text-underline-offset: 3px; cursor: help; }
+button.term:hover:not(:disabled) { color: var(--acc); text-decoration-color: var(--acc); border: 0; }
+button.term:active:not(:disabled) { transform: none; box-shadow: none; }
+/* a screen's first-open intro (ui.js A.firstTime): a card over the content, the rest of the tablet still there behind it */
+.firstrun { position: absolute; inset: 0; z-index: 14; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 12, .62); }
+.firstrun-card { width: min(460px, 90%); padding: 14px 16px; background: var(--sheen), var(--panel); border: 2px solid var(--acc); box-shadow: var(--raised), 0 0 0 2px var(--outline); }
+.firstrun-t { color: var(--acc); font-size: var(--fs-name); letter-spacing: .08em; text-transform: uppercase; text-shadow: var(--glow); margin-bottom: 8px; }
+.firstrun-card ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; line-height: 1.45; }
+.firstrun-go { display: flex; justify-content: flex-end; margin-top: 12px; }
+/* a rare result stamped over the Traits detail (craft.html): RANK V, MAX ROLL, ASCENDED */
+.stamp { position: absolute; left: 50%; top: 42%; z-index: 12; transform: translate(-50%, -50%) rotate(-6deg); padding: 6px 16px; pointer-events: none;
+         font-size: var(--fs-hero); letter-spacing: .2em; color: var(--gold); background: var(--scr); border: 3px solid var(--gold); box-shadow: 0 0 0 2px var(--outline);
+         text-shadow: 0 0 8px rgba(242, 207, 58, .6); animation: stamp 1.9s steps(6) 1 forwards; }
+@keyframes stamp { 0% { transform: translate(-50%, -50%) rotate(-6deg) scale(1.6); opacity: 0; } 15% { transform: translate(-50%, -50%) rotate(-6deg) scale(1); opacity: 1; }
+                   80% { opacity: 1; } 100% { opacity: 0; } }
+.typechip { display: inline-block; padding: 0 6px; font-size: var(--fs-meta); letter-spacing: .06em; color: #fff; border: 1px solid var(--outline);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.25), inset 0 -2px 0 rgba(0,0,0,.25); text-shadow: 1px 1px 0 rgba(0,0,0,.45); }
 .afx { width: 26px; height: 26px; flex: none; image-rendering: pixelated; image-rendering: crisp-edges; }
 .sprfb { display: flex; align-items: center; justify-content: center; text-align: center; color: var(--muted); word-break: break-word; }
 
@@ -61,14 +90,38 @@ button.primary:disabled { background: #2a1a22; color: #7c5560; border-color: #3a
 .dialog { width: 540px; transform: scale(var(--ui-scale, 1)); width: 540px; background: var(--panel); border: 2px solid var(--acc); padding: 16px; box-shadow: var(--glow); }
 .dialog h3 { margin: 0 0 8px; font-weight: 400; color: var(--acc); letter-spacing: .1em; text-transform: uppercase; } .dialog p { margin: 0 0 8px; overflow-wrap: anywhere; }
 .dialog .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; border: 0; background: none; cursor: default; padding: 0; }
-.bar { display: flex; gap: 3px; } .bar i { flex: 1; height: 8px; background: var(--well); border: 1px solid var(--line); }
+.bar { display: flex; gap: 3px; } .bar i { flex: 1; height: 8px; background: var(--well); border: 1px solid var(--line); box-shadow: inset 1px 1px 0 var(--lo); }
 .bar i.on { background: var(--acc); border-color: var(--acc); box-shadow: var(--glow); } .bar i.next { background: #2f6a82; }
 
 /* a stage for a Pokemon picture */
-.stage { background: radial-gradient(circle at 50% 70%, #11405a, #07131c 72%); border: 2px solid var(--line); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.stage { background: radial-gradient(circle at 50% 70%, #11405a, #07131c 72%); border: 2px solid var(--line); box-shadow: var(--sunk); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .stage::before { content: ""; position: absolute; bottom: 14%; width: 56%; height: 10px; background: rgba(74,216,246,.16); box-shadow: 0 0 0 4px rgba(74,216,246,.07); }
 .stage > * { position: relative; }
 .seg { display: grid; grid-template-columns: repeat(14, 1fr); gap: 2px; } .seg i { height: 8px; background: var(--well); } .seg i.on { background: var(--acc); box-shadow: var(--glow); }
+
+/* ---- the browser's own surfaces, themed: scrollbars, selection, keyboard focus, figures in tables ---- */
+* { scrollbar-width: thin; scrollbar-color: var(--edge) var(--head); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--head); box-shadow: inset 1px 0 0 var(--lo); }
+::-webkit-scrollbar-thumb { background: var(--edge); border: 2px solid var(--head); }
+::-webkit-scrollbar-thumb:hover { background: var(--acc); }
+::selection { background: var(--acc); color: var(--scr); }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+input, select, textarea { font: inherit; color: var(--ink); background: var(--well); border: 2px solid var(--line); box-shadow: var(--sunk); caret-color: var(--acc); }
+input:focus { border-color: var(--acc); outline: none; }
+.num, .v, .pct { font-variant-numeric: tabular-nums; }
+
+/* ---- waiting for the server (ui.js bootScreen): the screen says it is connecting, then what to do if nothing answers ---- */
+.boot { position: absolute; left: 0; right: 0; bottom: 0; z-index: 15; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+        background-color: var(--scr); background-image: linear-gradient(var(--tint) 1px, transparent 1px), linear-gradient(90deg, var(--tint) 1px, transparent 1px); background-size: 3px 3px; }
+.boot-t { color: var(--acc); letter-spacing: .3em; font-size: var(--fs-name); text-shadow: var(--glow); }
+.boot-t::after { content: "_"; animation: blink 1s steps(1) infinite; }
+.boot-bar { width: 220px; height: 10px; padding: 1px; border: 2px solid var(--line); box-shadow: var(--sunk); overflow: hidden; }
+.boot-bar i { display: block; width: 30%; height: 100%; background: repeating-linear-gradient(90deg, var(--acc) 0 6px, transparent 6px 8px); animation: scan 1.4s steps(14) infinite; }
+.boot-s { color: var(--muted); max-width: 420px; text-align: center; }
+.boot.stuck .boot-t { color: var(--warn); text-shadow: none; } .boot.stuck .boot-t::after, .boot.stuck .boot-bar { display: none; }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes scan { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
 
 /* ---- Halloween 2026 (the server sets html.halloween while the event window is open, see HalloweenEvent.java): the same tablet in violet and pumpkin,
    with cobwebs in the top corners. Colours only, plus one slow flicker that calm effects removes. ---- */
@@ -77,6 +130,7 @@ html.halloween {
   --edge: #7a3fb0; --line: #7a3fb0;
   --ink: #f3e6ff; --muted: #a581c9; --acc: #ff9a3c; --glow: 0 0 6px rgba(255, 154, 60, .5);
   --crimson: #b4500e; --crimson-hover: #d4691a; --good: #8fe06a;
+  --tint: rgba(255, 154, 60, .035);
 }
 html.halloween button { background: #2a1646; }
 html.halloween button:disabled { background: #170c28; color: #6b4f8c; border-color: #3a2257; }

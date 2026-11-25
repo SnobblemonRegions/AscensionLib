@@ -101,7 +101,12 @@ public final class FusionWeb {
     public static void open(ServerPlayer player, String hostId) {
         PENDING.put(player.getUUID(), hostId);
         AT_FUSER.remove(player.getUUID());
-        WebUi.open(player, "fusion.html");
+        WebUi.open(player, "fusion.html", "fusion:" + hostId, p -> {
+            var host = com.ascensionlib.craft.CraftNet.findOwned(p, hostId).orElse(null);
+            if (host == null) return false;
+            FusionNet.openFor(p, host);
+            return true;
+        });
     }
 
     static void feed(ServerPlayer player, java.util.Collection<String> species) { com.ascensionlib.web.WebSprites.feed(player, species); }

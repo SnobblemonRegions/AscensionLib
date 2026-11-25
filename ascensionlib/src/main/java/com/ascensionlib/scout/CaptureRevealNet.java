@@ -21,14 +21,15 @@ public final class CaptureRevealNet {
     }
 
     /** One owned modifier row: its rolled value, the band that rank rolls in, and what it does (catalog text, nothing secret). */
-    static ScoutPayloads.Slot slotOf(ProfileService service, com.cobbleascend.domain.v1.OrdinarySlot slot) {
+    public static ScoutPayloads.Slot slotOf(ProfileService service, com.cobbleascend.domain.v1.OrdinarySlot slot) {
         var affix = service.rules().affix(slot.affixId());
         var band = affix.band(slot.rank());
         String type = slot.type();
         String condition = affix.base().condition() == null ? "" : affix.base().condition();
         return new ScoutPayloads.Slot(slot.category().id(), affix.base().name() + (type == null ? "" : " (" + type + ")"),
                 slot.rank(), slot.rolledValue(), Math.max(band.min(), slot.floor()), band.max(), condition,
-                com.cobbleascend.domain.v1.Resonance.themeOf(slot.affixId()).map(com.cobbleascend.domain.v1.Resonance.Theme::display).orElse(""), slot.sealed());
+                com.cobbleascend.domain.v1.Resonance.themeOf(slot.affixId()).map(com.cobbleascend.domain.v1.Resonance.Theme::display).orElse(""), slot.sealed(),
+                ScoutPayloads.Slot.unitOf(slot.affixId(), affix.base().channel()));
     }
 
     /** Shows a committed profile in the transparent capture GUI. False when the client cannot show web pages. */

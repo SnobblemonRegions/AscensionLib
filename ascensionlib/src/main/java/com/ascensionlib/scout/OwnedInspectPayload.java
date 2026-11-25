@@ -12,8 +12,13 @@ public final class OwnedInspectPayload {
      * its rarity allows, and the identifiers the page needs to draw it. Catalog and profile facts only; never IVs, EVs or moves.
      */
     public record Extra(String speciesId, List<String> aspects, String origin, String initialRarity, int highestLevel,
-                        int milestones, int prefixCap, int suffixCap, boolean craftLocked) {
-        public static final Extra NONE = new Extra("", List.of(), "", "", 0, 0, 0, 0, false);
+                        int milestones, int prefixCap, int suffixCap, boolean craftLocked, int attunementNeeded) {
+        public static final Extra NONE = new Extra("", List.of(), "", "", 0, 0, 0, 0, false, 0);
+
+        /** Without the promotion goal (attunementNeeded 0: the page shows the attunement on its own). */
+        public Extra(String speciesId, List<String> aspects, String origin, String initialRarity, int highestLevel, int milestones, int prefixCap, int suffixCap, boolean craftLocked) {
+            this(speciesId, aspects, origin, initialRarity, highestLevel, milestones, prefixCap, suffixCap, craftLocked, 0);
+        }
     }
 
     public record Result(String pokemonId, String name, String species, int pending, int attunement,

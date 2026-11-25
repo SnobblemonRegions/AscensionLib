@@ -11,8 +11,8 @@ import net.minecraft.world.level.storage.LevelResource;
  * its header control ({@code ascension_ui_set}); both are answered with {@code uiScale}. The server clamps and stores; the page only draws.
  */
 public final class UiPrefsWeb {
-    /** seen: the ids of the first-open tutorials this player has dismissed (see {@link TutorialPrefs}). */
-    public record Scale(int percent, int min, int max, boolean calm, boolean halloween, java.util.List<String> seen) {}
+    /** seen: the ids of the first-open tutorials this player has dismissed (see {@link TutorialPrefs}); back: whether the page has one to return to ({@link PageNav}). */
+    public record Scale(int percent, int min, int max, boolean calm, boolean halloween, java.util.List<String> seen, boolean back) {}
 
     private static UiPrefs prefs;
     private static Path prefsFile;
@@ -77,6 +77,6 @@ public final class UiPrefsWeb {
 
     public static void send(ServerPlayer player) {
         WebUi.emit(player, "uiScale", new Scale(percentOf(player), UiPrefs.MIN_PERCENT, UiPrefs.MAX_PERCENT, calmOf(player),
-                com.ascensionlib.event.HalloweenEvent.isOpen(), tutorialsOf(player.getServer()).get(player.getUUID())));
+                com.ascensionlib.event.HalloweenEvent.isOpen(), tutorialsOf(player.getServer()).get(player.getUUID()), PageNav.canGoBack(player.getUUID())));
     }
 }

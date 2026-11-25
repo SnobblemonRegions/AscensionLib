@@ -4,6 +4,15 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 base { archivesName = 'AscensionLib' }
+// The jars compiled against from libs/ are not in git (licences; see libs/README.md). Without one, Loom stops later with only "Failed to compute
+// checksum", which names no file. Check them first and say which one is missing and where to get it. Keep this list in step with the
+// files('libs/...') lines under dependencies.
+def localJars = ['webgui-dev.jar', 'polymer-resource-pack-0.9.19+1.21.1.jar', 'polymer-common-0.9.19+1.21.1.jar', 'project-fusion-fabric-2.1.0.jar']
+def missingJars = localJars.findAll { !file("libs/$it").exists() }
+if (!missingJars.isEmpty()) {
+    throw new GradleException("Missing from ascensionlib/libs/: ${missingJars.join(', ')}. These jars are compiled against but not kept in git; "
+            + "ascensionlib/libs/README.md says where to download each one and what to name it.")
+}
 loom {
     // Generates the mixin refmap. Without it the injections that target Minecraft-named methods (render, mouseClicked, init)
     // are written with Mojang names, which exist only in a development run: in a normal install they cannot be found.

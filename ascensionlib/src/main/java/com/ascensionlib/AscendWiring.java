@@ -93,7 +93,7 @@ final class AscendWiring {
         CobblemonEvents.POKEMON_CAPTURED.subscribe((Consumer<PokemonCapturedEvent>) event -> {
             // Every wild capture rolls a profile at its dimension's tier (1, the ordinary table, unless the configuration or a mod says otherwise); the
             // ball is thrown from the dimension the wild Pokemon is in. A dimension set to tier 0 gives none: the Pokemon stays unprofiled until a Sigil.
-            int tier = ProfileZones.tierOf(event.getPlayer().level().dimension().location());
+            int tier = ProfileZones.tierOf(event.getPokemon(), event.getPlayer().level().dimension().location());
             if (tier < 1) return;
             var s = event.getPlayer().getServer();
             if (s != null) s.execute(() -> queue(event.getPokemon(), event.getPlayer().getUUID(), Origin.of("wild_capture"), true, tier, s, true));
@@ -689,7 +689,7 @@ final class AscendWiring {
     }
 
     private int openGuide(CommandSourceStack source) throws CommandSyntaxException {
-        return com.ascensionlib.web.WebUi.open(source.getPlayerOrException(), "guide.html") ? 1 : 0;
+        return com.ascensionlib.web.GuideWeb.open(source.getPlayerOrException(), "") ? 1 : 0;
     }
 
     private int reveals(CommandSourceStack source, Boolean enabled) throws CommandSyntaxException {
@@ -832,7 +832,7 @@ final class AscendWiring {
         }
         var pokemon = best.getPokemon();
         try {
-            var rating = service.previewWild(pokemon, Math.max(1, ProfileZones.tierOf(best.level().dimension().location())));
+            var rating = service.previewWild(pokemon, Math.max(1, ProfileZones.tierOf(pokemon, best.level().dimension().location())));
             var text = new StringBuilder(pokemon.getSpecies().getName() + " Lv" + pokemon.getLevel() + " · " + pokemon.getUuid()
                     + " · would be " + rating.rarity().id() + ", " + rating.upgradesOnCapture() + " upgrade(s) on capture:");
             for (var slotData : rating.slots()) {

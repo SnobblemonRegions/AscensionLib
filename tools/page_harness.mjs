@@ -416,8 +416,8 @@ await check('fusion: pick, preview, review, confirm, result', async () => {
 
 await check('fusion: a host that cannot host shows why, swap needs a valid host', async () => {
   const p = await open(null, 'fusion.html');
-  await emit(p, 'fusionCandidates', { host: entry('Pidgey', 'h9', 'common', true, false), hostBlock: 'Only a Mythic Pokémon can be the host.' });
-  yes((await p.textContent('#result')).includes('Only a Mythic'), 'reason shown');
+  await emit(p, 'fusionCandidates', { host: entry('Pidgey', 'h9', 'common', true, false), hostBlock: 'Only an Ascended Pokémon can be the host.' });
+  yes((await p.textContent('#result')).includes('Only an Ascended'), 'reason shown');
   eq(await p.isDisabled('#swap'), true, 'swap disabled');
   noErrors(p);
 });
@@ -430,13 +430,14 @@ await check('inspect: owned view, affixes, upgrade button; enemy view, scout', a
   await emit(p, 'inspectOwned', { pokemonId: 'a1', name: 'Arcanine', species: 'Arcanine', pending: 2, attunement: 9, detail: detail(), extra: { speciesId: 'cobblemon:arcanine', aspects: [], origin: 'wild_capture', initialRarity: 'rare', highestLevel: 40, milestones: 3, prefixCap: 2, suffixCap: 2, craftLocked: false } });
   eq(await p.textContent('#name'), 'Arcanine', 'name');
   yes((await p.textContent('#grade')).includes('EPIC'), 'grade');
-  yes((await p.textContent('#bottom')).includes('2 upgrades pending'), 'bottom line');
+  yes((await p.textContent('#bottom')).includes('2 pending'), 'bottom line: the upgrades waiting');
+  yes((await p.textContent('#rows')).includes('Next slot'), 'the slot the next rarity adds is shown');
   yes(await p.locator('#rows .row').count() >= 2, 'unique + affix rows');
   yes((await p.textContent('#reso')).includes('PREDATOR 2 · +15%'), 'resonance tier shown');
   yes((await p.textContent('#rows')).includes('MAX'), 'a perfected rank V slot is marked');
   yes((await p.textContent('#rows')).includes('Predator'), 'theme tag on the affix row');
   await shot(p, 'inspect-owned');
-  yes((await p.textContent('#upgrade')).includes('Upgrade (2)'), 'upgrade label');
+  yes((await p.textContent('#upgrade')).includes('Traits (2)'), 'the button names the screen it opens, with the upgrades waiting');
   await p.click('#upgrade');
   yes((await sent(p)).some(x => x.channel === 'ascension_craft_open' && x.pokemonId === 'a1'), 'upgrade opens craft');
   noErrors(p);
@@ -827,20 +828,27 @@ await check('party: six slots, rarity, health and pending upgrades; pick, inspec
   await p.locator('.card').nth(0).click();
   await p.click('#upgrade');
   eq((await sent(p)).find(x => x.channel === 'ascension_craft_open').pokemonId, 'a1', 'Upgrade opens craft for the pick');
-  eq(await p.isDisabled('#tabFuse'), false, 'Fuse is available with a Pokemon picked');
-  await p.click('#tabFuse');
+  eq(await p.isDisabled('#fuse'), false, 'Fuse is available with a Pokemon picked');
+  await p.click('#fuse');
   eq((await sent(p)).find(x => x.channel === 'ascension_fusion_open').hostId, 'a1', 'Fuse opens the fusion screen with the pick as the host');
   await p.locator('.card').nth(3).click();
   eq(await p.locator('.card.sel').count() <= 1, true, 'an empty slot cannot be picked in');
   await p.locator('.card').nth(2).dblclick();
   eq((await sent(p)).filter(x => x.channel === 'ascension_inspect_open').pop().id, 'c3', 'double-click inspects');
+  // the keyboard: arrows skip empty slots, Enter inspects
+  await p.locator('.card').nth(0).click();
+  await p.keyboard.press('ArrowRight');
+  await p.keyboard.press('Enter');
+  eq((await sent(p)).filter(x => x.channel === 'ascension_inspect_open').pop().id, 'b2', 'ArrowRight then Enter inspects the next Pokemon');
+  await p.keyboard.press('ArrowRight'); await p.keyboard.press('ArrowRight');
+  eq(await p.locator('.card.empty.sel').count(), 0, 'the arrows never land on an empty slot');
   await shot(p, 'party');
   noErrors(p);
 });
 
 await check('party: a Wallet tab at the bottom shows the wallet (fee preview, Take, Deposit) and switches back to the party', async () => {
   const p = await open(null, 'party.html', 1920, 1080);
-  eq(await p.locator('#tabbar button').count(), 4, 'three tabs and the Fuse button');
+  eq(await p.locator('#tabbar button').count(), 3, 'three tabs (Fuse is a footer button)');
   eq(await p.isVisible('#paneWallet'), false, 'the wallet is hidden at first');
   eq(await p.isVisible('#footParty'), true, 'the party buttons show');
   const box = async sel => p.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return { t: b.top, b: b.bottom }; }, sel);
@@ -925,7 +933,7 @@ await check('guide: the numbers a server owner can tune come live from the serve
 
 await check('party: the Guide tab shows the same guide inside the AscensionDex', async () => {
   const p = await open(null, 'party.html', 1920, 1080);
-  eq(await p.locator('#tabbar button').count(), 4, 'three tabs and the Fuse button');
+  eq(await p.locator('#tabbar button').count(), 3, 'three tabs (Fuse is a footer button)');
   await p.click('#tabGuide');
   eq(await p.isVisible('#paneGuide'), true, 'the guide pane shows');
   eq(await p.isVisible('#paneParty'), false, 'and the party hides');
@@ -1003,6 +1011,36 @@ await check('craft: the Haunting row (Halloween 2026): hidden when the server hi
   yes(await p.locator('#detail button.primary').isDisabled(), 'Review is disabled when the roll is blocked');
   await emit(p, 'uiScale', { percent: 100, min: 60, max: 160, calm: false, halloween: false });
   yes(!(await p.evaluate(() => document.documentElement.classList.contains('halloween'))), 'the theme turns off with the flag');
+  noErrors(p);
+});
+
+await check('interest: each Dex card says its next step, a screen intro shows once, Reforge shows its odds, a rare result is stamped', async () => {
+  let p = await open(null, 'party.html');
+  const card = (id, extra) => Object.assign({ id, name: id, speciesId: 'cobblemon:ditto', level: 30, rarityId: 'rare', hp: 100, pending: 0, types: ['normal'], attack: [1], guard: [], attackSlots: 1, guardSlots: 1, nextMilestone: 40, attunement: 0, attunementNeeded: 30 }, extra);
+  await emit(p, 'partyView', { slots: [card('a1', { pending: 2 }), card('b2', { attunement: 30 }), card('c3', {}), card('d4', { rarityId: '' }), { id: '' }, { id: '' }] });
+  eq(await p.locator('.goal').allTextContents(), ['2 upgrades to spend', 'Attunement ready to promote', 'Next upgrade at Lv 40', 'Start: a Sigil gives it a profile'], 'each card says its most useful next step');
+  eq(await p.locator('.firstrun').count(), 0, 'no intro before the server says what this player has seen');
+  await emit(p, 'uiScale', { percent: 100, min: 60, max: 160, calm: false, seen: [] });
+  eq(await p.locator('.firstrun').count(), 1, 'the Dex intro shows on a first open');
+  await p.click('.firstrun button');
+  eq((await sent(p)).filter(m => m.channel === 'ascension_ui_set').pop().seen, 'dex.home', 'Got it records it on the server');
+  eq(await p.locator('.firstrun').count(), 0, 'and closes it');
+  noErrors(p);
+
+  p = await open(null, 'craft.html');
+  const odds = [{ name: 'Venomous', permille: 500, current: false }, { name: 'Smoldering', permille: 400, current: true }, { name: 'Rending', permille: 100, current: false }];
+  await emit(p, 'craftView', Object.assign({}, craftView, { slots: slots.map(x => Object.assign({}, x, { reforgeOdds: odds })) }));
+  await p.locator('.tab', { hasText: 'Reforge' }).click();
+  const list = await p.textContent('.rodds');
+  yes(list.includes('Venomous') && list.includes('50%') && list.includes('Smoldering (now)') && list.includes('10%'), 'Reforge lists each trait it can become with its chance, the current one marked');
+  // a Refine that lands on the top of the range is stamped MAX ROLL
+  await p.locator('.tab', { hasText: 'Refine' }).click();
+  await p.locator('#detail button.primary').click();
+  await p.click('#dOk');
+  const m = (await sent(p)).filter(x => x.channel === 'ascension_craft_confirm').pop();
+  await emit(p, 'craftDone', { operationId: m.operationId, ok: true, message: '', slotId: 'p1', oldName: 'Smoldering', oldRank: 2, oldValue: 12, newName: 'Smoldering', newRank: 2, newValue: 14, replayed: false });
+  await emit(p, 'craftView', Object.assign({}, craftView, { slots: slots.map(x => x.slotId === 'p1' ? Object.assign({}, x, { value: x.bandMax }) : x) }));
+  eq(await p.textContent('#detail .stamp'), 'MAX ROLL', 'a top-of-range result is stamped');
   noErrors(p);
 });
 

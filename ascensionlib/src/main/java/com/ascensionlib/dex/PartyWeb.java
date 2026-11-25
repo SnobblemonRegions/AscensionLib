@@ -16,9 +16,16 @@ import net.minecraft.server.level.ServerPlayer;
  * ({@code ascension_inspect_open}, {@code ascension_craft_open}), so the server's ownership checks are the same ones.
  */
 public final class PartyWeb {
-    /** One party slot. {@code id} is empty for an empty slot; {@code rarityId} is empty when the Pokemon has no profile. */
+    /**
+     * One party slot. {@code id} is empty for an empty slot; {@code rarityId} is empty when the Pokemon has no profile. {@code attack} and {@code guard} are
+     * the ranks (1-5) of its Attack and Guard traits; {@code attackSlots} and {@code guardSlots} how many its rarity allows, so the card can show the open ones.
+     * {@code nextMilestone} (0: all reached), {@code attunement} and {@code attunementNeeded} (0 at Ascended) give the card its next goal.
+     * {@code traits}: each trait's name, value, range and unit, Attack ones first and then Guard, in the same order as {@code attack} and {@code guard}, so a
+     * card's trait cell can show what it is on hover (catalog and profile facts only, as Inspect shows them).
+     */
     public record Slot(int slot, String id, String name, String speciesId, int level, String rarityId, int pending, int hp, boolean fainted,
-                       boolean shiny, boolean locked) {}
+                       boolean shiny, boolean locked, List<String> types, List<Integer> attack, List<Integer> guard, int attackSlots, int guardSlots,
+                       int nextMilestone, int attunement, int attunementNeeded, List<com.ascensionlib.scout.ScoutPayloads.Slot> traits) {}
 
     public record View(List<Slot> slots) {}
 
@@ -30,7 +37,7 @@ public final class PartyWeb {
         });
     }
 
-    public static boolean open(ServerPlayer player) { return WebUi.open(player, "party.html"); }
+    public static boolean open(ServerPlayer player) { return WebUi.open(player, "party.html", "party", PartyWeb::open); }
 
     static View viewOf(ServerPlayer player) {
         var service = AscensionApi.service().orElse(null);
@@ -39,7 +46,7 @@ public final class PartyWeb {
         for (int i = 0; i < 6; i++) {
             var pokemon = party.get(i);
             if (pokemon == null || pokemon.isBattleClone()) {
-                slots.add(new Slot(i, "", "", "", 0, "", 0, 0, false, false, false));
+                slots.add(new Slot(i, "", "", "", 0, "", 0, 0, false, false, false, List.of(), List.of(), List.of(), 0, 0, 0, 0, 0, List.of()));
                 continue;
             }
             var profile = service == null ? java.util.Optional.<com.cobbleascend.domain.v1.ProfileV1>empty() : service.canonical(pokemon);
@@ -49,9 +56,30 @@ public final class PartyWeb {
                     pokemon.getSpecies().getResourceIdentifier().toString(), pokemon.getLevel(),
                     profile.map(p -> p.rarity().id()).orElse(""), profile.map(p -> p.pendingCredits()).orElse(0),
                     Math.max(0, Math.min(100, Math.round(100f * pokemon.getCurrentHealth() / max))), pokemon.getCurrentHealth() <= 0,
-                    pokemon.getShiny(), CraftLocks.locked(pokemon)));
+                    pokemon.getShiny(), CraftLocks.locked(pokemon),
+                    java.util.stream.StreamSupport.stream(pokemon.getTypes().spliterator(), false).map(type -> type.getName()).toList(),
+                    ranks(profile, com.cobbleascend.domain.v1.Category.PREFIX), ranks(profile, com.cobbleascend.domain.v1.Category.SUFFIX),
+                    profile.map(p -> service.rules().slotCount(p.rarity(), com.cobbleascend.domain.v1.Category.PREFIX)).orElse(0),
+                    profile.map(p -> service.rules().slotCount(p.rarity(), com.cobbleascend.domain.v1.Category.SUFFIX)).orElse(0),
+                    // the card's next goal: the page picks the most useful one (an upgrade waiting, a promotion ready, the next milestone)
+                    profile.map(com.ascensionlib.ProgressFacts::nextMilestone).orElse(0), profile.map(p -> p.attunement()).orElse(0),
+                    profile.map(p -> com.ascensionlib.ProgressFacts.attunementNeeded(service.rules(), p)).orElse(0),
+                    traits(service, profile)));
         }
         return new View(slots);
+    }
+
+    /** The traits behind the cells: Attack first, then Guard, each in the profile's order (the same order as {@link #ranks}). */
+    private static List<com.ascensionlib.scout.ScoutPayloads.Slot> traits(com.ascensionlib.ProfileService service, java.util.Optional<com.cobbleascend.domain.v1.ProfileV1> profile) {
+        if (service == null || profile.isEmpty()) return List.of();
+        var out = new ArrayList<com.ascensionlib.scout.ScoutPayloads.Slot>();
+        for (var category : new com.cobbleascend.domain.v1.Category[]{com.cobbleascend.domain.v1.Category.PREFIX, com.cobbleascend.domain.v1.Category.SUFFIX})
+            for (var slot : profile.get().ordinarySlots()) if (slot.category() == category) out.add(com.ascensionlib.scout.CaptureRevealNet.slotOf(service, slot));
+        return out;
+    }
+
+    private static List<Integer> ranks(java.util.Optional<com.cobbleascend.domain.v1.ProfileV1> profile, com.cobbleascend.domain.v1.Category category) {
+        return profile.map(p -> p.ordinarySlots().stream().filter(slot -> slot.category() == category).map(slot -> slot.rank()).toList()).orElse(List.of());
     }
 
     static void send(ServerPlayer player) {

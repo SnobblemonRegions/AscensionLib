@@ -61,7 +61,8 @@ public final class InspectWeb {
     /** Opens the inspect page. {@code id} is a Pokemon id for {@link Kind#OWNED} and ignored for {@link Kind#ENEMY}. */
     public static boolean open(ServerPlayer player, Kind kind, String id) {
         PENDING.put(player.getUUID(), new Target(kind, kind == Kind.OWNED ? id : ""));
-        return WebUi.open(player, "inspect.html");
+        String target = kind == Kind.OWNED ? id : "";
+        return WebUi.open(player, "inspect.html", "inspect:" + kind + ":" + target, p -> open(p, kind, target));
     }
 
     private static void sendCurrent(ServerPlayer player) {

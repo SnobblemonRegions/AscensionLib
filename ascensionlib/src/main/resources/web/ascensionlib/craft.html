@@ -9,9 +9,9 @@
 <link rel="stylesheet" href="ascension.css">
 <style>
   .top { display: flex; gap: 14px; align-items: center; padding: 8px 14px; background: var(--panel); border-bottom: 2px solid var(--line); }
-  .top .nm { font-size: 16px; text-shadow: var(--glow); }
-  .grade { display: inline-block; padding: 1px 8px; font-size: 11px; letter-spacing: .1em; color: #fff; background: #293547; border: 2px solid var(--outline); }
-  .pend { margin-left: auto; text-align: right; } .pend b { font-size: 26px; line-height: 1; color: var(--acc); text-shadow: var(--glow); }
+  .top .nm { font-size: var(--fs-name); text-shadow: var(--glow); }
+  .grade { display: inline-block; padding: 1px 8px; font-size: var(--fs-meta); letter-spacing: .1em; color: #fff; background: #293547; border: 2px solid var(--outline); }
+  .pend { margin-left: auto; text-align: right; } .pend b { font-size: var(--fs-hero); line-height: 1; color: var(--acc); text-shadow: var(--glow); }
   .stage { width: 108px; height: 72px; }
   .sprbox { display: flex; align-items: center; justify-content: center; }
   .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 132px; gap: 12px; padding: 10px 14px; }
@@ -22,66 +22,80 @@
   .tab { display: grid; grid-template-columns: 20px 1fr auto; column-gap: 8px; align-items: center; padding: 3px 7px; text-align: left; background: var(--row);
          border: 2px solid transparent; color: var(--muted); box-shadow: none; text-shadow: none; }
   .tab .ico { grid-row: span 2; width: 20px; height: 20px; color: var(--hue); opacity: .72; }
-  .tab .tn { color: var(--ink); font-size: 12px; line-height: 1.2; } .tab .ts { grid-column: 2; font-size: 10px; line-height: 1.2; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tab .n { grid-row: span 2; grid-column: 3; min-width: 18px; padding: 0 4px; text-align: center; font-size: 11px; color: #04222c; background: var(--hue); border: 2px solid var(--outline); }
+  .tab .tn { color: var(--ink); font-size: var(--fs-body); line-height: 1.2; } .tab .ts { grid-column: 2; font-size: var(--fs-meta); line-height: 1.2; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tab .n { grid-row: span 2; grid-column: 3; min-width: 18px; padding: 0 4px; text-align: center; font-size: var(--fs-meta); color: #04222c; background: var(--hue); border: 2px solid var(--outline); }
   .tab:hover:not(:disabled) { border-color: var(--line); color: var(--ink); } .tab:hover:not(:disabled) .ico { opacity: 1; }
   .tab.on { border-color: var(--hue); background: var(--tint); } .tab.on .ico { opacity: 1; filter: drop-shadow(0 0 3px var(--hue)); } .tab.on .tn { color: var(--hue); text-shadow: var(--glow); }
   .tab:active:not(:disabled) { transform: none; }
-  .banner { padding: 4px 10px; font-size: 11px; border: 2px solid var(--line); background: var(--row); }
+  .banner { padding: 4px 10px; font-size: var(--fs-body); border: 2px solid var(--line); background: var(--row); }
   .banner.ok { border-color: var(--good); background: #0d2a1c; color: var(--ink); } .banner.bad { border-color: var(--warn); background: #2b1612; color: var(--ink); }
   .split { flex: 1; min-height: 0; display: grid; grid-template-columns: 172px 192px 1fr; gap: 8px; }
   html.calm .work { --glow: none !important; }
   /* the detail's own heading: the mechanic's icon, name and what it is for */
   .dhead { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 2px solid var(--line); }
   .dhead .ico { width: 30px; height: 30px; flex: none; color: var(--acc); filter: drop-shadow(0 0 4px var(--acc)); }
-  .dhead .mn { font-size: 15px; color: var(--acc); text-shadow: var(--glow); letter-spacing: .06em; } .dhead .mv { font-size: 11px; color: var(--muted); }
-  .dhead .help { margin-left: auto; padding: 1px 8px; font-size: 12px; }
+  .dhead .mn { font-size: var(--fs-name); color: var(--acc); text-shadow: var(--glow); letter-spacing: .06em; } .dhead .mv { font-size: var(--fs-meta); color: var(--muted); }
+  .dhead .help { margin-left: auto; padding: 1px 8px; font-size: var(--fs-body); }
   html.calm .tab.on .ico, html.calm .dhead .ico { filter: none; }
   /* Refine: where the value sits in its rank's range, with the floor a Perfect has locked in */
   .range { margin: 4px 0 10px; } .range .trk { position: relative; height: 12px; background: var(--well); border: 2px solid var(--line); }
   .range .fl { position: absolute; top: 0; bottom: 0; left: 0; background: repeating-linear-gradient(90deg, #1c4a5e 0 2px, transparent 2px 4px); }
   .range .pin { position: absolute; top: -5px; width: 4px; height: 18px; margin-left: -2px; background: var(--acc); box-shadow: 0 0 0 2px var(--outline); }
-  .range .ends { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .range .ends { display: flex; justify-content: space-between; font-size: var(--fs-meta); color: var(--muted); margin-top: 3px; }
   /* Overreach: the odds as one bar, win in the mechanic's hue */
   .gamble { display: flex; height: 14px; margin: 2px 0 3px; border: 2px solid var(--line); background: #2b1612; } .gamble i { display: block; background: var(--acc); box-shadow: var(--glow); }
-  .gamble-k { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 8px; } .gamble-k .w { color: var(--acc); }
+  .gamble-k { display: flex; justify-content: space-between; font-size: var(--fs-meta); margin-bottom: 8px; } .gamble-k .w { color: var(--acc); }
   /* Promote: the six tiers, where this Pokémon is and where it goes next */
   .ladder { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; margin: 8px 0; }
-  .ladder div { text-align: center; font-size: 10px; color: var(--muted); } .ladder i { display: block; height: 10px; margin-bottom: 3px; background: var(--well); border: 2px solid var(--line); }
+  .ladder div { text-align: center; font-size: var(--fs-meta); color: var(--muted); } .ladder i { display: block; height: 10px; margin-bottom: 3px; background: var(--well); border: 2px solid var(--line); }
   .ladder .past i { background: var(--tier); border-color: var(--outline); opacity: .45; }
   .ladder .now i { background: var(--tier); border-color: var(--outline); } .ladder .now { color: var(--ink); }
   .ladder .to i { border-color: var(--tier); box-shadow: var(--glow); } .ladder .to { color: var(--tier); }
   /* the first-open tutorial: a coach card over the detail, once per mechanic per player */
   .coach { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; padding: 12px 14px; background: var(--panel); border: 2px solid var(--acc); box-shadow: var(--glow); }
   .coach .ct { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; } .coach .ct .ico { width: 30px; height: 30px; color: var(--acc); }
-  .coach .ct b { display: block; font-size: 14px; color: var(--acc); text-shadow: var(--glow); } .coach .ct span { font-size: 11px; color: var(--muted); }
+  .coach .ct b { display: block; font-size: var(--fs-name); color: var(--acc); text-shadow: var(--glow); } .coach .ct span { font-size: var(--fs-meta); color: var(--muted); }
   .coach dl { margin: 0; display: grid; grid-template-columns: 52px 1fr; gap: 8px 10px; }
-  .coach dt { font-size: 10px; letter-spacing: .08em; color: var(--acc); padding-top: 1px; } .coach dd { margin: 0; line-height: 1.45; }
+  .coach dt { font-size: var(--fs-meta); letter-spacing: .08em; color: var(--acc); padding-top: 1px; } .coach dd { margin: 0; line-height: 1.45; }
   .coach .go { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 10px; }
-  .coach .go .muted { font-size: 10px; }
+  .coach .go .muted { font-size: var(--fs-meta); }
   .list { overflow-y: auto; min-height: 0; }
   .row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border: 2px solid transparent; margin-bottom: 3px; cursor: pointer; background: var(--row); }
   .row:hover { border-color: var(--line); } .row.sel { border-color: var(--acc); box-shadow: var(--glow); }
   .row .ic { width: 18px; height: 18px; flex: none; border: 2px solid var(--outline); }
-  .row .t1 { font-size: 12px; } .row .t2 { font-size: 10px; color: var(--muted); } .row .v { margin-left: auto; color: var(--acc); text-shadow: var(--glow); }
+  .row .t1 { font-size: var(--fs-body); } .row .t2 { font-size: var(--fs-meta); color: var(--muted); } .row .v { margin-left: auto; color: var(--acc); text-shadow: var(--glow); }
   .row.off .t1 { color: var(--muted); }
   .pair { display: flex; gap: 10px; align-items: center; margin: 10px 0; }
   .vbox { flex: 1; padding: 8px; background: var(--row); border: 2px solid var(--line); text-align: center; }
-  .vbox.next { border-color: var(--acc); box-shadow: var(--glow); } .vbox .big { font-size: 20px; color: var(--acc); text-shadow: var(--glow); } .vbox .sm { font-size: 10px; color: var(--muted); }
+  .vbox.next { border-color: var(--acc); box-shadow: var(--glow); } .vbox .big { font-size: var(--fs-hero); color: var(--acc); text-shadow: var(--glow); } .vbox .sm { font-size: var(--fs-meta); color: var(--muted); }
   .cost { margin-top: auto; border-top: 2px solid var(--line); padding-top: 8px; display: flex; align-items: center; gap: 10px; }
   .cost .c { flex: 1; }
   .wallet { overflow-y: auto; }
   .wallet .coin { display: flex; align-items: center; gap: 8px; padding: 3px 2px; border-bottom: 1px solid var(--line); }
+  /* the materials the chosen mechanic spends stand out in its colour; the rest step back */
+  .wallet .coin.use { background: var(--tint, transparent); box-shadow: inset 0 0 0 1px var(--acc); }
+  .wallet .coin.use .cn { color: var(--acc); }
+  .wallet .coin.idle { opacity: .42; }
   .wallet .dot { width: 24px; height: 24px; flex: none; }   /* a smooth downscale of the 32px art: 24 is not a whole fraction of 32 */
   .row.haunt { border-color: var(--line); margin-top: 8px; } .row.haunt.sel { border-color: var(--acc); }
   .row.haunt .t1 { color: #ff9a3c; text-shadow: 0 0 5px rgba(255, 154, 60, .45); } .row.haunt .t2 { color: #d08a45; }
   .row.haunt .ic, .hname .ic { width: 24px; height: 24px; flex: none; image-rendering: pixelated; image-rendering: crisp-edges; border: 0; }
-  .hname { display: flex; align-items: center; gap: 10px; margin: 2px 0 4px; } .hname .ic { width: 40px; height: 40px; } .hname .nm { font-size: 16px; text-shadow: var(--glow); }
-  .tag { display: inline-block; padding: 0 6px; font-size: 10px; letter-spacing: .1em; border: 2px solid var(--outline); background: var(--epic-bg); color: var(--epic); margin-left: 6px; vertical-align: middle; }
+  .hname { display: flex; align-items: center; gap: 10px; margin: 2px 0 4px; } .hname .ic { width: 40px; height: 40px; } .hname .nm { font-size: var(--fs-name); text-shadow: var(--glow); }
+  .tag { display: inline-block; padding: 0 6px; font-size: var(--fs-meta); letter-spacing: .1em; border: 2px solid var(--outline); background: var(--epic-bg); color: var(--epic); margin-left: 6px; vertical-align: middle; }
   .tag.rare { background: #5a2e08; color: var(--legendary); }
-  .odds { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 14px; margin: 6px 0; font-size: 10px; }
+  .odds { display: grid; grid-template-columns: 1fr 1fr; gap: 1px 14px; margin: 6px 0; font-size: var(--fs-meta); }
   .odds div { display: flex; gap: 6px; padding: 0 3px; } .odds div.cur { background: var(--well); color: var(--acc); } .odds i { margin-left: auto; font-style: normal; color: var(--muted); } .odds .rr { color: var(--legendary); }
   #detail { overflow-y: auto; position: relative; }
+  .rodds { margin-top: 8px; } .odds-h { font-size: var(--fs-meta); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+  .odds-l { display: grid; gap: 2px; max-height: 108px; overflow-y: auto; padding-right: 4px; }
+  .odds-r { display: grid; grid-template-columns: 1fr 90px 44px; gap: 8px; align-items: center; font-size: var(--fs-meta); }
+  .odds-r.now .odds-n { color: var(--acc); }
+  .odds-b { height: 6px; background: var(--well); border: 1px solid var(--line); } .odds-b i { display: block; height: 100%; background: var(--acc); }
+  .odds-p { text-align: right; font-variant-numeric: tabular-nums; }
+  /* the one moment on this screen: when a craft lands, a bright line sweeps down the detail panel in the mechanic's colour (Calm removes it) */
+  #detail.landed::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--acc); box-shadow: 0 0 0 1px var(--outline); pointer-events: none;
+                          animation: landed .55s steps(12) 1 forwards; }
+  @keyframes landed { from { top: 0; opacity: 1; } to { top: calc(100% - 4px); opacity: 0; } }
   .meter { height: 10px; background: var(--well); border: 2px solid var(--line); } .meter i { display: block; height: 100%; background: var(--acc); box-shadow: var(--glow); }
 </style>
 </head>
@@ -135,8 +149,8 @@
       does: "Raises one trait a rank and rerolls its value in the higher rank's range.", costs: 'One upgrade. Your Pokémon earns one every 10 levels.', risk: 'None. It never fails.' },
     refine: { hue: '#5fe3b0', verb: 'Reroll the value', icon: ['##########', '#........#', '#.##.....#', '#.##.....#', '#...##...#', '#...##...#', '#.....##.#', '#.....##.#', '#........#', '##########'],
       does: "Rerolls a trait's value inside its current rank.", costs: 'Resonance Dust and Facets.', risk: 'The new value can be lower than now.' },
-    reforge: { hue: '#b48cff', verb: 'Swap the trait', icon: ['...#......', '..##......', '.########.', '..##.....#', '...#.....#', '#.....#...', '#.....##..', '.########.', '......##..', '......#...'],
-      does: 'Swaps a trait for a different one. The rank stays and the value rerolls.', costs: 'Resonance Dust and Facets.', risk: 'The new trait is random. It also clears a perfected floor.' },
+    reforge: { hue: '#b48cff', verb: 'Reroll the trait', icon: ['...#......', '..##......', '.########.', '..##.....#', '...#.....#', '#.....#...', '#.....##..', '.########.', '......##..', '......#...'],
+      does: 'Rerolls which trait the slot holds. The rank stays and the value rerolls. The same trait can come back.', costs: 'Resonance Dust and Facets.', risk: 'The new trait is random. It also clears a perfected floor.' },
     perfect: { hue: '#f2cf3a', verb: 'Lift the floor', icon: ['..######..', '.#.#..#.#.', '##########', '#..#..#..#', '.#..##..#.', '..#.##.#..', '...####...', '....##....', '..........', '##########'],
       does: 'Raises the lowest value a rank V trait can roll, one point a step. A Refine never rolls below it.', costs: 'Resonance Dust, 10 more each step on the same trait.', risk: 'None, but a Reforge clears the floor.' },
     overreach: { hue: '#ff7a5c', verb: 'Gamble past cap', icon: ['.....####.', '....####..', '...####...', '..#######.', '.....###..', '....###...', '...###....', '..###.....', '.##.......', '#.........'],
@@ -276,10 +290,46 @@
     [['DOES', info.does], ['COSTS', info.costs], ['RISK', info.risk]].forEach(function (r) { dl.appendChild(A.el('dt', '', r[0])); dl.appendChild(A.el('dd', '', r[1])); });
     c.appendChild(dl);
     var go = A.el('div', 'go'); go.appendChild(A.el('span', 'muted', 'Reopen it any time with ?'));
+    var more = A.el('button', '', 'Guide'); more.title = 'Opens the Guide at this topic; Back returns here';
+    more.addEventListener('click', function () { A.send('ascension_guide_open', { topic: mode === 'unique' ? 'uniques' : mode === 'respec' ? 'respec' : 'growing' }); });
+    go.appendChild(more);
     var ok = A.el('button', 'primary', 'Got it');
     ok.addEventListener('click', function () { coachOpen = ''; if (!A.hasSeen('craft.' + mode)) A.markSeen('craft.' + mode); drawDetail(); });
     go.appendChild(ok); c.appendChild(go);
     box.scrollTop = 0; box.appendChild(c);
+  }
+  /** What a Reforge can roll and how likely each is (the server's weighted odds); the trait held now is marked, since it can come back. */
+  function oddsList(box, odds) {
+    var wrap = A.el('div', 'rodds'); wrap.appendChild(A.el('div', 'odds-h', 'What it can become'));
+    var list = A.el('div', 'odds-l');
+    odds.forEach(function (o) {
+      var pct = o.permille >= 100 ? Math.round(o.permille / 10) + '%' : (o.permille / 10).toFixed(1) + '%';
+      var row = A.el('div', 'odds-r' + (o.current ? ' now' : ''));
+      row.appendChild(A.el('span', 'odds-n', o.name + (o.current ? ' (now)' : '')));
+      var b = A.el('span', 'odds-b'), fill = A.el('i'); fill.style.width = Math.max(2, Math.min(100, o.permille / 10 * 2)) + '%'; b.appendChild(fill); row.appendChild(b);
+      row.appendChild(A.el('span', 'odds-p', pct));
+      list.appendChild(row);
+    });
+    wrap.appendChild(list); box.appendChild(wrap);
+  }
+  /**
+   * The rare results worth a moment: a promotion to Ascended, a trait reaching rank V, a value at the top of its range. Judged on the fresh view after a craft
+   * (the craft result alone does not carry the new band), so it reflects what the server saved. Returns the stamp text, or ''.
+   */
+  var landed = null;
+  function stampFor(l, v) {
+    if (!l) return '';
+    if (l.mode === 'promote') return v.rarityId === 'mythical' && l.rarity !== 'mythical' ? 'ASCENDED' : '';
+    var s = null; v.slots.forEach(function (x) { if (x.slotId === l.slotId) s = x; });
+    if (!s || (l.mode !== 'upgrade' && l.mode !== 'refine' && l.mode !== 'reforge')) return '';
+    if (l.mode === 'upgrade' && s.rank === 5 && l.oldRank < 5) return 'RANK V';
+    return s.value >= s.bandMax ? 'MAX ROLL' : '';
+  }
+  function stamp(text) {
+    var old = document.querySelector('#detail .stamp'); if (old) old.parentNode.removeChild(old);
+    var el = A.el('div', 'stamp', text); el.setAttribute('role', 'status');
+    $('detail').appendChild(el);
+    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, A.calm ? 1400 : 2000);   // Calm: shown still, then gone
   }
   function rangeStrip(box, s) {
     var lo = s.bandMin, hi = s.bandMax, span = Math.max(1, hi - lo), pct = function (v) { return Math.max(0, Math.min(100, 100 * (v - lo) / span)); };
@@ -339,7 +389,7 @@
       var r = A.el('div', 'row' + (s.slotId === slotId ? ' sel' : '') + (mode !== 'promote' && blockFor(s) ? ' off' : ''));
       r.appendChild(A.affixIcon(s.name, false));
       var col = A.el('div'); col.appendChild(A.el('div', 't1', s.name));
-      col.appendChild(A.el('div', 't2', (prefix ? 'Attack' : 'Guard') + ' · ' + A.roman[Math.max(1, Math.min(5, s.rank))] + (s.sealed ? ' · sealed' : ''))); r.appendChild(col);
+      col.appendChild(A.el('div', 't2', (prefix ? 'Attack' : 'Guard') + ' · ' + A.roman[Math.max(1, Math.min(5, s.rank))] + (s.sealed ? ' · sealed' : ''))); r.appendChild(col);
       r.appendChild(A.el('div', 'v', '+' + s.value + '%'));
       r.dataset.k = s.slotId;
       r.addEventListener('click', function () { if (slotId === s.slotId) return; slotId = s.slotId; render('sel'); });
@@ -468,9 +518,10 @@
       nxt = vbox(capped ? 'Not available' : 'New floor', capped ? '—' : '+' + (s.floor + 1) + '%', capped ? 'Band top ' + s.bandMax + '%' : 'value → +' + Math.max(s.value, s.floor + 1) + '%', true);
     } else {
       cur = vbox('Current · ' + A.roman[Math.max(1, Math.min(5, s.rank))], s.name, '+' + s.value + '% · rank ' + A.roman[Math.max(1, Math.min(5, s.rank))], false);
-      nxt = vbox('New trait', '?', s.reforgePool + ' eligible', true);
+      nxt = vbox('New trait', '?', s.reforgePool + ' possible', true);
     }
     pair(box, cur, nxt);
+    if (mode === 'reforge' && s.reforgeOdds && s.reforgeOdds.length) oddsList(box, s.reforgeOdds);
     if (mode === 'refine') rangeStrip(box, s);
     if (mode === 'overreach' && !blockFor(s) && typeof s.overreachChance === 'number') gambleBar(box, s);
     var bar = A.el('div', 'bar');
@@ -480,21 +531,38 @@
       : mode === 'refine' ? "Rerolls the value inside this rank's range. It can go lower."
       : mode === 'perfect' ? 'Raises the lowest value this rank V trait can roll by one point, up to the band top. A Refine can never roll below it. Each step costs more dust; a Reforge clears it.'
       : mode === 'overreach' ? 'A gamble for a rank V trait at its band top, one attempt per trait. Win: a permanent value above the band top. Lose: the value drops into the lower half of the band, ignoring your floor. Win or lose the slot is sealed: only a Reforge can change it.'
-      : 'Swaps this trait for a different one. Rank stays, value rerolls.'));
+      : 'Rerolls which trait this slot holds. Rank stays, value rerolls; the same trait can come back.'));
     box.appendChild(A.el('div', 'spacer'));
     costRow(box, blockFor(s));
     drawCoach(box);
   }
 
+  /** The wallet icons the chosen mechanic spends, or null when it spends none (Upgrade spends an upgrade, not materials). */
+  function spends() {
+    function price(p) { var out = []; if (!p) return ['resonance_dust', 'facet']; if (p.dust > 0) out.push('resonance_dust'); if (p.facets > 0) out.push('facet'); if (p.cores > 0) out.push('ascension_core'); if (p.apex > 0) out.push('apex_shard'); return out; }
+    if (isHaunt()) return ['spooky_essence'];
+    switch (mode) {
+      case 'refine': return price(view.refine);
+      case 'reforge': return price(view.reforge);
+      case 'perfect': return ['resonance_dust'];
+      case 'overreach': return ['resonance_dust', 'facet', 'tower_mark'].concat(view.overreachApex > 0 ? ['apex_shard'] : []);
+      case 'promote': return price(view.promotion && view.promotion.price);
+      case 'unique': return ['unique_catalyst', 'unique_fragment', 'tower_mark', 'unique_respec'];
+      case 'respec': return ['rank_respec', 'tower_mark'];
+      default: return null;
+    }
+  }
+
   function drawWallet() {
     var box = $('wallet'); box.innerHTML = ''; box.appendChild(A.el('div', 'label', 'Wallet'));
+    var used = spends();
     var u = view.unique;
     [['Resonance Dust', 'resonance_dust', view.dust], ['Facets', 'facet', view.facets], ['Ascension Cores', 'ascension_core', view.cores],
      ['Scouters', 'scouter', view.scouters], ['Unique Fragments', 'unique_fragment', u.fragments], ['Unique Catalysts', 'unique_catalyst', u.catalysts], ['Tower Marks', 'tower_mark', view.marks], ['Hourglass', 'rank_respec', view.respec.hourglasses], ['Prism', 'unique_respec', view.respec.prisms]].concat(view.apex > 0 || view.overreachApex > 0 ? [['Apex Shards', 'apex_shard', view.apex]] : []).concat(view.haunt && (view.haunt.show || view.haunt.essence > 0) ? [['Spooky Essence', 'spooky_essence', view.haunt.essence]] : []).forEach(function (c) {
-      var r = A.el('div', 'coin'); r.title = c[0];
+      var r = A.el('div', 'coin' + (used ? (used.indexOf(c[1]) >= 0 ? ' use' : ' idle') : '')); r.title = c[0] + (used && used.indexOf(c[1]) >= 0 ? ': spent by ' + (isHaunt() ? 'Haunting' : A.cap(mode)) : '');
       var d = new Image(); d.className = 'dot'; d.alt = ''; d.src = 'icons/' + c[1] + '.png'; r.appendChild(d);
       r.appendChild(A.el('div', c[2] > 0 ? '' : 'muted', A.num(c[2])));
-      var n = A.el('div', 'muted', c[0].split(' ').pop()); n.style.fontSize = '11px'; n.style.marginLeft = 'auto'; r.appendChild(n);
+      var n = A.el('div', 'cn muted', c[0].split(' ').pop()); n.style.fontSize = 'var(--fs-meta)'; n.style.marginLeft = 'auto'; r.appendChild(n);
       box.appendChild(r);
     });
   }
@@ -545,7 +613,7 @@
   function render(part) {
     if (!view) return;
     if (part === 'sel') { markSel(); drawDetail(); return; }
-    if (part === 'mode') { drawTabs(); drawList(); drawDetail(); return; }
+    if (part === 'mode') { drawTabs(); drawList(); drawDetail(); drawWallet(); return; }   // the wallet marks what the new mechanic spends
     if (part === 'phase') { drawDetail(); drawDialog(); return; }
     A.text($('name'), view.name); A.text($('lvl'), 'Lv ' + view.level);
     var gr = $('grade'); A.text(gr, A.rarityName(view.rarityId).toUpperCase() + (view.uniqueName ? ' · UNIQUE' : ''));
@@ -585,6 +653,7 @@
   A.onSeen(function () { if (view) drawDetail(); });
   A.on('craftView', function (v) {
     var first = !view; view = v;
+    var won = stampFor(landed, v); landed = null;
     if (first) { mode = v.pending > 0 ? 'upgrade' : 'refine'; if (v.slots.length) slotId = v.slots[0].slotId; }
     uniqueId = validUnique(uniqueId);
     var found = false; v.slots.forEach(function (s) { if (s.slotId === slotId) found = true; });
@@ -592,9 +661,12 @@
     if (!found) slotId = v.slots.length ? v.slots[0].slotId : '';
     if (v.message && !banner) { banner = v.message; bannerOk = false; }
     render();
+    if (won) stamp(won);
   });
   A.on('craftDone', function (d) {
     if (d.operationId !== pendingOp) return;
+    if (d.ok) { var det = $('detail'); det.classList.remove('landed'); void det.offsetWidth; det.classList.add('landed'); }   // restart the sweep for each craft
+    if (d.ok && !d.replayed) landed = { mode: mode, slotId: d.slotId, oldRank: d.oldRank, rarity: view.rarityId };
     clearTimeout(waitTimer); pendingOp = ''; phase = 'browse'; bannerOk = !!d.ok;
     var did = action; action = '';
     var wasHaunt = isHaunt();
