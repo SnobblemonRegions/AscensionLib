@@ -19,7 +19,7 @@ class AffixIconsTest {
     @DisplayName("every modifier's display name maps to its id and has a crest in the pages' icon folder, and so does the Unique one")
     void everyModifierHasACrest() {
         var rules = Rules.defaults();
-        assertEquals(34, rules.affixes().size(), "a new modifier needs an icon in tools/affix_art.py: add it to PLAN, then run tools/build_resourcepack.py");
+        assertEquals(54, rules.affixes().size(), "a new modifier needs an icon in tools/affix_art.py: add it to PLAN, then run tools/build_resourcepack.py");
         for (var affix : rules.affixes()) {
             assertEquals(affix.id(), iconId(affix.name()), "the page derives the icon from the name");
             assertNotNull(getClass().getResource("/web/ascensionlib/icons/affix/" + affix.id() + ".png"), "no crest for " + affix.id());

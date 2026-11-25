@@ -1257,6 +1257,399 @@ test('H11. hauntings: an unknown or malformed haunting is ignored and a payload 
   assert.ok(lost(b, 1) > lost(baseline, 1), 'the ninth and tenth effects are no longer cut off');
 });
 
+// ---- the affix expansion (docs/AFFIX-EXPANSION-DESIGN.md): 20 base affixes ----
+/** The exact HP values (not the spectator's /100 ones) the log shows for side `side`'s active Pokemon after each damage line. */
+const exactHits = (b, side) => {
+  const max = String(mon(b, side).maxhp);
+  return b.lines.filter(l => l.startsWith(`|-damage|p${side + 1}a: `)).map(l => l.split('|')[3].split(' ')[0])
+    .filter(hp => hp.split('/')[1] === max).map(hp => Number(hp.split('/')[0]));
+};
+/** Damage per hit from a trail of HP values, starting at full HP. */
+const deltas = (b, side) => {
+  const trail = [mon(b, side).maxhp, ...exactHits(b, side)];
+  return trail.slice(1).map((hp, i) => trail[i] - hp);
+};
+const LAX = (uuid, moves = ['splash'], level = 100, health = '') => pack('Snorlax', uuid, 'immunity', moves, level, health);
+const BLAST = (moves, health = '', level = 50) => pack('Blastoise', U1, 'torrent', moves, level, health);
+
+test('E1. ambush: more damage to a target that entered this turn or last, not later', async () => {
+  const teams = [BLAST(['surf']), LAX(U2)];
+  const plain = await battle({teams, moves: ['move 1', 'move 1'], turns: 3});
+  const amb = await battle({teams, moves: ['move 1', 'move 1'], turns: 3, fx: withPct(U1, 'ambush', 30)});
+  const p = deltas(plain, 1), a = deltas(amb, 1);
+  assert.ok(p.length >= 3 && a.length >= 3, JSON.stringify({p, a}));
+  assert.ok(a[0] > p[0], `turn 1 boosted: ${a[0]} vs ${p[0]}`);
+  assert.strictEqual(a[2], p[2], 'turn 3: the target has been in for two turns');
+});
+
+test('E2. brawler and sharpshooter: contact and non-contact moves, never both', async () => {
+  const run = (move, id) => battle({teams: [BLAST(['aquatail', 'surf']), LAX(U2)], moves: [move, 'move 1'], fx: id && withPct(U1, id, 30)});
+  assert.ok(lost(await run('move 1', 'brawler'), 1) > lost(await run('move 1'), 1), 'Aqua Tail makes contact');
+  assert.strictEqual(lost(await run('move 2', 'brawler'), 1), lost(await run('move 2'), 1), 'Surf does not');
+  assert.ok(lost(await run('move 2', 'sharpshooter'), 1) > lost(await run('move 2'), 1), 'Surf is boosted by Sharpshooter');
+  assert.strictEqual(lost(await run('move 1', 'sharpshooter'), 1), lost(await run('move 1'), 1), 'Aqua Tail is not');
+});
+
+test('E3. giant_slayer: only against a target with more max HP than the holder', async () => {
+  const run = (foe, id) => battle({teams: [BLAST(['surf']), foe], moves: ['move 1', 'move 1'], fx: id && withPct(U1, id, 30)});
+  const big = LAX(U2);
+  assert.ok(lost(await run(big, 'giant_slayer'), 1) > lost(await run(big), 1), 'Snorlax at level 100 is the giant');
+  const small = pack('Charizard', U2, 'blaze', ['splash'], 50);
+  assert.strictEqual(lost(await run(small, 'giant_slayer'), 1), lost(await run(small), 1), 'Charizard at 50 is not');
+});
+
+test('E4. relentless: the same move on consecutive turns stacks; changing moves resets it', async () => {
+  const teams = [BLAST(['surf', 'hydropump']), LAX(U2)];
+  const plain = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 3}), 1);
+  const rel = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 3, fx: withPct(U1, 'relentless', 20)}), 1);
+  assert.strictEqual(rel[0], plain[0], 'the first use has no stack');
+  assert.ok(rel[1] > plain[1] && rel[2] > plain[2], JSON.stringify({rel, plain}));
+  assert.ok(rel[2] / plain[2] > rel[1] / plain[1], 'the third use stacks higher than the second');
+  const swap = turn => (turn % 2 === 0 ? ['move 1', 'move 1'] : ['move 2', 'move 1']);
+  const plainSwap = deltas(await battle({teams, moves: swap, turns: 3}), 1);
+  const relSwap = deltas(await battle({teams, moves: swap, turns: 3, fx: withPct(U1, 'relentless', 20)}), 1);
+  assert.deepStrictEqual(relSwap, plainSwap, 'alternating moves never stacks');
+});
+
+test('E5. exploit_weakness: more damage to a target with a lowered stat', async () => {
+  const teams = [BLAST(['surf']), LAX(U2, ['curse'])];   // Curse lowers Snorlax's own Speed (and raises Attack and Defense in both runs)
+  const plain = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 2}), 1);
+  const ex = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 2, fx: withPct(U1, 'exploit_weakness', 30)}), 1);
+  assert.strictEqual(ex[0], plain[0], 'nothing lowered before the first hit');
+  assert.ok(ex[1] > plain[1], `Speed lowered before the second: ${ex[1]} vs ${plain[1]}`);
+});
+
+test('E6. armorbreak: a hit may lower Defense by one stage; Clear Body and Shield Dust still block it', async () => {
+  const hydro = target => () => ({teams: [BLASTOISE(), target], moves: ['move 1', 'move 1'], fx: withPct(U1, 'armorbreak', 50)});
+  const broke = await across(hydro(pack('Charizard', U2, 'blaze', ['splash'], 50)), '|-unboost|p2a: ' + U2 + '|def|1');
+  assert.ok(broke >= 4, `cracked in ${broke} of ${SEEDS.length} seeds`);
+  assert.strictEqual(await across(hydro(pack('Metagross', U2, 'clearbody', ['splash'], 50)), '|-unboost|'), 0, 'Clear Body');
+  assert.strictEqual(await across(hydro(pack('Vivillon', U2, 'shielddust', ['splash'], 50)), '|-unboost|'), 0, 'Shield Dust');
+});
+
+test('E7. pressure_point: critical hits deal more, other hits do not', async () => {
+  const run = (move, id) => battle({teams: [BLAST(['frostbreath', 'surf']), LAX(U2)], moves: [move, 'move 1'], fx: id && withPct(U1, id, 30)});
+  const crit = await run('move 1', 'pressure_point');
+  assert.ok(count(crit, '|-crit|') >= 1, 'Frost Breath always crits');
+  const ratio = lost(crit, 1) / lost(await run('move 1'), 1);
+  assert.ok(Math.abs(ratio - 1.3) < 0.03, 'about 1.3x on a crit: ' + ratio);
+  const normal = await run('move 2', 'pressure_point');
+  assert.strictEqual(count(normal, '|-crit|'), 0);
+  assert.strictEqual(lost(normal, 1), lost(await run('move 2'), 1), 'no crit, no bonus');
+});
+
+test('E8. searing_touch: contact hits may burn; non-contact never; a Fire type never', async () => {
+  const burns = (moves, foe) => across(() => ({teams: [BLAST(moves), foe], moves: ['move 1', 'move 1'], fx: withPct(U1, 'searing_touch', 50)}), '|-status|p2a: ' + U2 + '|brn');
+  assert.ok(await burns(['aquatail'], LAX(U2)) >= 4, 'Aqua Tail burns at the rolled chance');
+  assert.strictEqual(await burns(['surf'], LAX(U2)), 0, 'Surf is not contact');
+  assert.strictEqual(await burns(['aquatail'], pack('Charizard', U2, 'blaze', ['splash'], 50)), 0, 'Fire types cannot be burned');
+});
+
+test('E9. venom_touch: contact hits may poison (regular poison); Steel types never', async () => {
+  const poisons = (foe, needle) => across(() => ({teams: [BLAST(['aquatail']), foe], moves: ['move 1', 'move 1'], fx: withPct(U1, 'venom_touch', 50)}), needle);
+  const thick = pack('Snorlax', U2, 'thickfat', ['splash'], 100);   // not Immunity, which blocks poison (that rule is the engine's, and it holds)
+  assert.ok(await poisons(thick, '|-status|p2a: ' + U2 + '|psn') >= 4, 'poisons at the rolled chance');
+  assert.strictEqual(await poisons(thick, '|tox'), 0, 'never Toxic');
+  assert.strictEqual(await poisons(LAX(U2), '|-status|'), 0, 'Immunity still blocks it');
+  assert.strictEqual(await poisons(pack('Metagross', U2, 'clearbody', ['splash'], 50), '|-status|'), 0, 'Steel types cannot be poisoned');
+});
+
+test('E10. siphon: the holder heals a share of the damage its move deals', async () => {
+  const teams = [BLAST(['surf'], '60'), LAX(U2)];
+  const b = await battle({teams, moves: ['move 1', 'move 1'], fx: withPct(U1, 'siphon', 20)});
+  const plain = await battle({teams, moves: ['move 1', 'move 1']});
+  assert.strictEqual(mon(plain, 0).hp, 60, 'no healing natively');
+  assert.strictEqual(mon(b, 0).hp, 60 + Math.floor(lost(b, 1) * 20 / 100), 'healed 20% of ' + lost(b, 1));
+});
+
+test('E11. thorns: a contact attacker loses a share of its max HP; a non-contact one does not', async () => {
+  const run = (move, id) => battle({teams: [BLAST(['splash']), LAX(U2, ['bodyslam', 'hypervoice'])], moves: ['move 1', move], fx: id && withPct(U1, id, 10)});
+  const thorned = await run('move 1', 'thorns');
+  assert.strictEqual(mon(thorned, 1).hp, mon(thorned, 1).maxhp - Math.floor(mon(thorned, 1).maxhp / 10), 'Body Slam costs 10%');
+  assert.strictEqual(lost(await run('move 1'), 1), 0, 'nothing natively');
+  assert.strictEqual(lost(await run('move 2', 'thorns'), 1), 0, 'Hyper Voice is not contact');
+  const capped = await battle({teams: [BLAST(['splash']), LAX(U2, ['bodyslam'])], moves: ['move 1', 'move 1'], fx: withPct(U1, 'thorns', 60)});
+  assert.strictEqual(lost(capped, 1), Math.floor(mon(capped, 1).maxhp * 17 / 100), 'capped at 17% a hit');
+});
+
+test('E12. purging: a chance each turn to cure the holder\'s own status', async () => {
+  const run = (payload, seed) => battle({teams: [BLAST(['splash']), INFLICTOR(['willowisp', 'splash'])], moves: turn => ['move 1', turn === 0 ? 'move 1' : 'move 2'],
+    turns: 3, seed: [seed, 2, 3, 4], fx: payload});
+  let cured = 0, plainCured = 0, burned = 0;
+  for (const s of SEEDS) {
+    const plain = await run(undefined, s);
+    if (count(plain, '|-status|p1a') === 0) continue;   // the burn missed this seed
+    burned++;
+    if (!mon(plain, 0).status) plainCured++;
+    if (!mon(await run(withPct(U1, 'purging', 50), s), 0).status) cured++;
+  }
+  assert.ok(burned >= 10, 'burned in ' + burned);
+  assert.strictEqual(plainCured, 0, 'a burn is not cured natively');
+  assert.ok(cured >= 4, `purged in ${cured} of ${burned}`);
+});
+
+test('E13. fresh_legs: switching out heals the holder', async () => {
+  const teams = [[BLAST(['splash'], '60'), CHARIZARD_U(U3)].join(']'), LAX(U2)];
+  const run = payload => battle({teams, moves: ['switch 2', 'move 1'], fx: payload});
+  const benched = b => b.battle.sides[0].pokemon.find(p => p.uuid === U1);
+  assert.strictEqual(benched(await run(undefined)).hp, 60, 'no healing natively');
+  const healed = benched(await run(withPct(U1, 'fresh_legs', 10)));
+  assert.strictEqual(healed.hp, 60 + Math.floor(healed.maxhp / 10), 'healed 10% of max HP');
+});
+
+test('E14. stalwart: less damage from critical hits only', async () => {
+  const run = (move, id) => battle({teams: [BLAST(['splash']), pack('Charizard', U2, 'blaze', ['frostbreath', 'flamethrower'], 50)],
+    moves: ['move 1', move], fx: id && withPct(U1, id, 20)});
+  assert.ok(lost(await run('move 1', 'stalwart'), 0) < lost(await run('move 1'), 0), 'Frost Breath crits');
+  const flame = await run('move 2', 'stalwart');
+  assert.strictEqual(count(flame, '|-crit|'), 0);
+  assert.strictEqual(lost(flame, 0), lost(await run('move 2'), 0), 'no crit, no reduction');
+});
+
+test('E15. unyielding: a foe\'s stat drop may fail; the holder\'s own drops always apply', async () => {
+  const growled = payload => across(() => ({teams: [BLAST(['splash']), INFLICTOR(['growl'])], moves: ['move 1', 'move 1'], fx: payload}), '|-unboost|p1a');
+  const plain = await growled(undefined);
+  const held = await growled(withPct(U1, 'unyielding', 50));
+  assert.strictEqual(plain, SEEDS.length, 'Growl always lands natively');
+  assert.ok(held <= plain - 4, `held in ${plain - held} of ${plain}`);
+  const own = await across(() => ({teams: [BLAST(['superpower']), LAX(U2)], moves: ['move 1', 'move 1'], fx: withPct(U1, 'unyielding', 50)}), '|-unboost|p1a');
+  assert.strictEqual(own, SEEDS.length, 'Superpower lowers its user every time');
+});
+
+test('E16. watchful: less damage from priority moves only', async () => {
+  const run = (move, id) => battle({teams: [BLAST(['splash']), LAX(U2, ['quickattack', 'tackle'])], moves: ['move 1', move], fx: id && withPct(U1, id, 30)});
+  assert.ok(lost(await run('move 1', 'watchful'), 0) < lost(await run('move 1'), 0), 'Quick Attack has +1 priority');
+  assert.strictEqual(lost(await run('move 2', 'watchful'), 0), lost(await run('move 2'), 0), 'Tackle does not');
+});
+
+test('E17. resolute: less damage while one of the holder\'s stats is lowered', async () => {
+  const teams = [BLAST(['splash']), INFLICTOR(['flamethrower', 'growl'])];
+  const script = turn => ['move 1', turn === 0 ? 'move 1' : turn === 1 ? 'move 2' : 'move 1'];
+  const plain = deltas(await battle({teams, moves: script, turns: 3}), 0);
+  const res = deltas(await battle({teams, moves: script, turns: 3, fx: withPct(U1, 'resolute', 30)}), 0);
+  assert.strictEqual(res[0], plain[0], 'nothing lowered for the first hit');
+  assert.ok(res[1] < plain[1], `Attack lowered by Growl before the second: ${res[1]} vs ${plain[1]}`);
+});
+
+test('E18. insulated: less burn damage, direct hits unchanged', async () => {
+  const teams = [BLAST(['splash']), INFLICTOR(['willowisp', 'splash'])];
+  const script = turn => ['move 1', turn === 0 ? 'move 1' : 'move 2'];
+  let checked = 0;
+  for (const s of SEEDS.slice(0, 6)) {
+    const plain = await battle({teams, moves: script, turns: 3, seed: [s, 2, 3, 4]});
+    if (mon(plain, 0).status !== 'brn') continue;
+    const ins = await battle({teams, moves: script, turns: 3, seed: [s, 2, 3, 4], fx: withPct(U1, 'insulated', 50)});
+    assert.ok(lost(ins, 0) > 0 && lost(ins, 0) < lost(plain, 0), `burn hurts less: ${lost(ins, 0)} vs ${lost(plain, 0)}`);
+    checked++;
+  }
+  assert.ok(checked >= 2, 'burned in ' + checked + ' seeds');
+  const hit = teams2 => battle({teams: teams2, moves: ['move 1', 'move 1']});
+  const direct = [BLAST(['splash']), INFLICTOR(['flamethrower'])];
+  const directIns = await battle({teams: direct, moves: ['move 1', 'move 1'], fx: withPct(U1, 'insulated', 50)});
+  assert.strictEqual(lost(directIns, 0), lost(await hit(direct), 0), 'a move hit is not residual');
+});
+
+test('E19. hardening: each enemy hit softens the next, up to three stacks', async () => {
+  const teams = [LAX(U1, ['splash']), pack('Blastoise', U2, 'torrent', ['surf'], 75)];
+  const plain = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 5}), 0);
+  const hard = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 5, fx: withPct(U1, 'hardening', 10)}), 0);
+  assert.ok(plain.length >= 5 && hard.length >= 5, JSON.stringify({plain, hard}));
+  const ratio = i => hard[i] / plain[i];
+  assert.strictEqual(hard[0], plain[0], 'the first hit is native');
+  for (const [i, expected] of [[1, 0.9], [2, 0.8], [3, 0.7], [4, 0.7]]) {
+    assert.ok(Math.abs(ratio(i) - expected) < 0.03, `hit ${i + 1}: ${ratio(i)} not about ${expected} ` + JSON.stringify({plain, hard}));
+  }
+});
+
+test('E20. expansion: every new id is understood, and every new chance is bounded at 50', async () => {
+  const catalog = JSON.parse(fs.readFileSync(AFFIXES, 'utf8')).affixes;
+  const ids = ['ambush', 'brawler', 'sharpshooter', 'giant_slayer', 'relentless', 'exploit_weakness', 'armorbreak', 'pressure_point', 'searing_touch',
+    'venom_touch', 'siphon', 'thorns', 'purging', 'fresh_legs', 'stalwart', 'unyielding', 'watchful', 'resolute', 'insulated', 'hardening'];
+  for (const id of ids) {
+    assert.ok(catalog.some(a => a.id === id), id + ' is in the catalog');
+    const parsed = fx.parse(baseline.battle, {v: 1, mons: {[U1]: [{i: id, p: 100}]}});
+    const list = parsed.byUuid.get(U1) || [];
+    assert.strictEqual(list.length, 1, id + ' is handled');
+    const chanceBased = ['armorbreak', 'searing_touch', 'venom_touch', 'purging', 'unyielding'].includes(id);
+    assert.strictEqual(list[0].p, chanceBased ? 50 : 100, id);
+  }
+});
+
+// ---- the second batch of Uniques (docs/AFFIX-EXPANSION-DESIGN.md, part B) ----
+const uq = id => withPct(U1, id, 1);
+const ratioNear = (actual, expected, tolerance, label) => assert.ok(Math.abs(actual - expected) <= tolerance, `${label}: ${actual.toFixed(3)} is not about ${expected}`);
+
+test('U1. crescendo: weaker on the first two turns, then +8% a turn on the field', async () => {
+  const teams = [BLAST(['surf']), LAX(U2)];
+  const plain = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 4}), 1);
+  const cres = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 4, fx: uq('crescendo')}), 1);
+  ratioNear(cres[0] / plain[0], 0.80, 0.03, 'turn 1: drawback only');
+  ratioNear(cres[1] / plain[1], 0.864, 0.03, 'turn 2: +8% and the drawback');
+  ratioNear(cres[3] / plain[3], 1.24, 0.03, 'turn 4: +24%');
+});
+
+test('U2. nightfang: heals 25% of the damage dealt; Fire and Fairy moves hurt 30% more', async () => {
+  const teams = [BLAST(['surf'], '60'), LAX(U2)];
+  const b = await battle({teams, moves: ['move 1', 'move 1'], fx: uq('nightfang')});
+  assert.strictEqual(mon(b, 0).hp, 60 + Math.floor(lost(b, 1) * 25 / 100), 'healed a quarter of ' + lost(b, 1));
+  const fire = id => battle({teams: [BLAST(['splash']), INFLICTOR(['flamethrower'])], moves: ['move 1', 'move 1'], fx: id && uq(id)});
+  ratioNear(lost(await fire('nightfang'), 0) / lost(await fire(), 0), 1.3, 0.04, 'Flamethrower');
+});
+
+test('U3. iron_maiden: contact attackers lose 1/8 of max HP; the holder\'s own contact moves deal less', async () => {
+  const struck = await battle({teams: [BLAST(['splash']), LAX(U2, ['bodyslam'])], moves: ['move 1', 'move 1'], fx: uq('iron_maiden')});
+  assert.strictEqual(lost(struck, 1), Math.floor(mon(struck, 1).maxhp * 12.5 / 100), 'Body Slam costs an eighth');
+  const own = id => battle({teams: [BLAST(['aquatail']), LAX(U2)], moves: ['move 1', 'move 1'], fx: id && uq(id)});
+  ratioNear(lost(await own('iron_maiden'), 1) / lost(await own(), 1), 0.8, 0.03, 'Aqua Tail');
+});
+
+test('U4. tailwind_heart: +50% Speed changes who moves first; Defense is lower', async () => {
+  const first = b => b.lines.find(l => l.startsWith('|move|')).split('|')[2].slice(0, 3);
+  const teams = [pack('Blastoise', U1, 'torrent', ['surf'], 50), pack('Charizard', U2, 'blaze', ['flamethrower'], 50)];
+  assert.strictEqual(first(await battle({teams, moves: ['move 1', 'move 1']})), 'p2a');
+  assert.strictEqual(first(await battle({teams, moves: ['move 1', 'move 1'], fx: uq('tailwind_heart')})), 'p1a');
+  const hit = id => battle({teams: [BLAST(['splash']), LAX(U2, ['tackle'])], moves: ['move 1', 'move 1'], fx: id && uq(id)});
+  assert.ok(lost(await hit('tailwind_heart'), 0) > lost(await hit(), 0), 'Tackle hurts more through lower Defense');
+});
+
+test('U5. huntmark: later moves against the marked foe deal 25% more; no critical hits', async () => {
+  const teams = [BLAST(['surf']), LAX(U2)];
+  const plain = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 2}), 1);
+  const hunt = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 2, fx: uq('huntmark')}), 1);
+  assert.strictEqual(hunt[0], plain[0], 'the first hit only marks');
+  ratioNear(hunt[1] / plain[1], 1.25, 0.03, 'the second hit');
+  const crit = await battle({teams: [BLAST(['frostbreath']), LAX(U2)], moves: ['move 1', 'move 1'], fx: uq('huntmark')});
+  assert.strictEqual(count(crit, '|-crit|'), 0, 'even Frost Breath cannot crit');
+});
+
+test('U6. martyrs_gift: when the holder faints, the next ally heals half and gains Attack and Sp. Atk', async () => {
+  const mine = [pack('Magikarp', U1, 'swiftswim', ['splash'], 50, '1'), pack('Blastoise', U3, 'torrent', ['splash'], 50, '60')].join(']');
+  const run = payload => battle({teams: [mine, INFLICTOR(['flamethrower', 'splash'])], moves: turn => (turn === 0 ? ['move 1', 'move 1'] : ['switch 2', 'move 2']),
+    turns: 2, fx: payload});
+  const ally = b => b.battle.sides[0].pokemon.find(p => p.uuid === U3);
+  const plain = ally(await run(undefined));
+  assert.strictEqual(plain.hp, 60);
+  const gifted = await run(uq('martyrs_gift'));
+  assert.strictEqual(ally(gifted).hp, 60 + Math.floor(ally(gifted).maxhp / 2), 'healed half its max HP');
+  assert.ok(count(gifted, '|-boost|p1a: ' + U3 + '|atk|1') >= 1 && count(gifted, '|-boost|p1a: ' + U3 + '|spa|1') >= 1, 'both stats rose');
+});
+
+test('U7. aegis_oath: 30% less damage taken and 30% less dealt', async () => {
+  const hit = id => battle({teams: [BLAST(['surf']), LAX(U2, ['tackle'])], moves: ['move 1', 'move 1'], fx: id && uq(id)});
+  const aegis = await hit('aegis_oath'), plain = await hit();
+  ratioNear(lost(aegis, 0) / lost(plain, 0), 0.7, 0.04, 'taken');
+  ratioNear(lost(aegis, 1) / lost(plain, 1), 0.7, 0.03, 'dealt');
+});
+
+test('U8. fickle_fortune: heads +40%, tails -20%, from the battle\'s own coin', async () => {
+  let heads = 0, tails = 0;
+  for (const s of SEEDS.slice(0, 10)) {
+    const make = payload => battle({teams: [BLAST(['surf']), LAX(U2)], moves: ['move 1', 'move 1'], seed: [s, 2, 3, 4], fx: payload});
+    const b = await make(uq('fickle_fortune'));
+    const plain = await make(undefined);
+    const ratio = lost(b, 1) / lost(plain, 1);
+    if (count(b, 'heads!')) { heads++; ratioNear(ratio, 1.4, 0.05, 'heads'); } else { tails++; ratioNear(ratio, 0.8, 0.05, 'tails'); }
+  }
+  assert.ok(heads >= 2 && tails >= 2, `both faces came up: ${heads} heads, ${tails} tails`);
+});
+
+test('U9. the second batch: every new Unique is understood and can be fused', async () => {
+  for (const id of ['crescendo', 'nightfang', 'iron_maiden', 'tailwind_heart', 'huntmark', 'martyrs_gift', 'aegis_oath', 'fickle_fortune']) {
+    const list = fx.parse(baseline.battle, {v: 1, mons: {[U1]: [{i: id, p: 1}]}}).byUuid.get(U1) || [];
+    assert.strictEqual(list.length, 1, id + ' is handled');
+  }
+  const fusedList = fx.parse(baseline.battle, {v: 1, mons: {[U1]: [{i: 'transcendent', p: 1, u: ['crescendo', 'huntmark'], b: 75, d: 60}]}}).byUuid.get(U1) || [];
+  assert.deepStrictEqual(fusedList.map(e => e.i).sort(), ['crescendo', 'huntmark'], 'a fusion with no signature falls back to its two Uniques');
+});
+
+// ---- the 84 composed signatures (docs/AFFIX-EXPANSION-DESIGN.md, part C) ----
+const TR_BOOK = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'design', 'transcendents.json'), 'utf8'));
+const COMPOSED_IDS = TR_BOOK.bases.slice(21).map(b => b.id);
+const csig = (sg, b = 100, d = 100, tw = [{op: 'cleanse'}]) =>
+  ({v: 1, mons: {[U1]: [{i: 'transcendent', p: 1, u: TR_BOOK.bases.find(x => x.id === sg).uniques, b, d, sg, tw}]}});
+
+test('C1. composed: all 84 are recognised as signatures, and each runs a battle', async () => {
+  assert.strictEqual(COMPOSED_IDS.length, 84);
+  for (const sg of COMPOSED_IDS) {
+    const list = fx.parse(baseline.battle, csig(sg, 75, 60)).byUuid.get(U1) || [];
+    assert.ok(list.some(e => e.i === 'transcendent_sig' && e.sg === sg), sg + ' is a known signature, not the fallback');
+    const b = await battle({teams: [BLAST(['surf', 'aquatail']), LAX(U2, ['bodyslam'])], moves: turn => [turn ? 'move 2' : 'move 1', 'move 1'], turns: 2,
+      fx: csig(sg, 75, 60, [{op: 'heal', pct: 4}])});
+    assert.ok(!b.lines.some(l => l.includes('could not be applied')), sg + ': applied');
+    assert.ok(b.lines.some(l => l.startsWith('|turn|3')) || b.battle.ended, sg + ': the battle advanced');
+  }
+});
+
+test('C2. composed ramp and first-turns drawback (rising_pyre): weaker at first, then stronger each turn', async () => {
+  const teams = [BLAST(['surf']), LAX(U2)];
+  const plain = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 3}), 1);
+  const c = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 3, fx: csig('rising_pyre')}), 1);
+  ratioNear(c[0] / plain[0], 0.80, 0.03, 'turn 1');
+  ratioNear(c[2] / plain[2], 1.12, 0.03, 'turn 3: +12%');
+});
+
+test('C3. composed mark and no-crit (giant_hunter): the second hit on a marked foe is stronger; no crits', async () => {
+  const teams = [BLAST(['surf']), LAX(U2)];
+  const plain = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 2}), 1);
+  const c = deltas(await battle({teams, moves: ['move 1', 'move 1'], turns: 2, fx: csig('giant_hunter')}), 1);
+  assert.strictEqual(c[0], plain[0]);
+  ratioNear(c[1] / plain[1], 1.15, 0.03, 'marked');
+  assert.strictEqual(count(await battle({teams: [BLAST(['frostbreath']), LAX(U2)], moves: ['move 1', 'move 1'], fx: csig('giant_hunter')}), '|-crit|'), 0);
+});
+
+test('C4. composed gamble (all_in): heads x1.4, tails x0.75', async () => {
+  let heads = 0, tails = 0;
+  for (const s of SEEDS.slice(0, 10)) {
+    const make = payload => battle({teams: [BLAST(['surf']), LAX(U2)], moves: ['move 1', 'move 1'], seed: [s, 2, 3, 4], fx: payload});
+    const b = await make(csig('all_in'));
+    const ratio = lost(b, 1) / lost(await make(undefined), 1);
+    if (count(b, 'heads!')) { heads++; ratioNear(ratio, 1.4, 0.05, 'heads'); } else { tails++; ratioNear(ratio, 0.75, 0.05, 'tails'); }
+  }
+  assert.ok(heads >= 2 && tails >= 2, `${heads} heads, ${tails} tails`);
+});
+
+test('C5. composed counter, clutch and shield (iron_coffin)', async () => {
+  const struck = await battle({teams: [BLAST(['splash']), LAX(U2, ['bodyslam'])], moves: ['move 1', 'move 1'], fx: csig('iron_coffin')});
+  assert.strictEqual(lost(struck, 1), Math.floor(mon(struck, 1).maxhp * 10 / 100), 'Body Slam costs 10%');
+  const frail = [pack('Magikarp', U1, 'swiftswim', ['splash'], 50, '10'), INFLICTOR(['dragonclaw', 'splash'])];
+  const held = await battle({teams: frail, moves: ['move 1', 'move 1'], fx: csig('iron_coffin')});
+  assert.strictEqual(mon(held, 0).hp, 1, 'held on at 1 HP');
+});
+
+test('C6. composed legacy (inheritance): the next ally heals 40% and gains Attack and Sp. Atk', async () => {
+  const mine = [pack('Magikarp', U1, 'swiftswim', ['splash'], 50, '1'), pack('Blastoise', U3, 'torrent', ['splash'], 50, '60')].join(']');
+  const b = await battle({teams: [mine, INFLICTOR(['flamethrower', 'splash'])], moves: turn => (turn === 0 ? ['move 1', 'move 1'] : ['switch 2', 'move 2']),
+    turns: 2, fx: csig('inheritance')});
+  const ally = b.battle.sides[0].pokemon.find(p => p.uuid === U3);
+  assert.strictEqual(ally.hp, 60 + Math.floor(ally.maxhp * 40 / 100));
+  assert.ok(count(b, '|-boost|p1a: ' + U3 + '|atk|1') >= 1);
+});
+
+test('C7. composed lifesteal (undying_thirst) and incoming (vault_keeper) and type weakness (cinder_fang)', async () => {
+  const leech = await battle({teams: [BLAST(['surf'], '60'), LAX(U2)], moves: ['move 1', 'move 1'], fx: csig('undying_thirst')});
+  assert.strictEqual(mon(leech, 0).hp, 60 + Math.floor(lost(leech, 1) * 15 / 100));
+  const hit = payload => battle({teams: [BLAST(['splash']), LAX(U2, ['tackle'])], moves: ['move 1', 'move 1'], fx: payload});
+  ratioNear(lost(await hit(csig('vault_keeper')), 0) / lost(await hit(undefined), 0), 0.85, 0.04, 'vault_keeper takes 15% less');
+  const fairy = payload => battle({teams: [BLAST(['splash']), INFLICTOR(['dazzlinggleam'])], moves: ['move 1', 'move 1'], fx: payload});
+  ratioNear(lost(await fairy(csig('cinder_fang')), 0) / lost(await fairy(undefined), 0), 1.25, 0.04, 'cinder_fang: Fairy hurts 25% more');
+});
+
+test('C8. composed speed (phantom_step), frail (wildfire_gale) and bleed (razor_wind)', async () => {
+  const first = b => b.lines.find(l => l.startsWith('|move|')).split('|')[2].slice(0, 3);
+  const race = [pack('Blastoise', U1, 'torrent', ['surf'], 50), pack('Charizard', U2, 'blaze', ['flamethrower'], 50)];
+  assert.strictEqual(first(await battle({teams: race, moves: ['move 1', 'move 1'], fx: csig('phantom_step')})), 'p1a', '+30% Speed outruns Charizard');
+  const hit = payload => battle({teams: [BLAST(['splash']), LAX(U2, ['tackle'])], moves: ['move 1', 'move 1'], fx: payload});
+  assert.ok(lost(await hit(csig('wildfire_gale')), 0) > lost(await hit(undefined), 0), 'lower Defense');
+  const bled = await battle({teams: [BLAST(['surf']), LAX(U2)], moves: ['move 1', 'move 1'], fx: csig('razor_wind')});
+  assert.ok(count(bled, 'is bleeding!') >= 1, 'a special hit bleeds');
+});
+
+test('C9. composed status on being struck (toxic_thorns): contact attackers may be poisoned', async () => {
+  const thick = pack('Snorlax', U2, 'thickfat', ['bodyslam'], 100);
+  const poisoned = await across(() => ({teams: [BLAST(['splash']), thick], moves: ['move 1', 'move 1'], fx: csig('toxic_thorns')}), '|-status|p2a: ' + U2 + '|psn');
+  assert.ok(poisoned >= 4, `poisoned in ${poisoned} of ${SEEDS.length}`);
+});
+
 (async () => {
   baseline = await battle({teams: TEAMS(), moves: ['move 3', 'move 1']});          // before the module is installed
   fx.install({Battle});

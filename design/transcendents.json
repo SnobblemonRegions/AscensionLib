@@ -212,6 +212,762 @@
     "triple_seven"
    ],
    "blurb": "A giant paid in gold, hurt by its own weight."
+  },
+  {
+   "id": "rising_pyre",
+   "name": "Rising Pyre",
+   "uniques": [
+    "ashen_heart",
+    "crescendo"
+   ],
+   "blurb": "A fire that builds the longer it is left to burn."
+  },
+  {
+   "id": "cinder_fang",
+   "name": "Cinder Fang",
+   "uniques": [
+    "ashen_heart",
+    "nightfang"
+   ],
+   "blurb": "A bite that burns and feeds."
+  },
+  {
+   "id": "brazen_bull",
+   "name": "Brazen Bull",
+   "uniques": [
+    "ashen_heart",
+    "iron_maiden"
+   ],
+   "blurb": "A burning bronze hide that scalds whatever strikes it."
+  },
+  {
+   "id": "wildfire_gale",
+   "name": "Wildfire Gale",
+   "uniques": [
+    "ashen_heart",
+    "tailwind_heart"
+   ],
+   "blurb": "Flame carried on a racing wind."
+  },
+  {
+   "id": "hunters_pyre",
+   "name": "Hunter's Pyre",
+   "uniques": [
+    "ashen_heart",
+    "huntmark"
+   ],
+   "blurb": "Mark the prey, then let it burn."
+  },
+  {
+   "id": "funeral_pyre",
+   "name": "Funeral Pyre",
+   "uniques": [
+    "ashen_heart",
+    "martyrs_gift"
+   ],
+   "blurb": "Its ashes kindle the next to fight."
+  },
+  {
+   "id": "hearthguard",
+   "name": "Hearthguard",
+   "uniques": [
+    "ashen_heart",
+    "aegis_oath"
+   ],
+   "blurb": "A hearth that warms its keeper and burns the hand that strikes it."
+  },
+  {
+   "id": "gamblers_flame",
+   "name": "Gambler's Flame",
+   "uniques": [
+    "ashen_heart",
+    "fickle_fortune"
+   ],
+   "blurb": "Every turn a coin, every heads a blaze."
+  },
+  {
+   "id": "endless_encore",
+   "name": "Endless Encore",
+   "uniques": [
+    "last_breath",
+    "crescendo"
+   ],
+   "blurb": "The song that will not end until it is finished."
+  },
+  {
+   "id": "undying_thirst",
+   "name": "Undying Thirst",
+   "uniques": [
+    "last_breath",
+    "nightfang"
+   ],
+   "blurb": "It will not die while there is still blood to drink."
+  },
+  {
+   "id": "iron_coffin",
+   "name": "Iron Coffin",
+   "uniques": [
+    "last_breath",
+    "iron_maiden"
+   ],
+   "blurb": "Sealed in iron, it outlasts the blow that should have ended it."
+  },
+  {
+   "id": "phantom_step",
+   "name": "Phantom Step",
+   "uniques": [
+    "last_breath",
+    "tailwind_heart"
+   ],
+   "blurb": "Too quick to catch, too stubborn to fall."
+  },
+  {
+   "id": "the_last_hunt",
+   "name": "The Last Hunt",
+   "uniques": [
+    "last_breath",
+    "huntmark"
+   ],
+   "blurb": "Wounded, it marks one last prey."
+  },
+  {
+   "id": "final_vigil",
+   "name": "Final Vigil",
+   "uniques": [
+    "last_breath",
+    "martyrs_gift"
+   ],
+   "blurb": "It stands watch to the last, and leaves its strength behind."
+  },
+  {
+   "id": "unbroken_oath",
+   "name": "Unbroken Oath",
+   "uniques": [
+    "last_breath",
+    "aegis_oath"
+   ],
+   "blurb": "A vow kept past the breaking point."
+  },
+  {
+   "id": "dead_mans_hand",
+   "name": "Dead Man's Hand",
+   "uniques": [
+    "last_breath",
+    "fickle_fortune"
+   ],
+   "blurb": "Aces and eights, and one more hand to play."
+  },
+  {
+   "id": "slow_rot",
+   "name": "Slow Rot",
+   "uniques": [
+    "creeping_venom",
+    "crescendo"
+   ],
+   "blurb": "Poison that grows patient and then grows strong."
+  },
+  {
+   "id": "venom_kiss",
+   "name": "Venom Kiss",
+   "uniques": [
+    "creeping_venom",
+    "nightfang"
+   ],
+   "blurb": "A kiss that poisons and feeds."
+  },
+  {
+   "id": "toxic_thorns",
+   "name": "Toxic Thorns",
+   "uniques": [
+    "creeping_venom",
+    "iron_maiden"
+   ],
+   "blurb": "Barbs dipped in venom."
+  },
+  {
+   "id": "plague_wind",
+   "name": "Plague Wind",
+   "uniques": [
+    "creeping_venom",
+    "tailwind_heart"
+   ],
+   "blurb": "A fast, foul wind that wears down the sick."
+  },
+  {
+   "id": "stalking_venom",
+   "name": "Stalking Venom",
+   "uniques": [
+    "creeping_venom",
+    "huntmark"
+   ],
+   "blurb": "It marks its prey and lets the poison work."
+  },
+  {
+   "id": "bitter_legacy",
+   "name": "Bitter Legacy",
+   "uniques": [
+    "creeping_venom",
+    "martyrs_gift"
+   ],
+   "blurb": "Even its death is poison to its foes."
+  },
+  {
+   "id": "miasma_shell",
+   "name": "Miasma Shell",
+   "uniques": [
+    "creeping_venom",
+    "aegis_oath"
+   ],
+   "blurb": "A shell wrapped in toxic fog."
+  },
+  {
+   "id": "poisoned_dice",
+   "name": "Poisoned Dice",
+   "uniques": [
+    "creeping_venom",
+    "fickle_fortune"
+   ],
+   "blurb": "Loaded dice, laced with venom."
+  },
+  {
+   "id": "gathering_storm",
+   "name": "Gathering Storm",
+   "uniques": [
+    "stormcaller",
+    "crescendo"
+   ],
+   "blurb": "Clouds that build turn by turn."
+  },
+  {
+   "id": "blood_moon",
+   "name": "Blood Moon",
+   "uniques": [
+    "stormcaller",
+    "nightfang"
+   ],
+   "blurb": "Under a red sky, it feeds."
+  },
+  {
+   "id": "lightning_rod",
+   "name": "Lightning Rod",
+   "uniques": [
+    "stormcaller",
+    "iron_maiden"
+   ],
+   "blurb": "Strike it and the storm strikes back."
+  },
+  {
+   "id": "jet_stream",
+   "name": "Jet Stream",
+   "uniques": [
+    "stormcaller",
+    "tailwind_heart"
+   ],
+   "blurb": "Riding the high winds of its own weather."
+  },
+  {
+   "id": "storm_hunt",
+   "name": "Storm Hunt",
+   "uniques": [
+    "stormcaller",
+    "huntmark"
+   ],
+   "blurb": "The storm finds the prey it has marked."
+  },
+  {
+   "id": "rain_of_remembrance",
+   "name": "Rain of Remembrance",
+   "uniques": [
+    "stormcaller",
+    "martyrs_gift"
+   ],
+   "blurb": "A rain that falls for the fallen."
+  },
+  {
+   "id": "storm_bulwark",
+   "name": "Storm Bulwark",
+   "uniques": [
+    "stormcaller",
+    "aegis_oath"
+   ],
+   "blurb": "A wall of wind and rain."
+  },
+  {
+   "id": "thunder_lottery",
+   "name": "Thunder Lottery",
+   "uniques": [
+    "stormcaller",
+    "fickle_fortune"
+   ],
+   "blurb": "Lightning never strikes the same place twice. Usually."
+  },
+  {
+   "id": "bloodletting",
+   "name": "Bloodletting",
+   "uniques": [
+    "rupture",
+    "crescendo"
+   ],
+   "blurb": "Each turn the wounds run deeper."
+  },
+  {
+   "id": "vampire_bite",
+   "name": "Vampire Bite",
+   "uniques": [
+    "rupture",
+    "nightfang"
+   ],
+   "blurb": "Fangs that open a wound and drink from it."
+  },
+  {
+   "id": "barbed_hide",
+   "name": "Barbed Hide",
+   "uniques": [
+    "rupture",
+    "iron_maiden"
+   ],
+   "blurb": "Every barb leaves the attacker bleeding."
+  },
+  {
+   "id": "razor_wind",
+   "name": "Razor Wind",
+   "uniques": [
+    "rupture",
+    "tailwind_heart"
+   ],
+   "blurb": "A cutting gale."
+  },
+  {
+   "id": "blood_trail",
+   "name": "Blood Trail",
+   "uniques": [
+    "rupture",
+    "huntmark"
+   ],
+   "blurb": "It follows the blood to its prey."
+  },
+  {
+   "id": "blood_oath",
+   "name": "Blood Oath",
+   "uniques": [
+    "rupture",
+    "martyrs_gift"
+   ],
+   "blurb": "Sworn in blood, kept in death."
+  },
+  {
+   "id": "scarred_veteran",
+   "name": "Scarred Veteran",
+   "uniques": [
+    "rupture",
+    "aegis_oath"
+   ],
+   "blurb": "Every scar a lesson, every lesson a wound returned."
+  },
+  {
+   "id": "knife_toss",
+   "name": "Knife Toss",
+   "uniques": [
+    "rupture",
+    "fickle_fortune"
+   ],
+   "blurb": "Throw the knife, flip the coin."
+  },
+  {
+   "id": "rising_colossus",
+   "name": "Rising Colossus",
+   "uniques": [
+    "titans_heart",
+    "crescendo"
+   ],
+   "blurb": "A giant that wakes slowly and hits harder each turn."
+  },
+  {
+   "id": "giants_hunger",
+   "name": "Giant's Hunger",
+   "uniques": [
+    "titans_heart",
+    "nightfang"
+   ],
+   "blurb": "A giant that feeds on what it crushes."
+  },
+  {
+   "id": "iron_colossus",
+   "name": "Iron Colossus",
+   "uniques": [
+    "titans_heart",
+    "iron_maiden"
+   ],
+   "blurb": "Strike its weak point and pay for it."
+  },
+  {
+   "id": "falling_star",
+   "name": "Falling Star",
+   "uniques": [
+    "titans_heart",
+    "tailwind_heart"
+   ],
+   "blurb": "Fast, heavy, and gone."
+  },
+  {
+   "id": "giant_hunter",
+   "name": "Giant Hunter",
+   "uniques": [
+    "titans_heart",
+    "huntmark"
+   ],
+   "blurb": "It picks the biggest prey and brings it down."
+  },
+  {
+   "id": "titans_legacy",
+   "name": "Titan's Legacy",
+   "uniques": [
+    "titans_heart",
+    "martyrs_gift"
+   ],
+   "blurb": "When the giant falls, its strength passes on."
+  },
+  {
+   "id": "living_fortress",
+   "name": "Living Fortress",
+   "uniques": [
+    "titans_heart",
+    "aegis_oath"
+   ],
+   "blurb": "A wall with no weak point."
+  },
+  {
+   "id": "titans_wager",
+   "name": "Titan's Wager",
+   "uniques": [
+    "titans_heart",
+    "fickle_fortune"
+   ],
+   "blurb": "A giant betting on one great blow."
+  },
+  {
+   "id": "compound_interest",
+   "name": "Compound Interest",
+   "uniques": [
+    "triple_seven",
+    "crescendo"
+   ],
+   "blurb": "Every turn it stays, the returns grow."
+  },
+  {
+   "id": "blood_money",
+   "name": "Blood Money",
+   "uniques": [
+    "triple_seven",
+    "nightfang"
+   ],
+   "blurb": "Paid in full, in blood."
+  },
+  {
+   "id": "golden_cage",
+   "name": "Golden Cage",
+   "uniques": [
+    "triple_seven",
+    "iron_maiden"
+   ],
+   "blurb": "Gilded bars that bite back."
+  },
+  {
+   "id": "gold_rush",
+   "name": "Gold Rush",
+   "uniques": [
+    "triple_seven",
+    "tailwind_heart"
+   ],
+   "blurb": "First to the gold."
+  },
+  {
+   "id": "bounty_hunter",
+   "name": "Bounty Hunter",
+   "uniques": [
+    "triple_seven",
+    "huntmark"
+   ],
+   "blurb": "Mark the bounty, collect the prize."
+  },
+  {
+   "id": "inheritance",
+   "name": "Inheritance",
+   "uniques": [
+    "triple_seven",
+    "martyrs_gift"
+   ],
+   "blurb": "Its fortune passes to the next in line."
+  },
+  {
+   "id": "vault_keeper",
+   "name": "Vault Keeper",
+   "uniques": [
+    "triple_seven",
+    "aegis_oath"
+   ],
+   "blurb": "Guarding the treasure, at a cost."
+  },
+  {
+   "id": "all_in",
+   "name": "All In",
+   "uniques": [
+    "triple_seven",
+    "fickle_fortune"
+   ],
+   "blurb": "Everything on one flip."
+  },
+  {
+   "id": "night_symphony",
+   "name": "Night Symphony",
+   "uniques": [
+    "crescendo",
+    "nightfang"
+   ],
+   "blurb": "A slow song that feeds as it swells."
+  },
+  {
+   "id": "tempered_steel",
+   "name": "Tempered Steel",
+   "uniques": [
+    "crescendo",
+    "iron_maiden"
+   ],
+   "blurb": "Every blow it takes hardens it further."
+  },
+  {
+   "id": "accelerando",
+   "name": "Accelerando",
+   "uniques": [
+    "crescendo",
+    "tailwind_heart"
+   ],
+   "blurb": "Faster and stronger with every bar."
+  },
+  {
+   "id": "stalkers_rhythm",
+   "name": "Stalker's Rhythm",
+   "uniques": [
+    "crescendo",
+    "huntmark"
+   ],
+   "blurb": "It learns its prey, beat by beat."
+  },
+  {
+   "id": "requiem",
+   "name": "Requiem",
+   "uniques": [
+    "crescendo",
+    "martyrs_gift"
+   ],
+   "blurb": "A last song that carries on after the singer."
+  },
+  {
+   "id": "rising_bastion",
+   "name": "Rising Bastion",
+   "uniques": [
+    "crescendo",
+    "aegis_oath"
+   ],
+   "blurb": "Walls that rise higher every turn it holds."
+  },
+  {
+   "id": "double_or_nothing",
+   "name": "Double or Nothing",
+   "uniques": [
+    "crescendo",
+    "fickle_fortune"
+   ],
+   "blurb": "Let it ride."
+  },
+  {
+   "id": "blood_maiden",
+   "name": "Blood Maiden",
+   "uniques": [
+    "nightfang",
+    "iron_maiden"
+   ],
+   "blurb": "Spikes that drink."
+  },
+  {
+   "id": "night_flight",
+   "name": "Night Flight",
+   "uniques": [
+    "nightfang",
+    "tailwind_heart"
+   ],
+   "blurb": "Wings in the dark, fangs at the end."
+  },
+  {
+   "id": "blood_scent",
+   "name": "Blood Scent",
+   "uniques": [
+    "nightfang",
+    "huntmark"
+   ],
+   "blurb": "Once it tastes you, it will not stop."
+  },
+  {
+   "id": "eternal_night",
+   "name": "Eternal Night",
+   "uniques": [
+    "nightfang",
+    "martyrs_gift"
+   ],
+   "blurb": "The night does not end when it falls."
+  },
+  {
+   "id": "crimson_aegis",
+   "name": "Crimson Aegis",
+   "uniques": [
+    "nightfang",
+    "aegis_oath"
+   ],
+   "blurb": "A shield that feeds its bearer."
+  },
+  {
+   "id": "vampires_gamble",
+   "name": "Vampire's Gamble",
+   "uniques": [
+    "nightfang",
+    "fickle_fortune"
+   ],
+   "blurb": "Feast or famine."
+  },
+  {
+   "id": "spiked_wheel",
+   "name": "Spiked Wheel",
+   "uniques": [
+    "iron_maiden",
+    "tailwind_heart"
+   ],
+   "blurb": "Rolling fast, and sharp all over."
+  },
+  {
+   "id": "iron_trap",
+   "name": "Iron Trap",
+   "uniques": [
+    "iron_maiden",
+    "huntmark"
+   ],
+   "blurb": "Bait, mark and snap."
+  },
+  {
+   "id": "iron_martyr",
+   "name": "Iron Martyr",
+   "uniques": [
+    "iron_maiden",
+    "martyrs_gift"
+   ],
+   "blurb": "It falls on its own spikes for its allies."
+  },
+  {
+   "id": "iron_aegis",
+   "name": "Iron Aegis",
+   "uniques": [
+    "iron_maiden",
+    "aegis_oath"
+   ],
+   "blurb": "Touch it and regret it."
+  },
+  {
+   "id": "spiked_roulette",
+   "name": "Spiked Roulette",
+   "uniques": [
+    "iron_maiden",
+    "fickle_fortune"
+   ],
+   "blurb": "Spin the wheel, mind the spikes."
+  },
+  {
+   "id": "swift_hunt",
+   "name": "Swift Hunt",
+   "uniques": [
+    "tailwind_heart",
+    "huntmark"
+   ],
+   "blurb": "Fast enough to mark the prey first."
+  },
+  {
+   "id": "last_flight",
+   "name": "Last Flight",
+   "uniques": [
+    "tailwind_heart",
+    "martyrs_gift"
+   ],
+   "blurb": "It flies until it falls, then lifts the next."
+  },
+  {
+   "id": "gale_bulwark",
+   "name": "Gale Bulwark",
+   "uniques": [
+    "tailwind_heart",
+    "aegis_oath"
+   ],
+   "blurb": "A wall of wind."
+  },
+  {
+   "id": "fortunes_wind",
+   "name": "Fortune's Wind",
+   "uniques": [
+    "tailwind_heart",
+    "fickle_fortune"
+   ],
+   "blurb": "Which way will the wind blow?"
+  },
+  {
+   "id": "pack_hunt",
+   "name": "Pack Hunt",
+   "uniques": [
+    "huntmark",
+    "martyrs_gift"
+   ],
+   "blurb": "One marks the prey, the pack finishes it."
+  },
+  {
+   "id": "sentinels_watch",
+   "name": "Sentinel's Watch",
+   "uniques": [
+    "huntmark",
+    "aegis_oath"
+   ],
+   "blurb": "It guards and watches for the one to strike."
+  },
+  {
+   "id": "lucky_shot",
+   "name": "Lucky Shot",
+   "uniques": [
+    "huntmark",
+    "fickle_fortune"
+   ],
+   "blurb": "Mark the target, trust your luck."
+  },
+  {
+   "id": "oathkeeper",
+   "name": "Oathkeeper",
+   "uniques": [
+    "martyrs_gift",
+    "aegis_oath"
+   ],
+   "blurb": "It holds the line and hands its strength on."
+  },
+  {
+   "id": "final_wager",
+   "name": "Final Wager",
+   "uniques": [
+    "martyrs_gift",
+    "fickle_fortune"
+   ],
+   "blurb": "Bet it all, and leave the winnings behind."
+  },
+  {
+   "id": "loaded_shield",
+   "name": "Loaded Shield",
+   "uniques": [
+    "aegis_oath",
+    "fickle_fortune"
+   ],
+   "blurb": "A shield with a gambler behind it."
   }
  ],
  "signatures": [
@@ -361,6 +1117,594 @@
    "core": "A super-effective hit adds 10% of your max HP in damage; item rewards +20%.",
    "clutch": "",
    "drawback": "You take 22% more damage."
+  },
+  {
+   "id": "rising_pyre",
+   "pulse": "HIT",
+   "core": "Each turn you stay in adds 6% damage, up to 30%; burns you inflict deal 30% more.",
+   "clutch": "",
+   "drawback": "On your first two turns on the field your moves deal 20% less."
+  },
+  {
+   "id": "cinder_fang",
+   "pulse": "HIT",
+   "core": "Your hits have a 20% chance to burn the foe; your hits heal you 15% of the damage they deal.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Water and Fairy moves."
+  },
+  {
+   "id": "brazen_bull",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move have a 30% chance to be burned; foes that hit you with a contact move lose 8% of their max HP.",
+   "clutch": "",
+   "drawback": "Your contact moves deal 20% less."
+  },
+  {
+   "id": "wildfire_gale",
+   "pulse": "HIT",
+   "core": "Your Speed is 25% higher; your hits have a 15% chance to burn the foe.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 12% lower."
+  },
+  {
+   "id": "hunters_pyre",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 20% more; you deal 10% more to foes with a status condition.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "funeral_pyre",
+   "pulse": "STRUCK",
+   "core": "When you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk; burns you inflict deal 30% more.",
+   "clutch": "",
+   "drawback": "You take 12% more damage."
+  },
+  {
+   "id": "hearthguard",
+   "pulse": "STRUCK",
+   "core": "You take 18% less damage; foes that hit you with a contact move have a 20% chance to be burned.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "gamblers_flame",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 35% more that turn; your hits have a 15% chance to burn the foe.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "endless_encore",
+   "pulse": "TICK",
+   "core": "Each turn you stay in adds 8% damage, up to 40%.",
+   "clutch": "A lethal hit leaves you at 1 HP and your next move deals 20% more.",
+   "drawback": "On your first two turns on the field your moves deal 20% less."
+  },
+  {
+   "id": "undying_thirst",
+   "pulse": "HIT",
+   "core": "Your hits heal you 15% of the damage they deal.",
+   "clutch": "A lethal hit leaves you at 15% HP instead of fainting.",
+   "drawback": "You take 25% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "iron_coffin",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move lose 10% of their max HP.",
+   "clutch": "A lethal hit leaves you at 1 HP and the next hit you take deals 30% less.",
+   "drawback": "Your contact moves deal 20% less."
+  },
+  {
+   "id": "phantom_step",
+   "pulse": "HIT",
+   "core": "Your Speed is 30% higher.",
+   "clutch": "A lethal hit leaves you at 1 HP.",
+   "drawback": "Your Defense and Sp. Def are 15% lower."
+  },
+  {
+   "id": "the_last_hunt",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 20% more.",
+   "clutch": "A lethal hit leaves you at 1 HP and your next move deals 30% more.",
+   "drawback": "Your Speed is 12% lower."
+  },
+  {
+   "id": "final_vigil",
+   "pulse": "STRUCK",
+   "core": "When you faint, the next ally to enter heals 50% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "A lethal hit leaves you at 1 HP.",
+   "drawback": "You take 15% more damage."
+  },
+  {
+   "id": "unbroken_oath",
+   "pulse": "STRUCK",
+   "core": "You take 20% less damage.",
+   "clutch": "A lethal hit leaves you at 20% HP instead of fainting.",
+   "drawback": "Your moves deal 25% less."
+  },
+  {
+   "id": "dead_mans_hand",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 40% more that turn.",
+   "clutch": "A lethal hit leaves you at 1 HP and your next move deals 30% more.",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "slow_rot",
+   "pulse": "TICK",
+   "core": "Poison you inflict deals 25% more; each turn you stay in adds 5% damage, up to 25%.",
+   "clutch": "",
+   "drawback": "On your first two turns on the field your moves deal 20% less."
+  },
+  {
+   "id": "venom_kiss",
+   "pulse": "HIT",
+   "core": "Your contact hits have a 25% chance to poison the foe; your hits heal you 10% of the damage they deal.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Fire and Psychic moves."
+  },
+  {
+   "id": "toxic_thorns",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move have a 35% chance to be poisoned; foes that hit you with a contact move lose 6% of their max HP.",
+   "clutch": "",
+   "drawback": "Your contact moves deal 20% less."
+  },
+  {
+   "id": "plague_wind",
+   "pulse": "TICK",
+   "core": "Your Speed is 20% higher; foes with a status condition lose 3% of max HP at the end of each turn.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 12% lower."
+  },
+  {
+   "id": "stalking_venom",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 15% more; poison you inflict deals 30% more.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "bitter_legacy",
+   "pulse": "STRUCK",
+   "core": "When you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk; foes that hit you have a 25% chance to be poisoned.",
+   "clutch": "",
+   "drawback": "You take 12% more damage."
+  },
+  {
+   "id": "miasma_shell",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; foes that hit you with a contact move have a 30% chance to be poisoned.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "poisoned_dice",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 35% more that turn; your hits have a 20% chance to poison the foe.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "gathering_storm",
+   "pulse": "TICK",
+   "core": "Each turn you stay in adds 6% damage, up to 30%; while any weather is active your moves deal 10% more.",
+   "clutch": "",
+   "drawback": "With no weather your moves deal 15% less."
+  },
+  {
+   "id": "blood_moon",
+   "pulse": "HIT",
+   "core": "Your hits heal you 12% of the damage they deal; heal 3% of max HP at the end of each turn while any weather is active.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "lightning_rod",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move have a 30% chance to be paralysed; foes that hit you with a contact move lose 6% of their max HP.",
+   "clutch": "",
+   "drawback": "You take 15% more damage with no weather."
+  },
+  {
+   "id": "jet_stream",
+   "pulse": "HIT",
+   "core": "Your Speed is 25% higher; moves of the active weather's type deal 15% more.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 12% lower."
+  },
+  {
+   "id": "storm_hunt",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 15% more; while any weather is active your moves deal 10% more.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "rain_of_remembrance",
+   "pulse": "TICK",
+   "core": "When you faint, the next ally to enter heals 40% of its max HP and gains +1 Attack and Sp. Atk; heal 3% of max HP at the end of each turn while any weather is active.",
+   "clutch": "",
+   "drawback": "You take 15% more damage with no weather."
+  },
+  {
+   "id": "storm_bulwark",
+   "pulse": "STRUCK",
+   "core": "You take 25% less damage while any weather is active.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "thunder_lottery",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; moves of the active weather's type deal 15% more.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "bloodletting",
+   "pulse": "HIT",
+   "core": "Your physical hits cause bleeding; each turn you stay in adds 5% damage, up to 25%.",
+   "clutch": "",
+   "drawback": "On your first two turns on the field your moves deal 20% less."
+  },
+  {
+   "id": "vampire_bite",
+   "pulse": "HIT",
+   "core": "Your contact hits cause bleeding; your hits heal you 12% of the damage they deal.",
+   "clutch": "",
+   "drawback": "You take 30% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "barbed_hide",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move start bleeding; foes that hit you with a contact move lose 5% of their max HP.",
+   "clutch": "",
+   "drawback": "Your contact moves deal 20% less."
+  },
+  {
+   "id": "razor_wind",
+   "pulse": "HIT",
+   "core": "Your Speed is 20% higher; your damaging hits cause bleeding.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 15% lower."
+  },
+  {
+   "id": "blood_trail",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 15% more; you deal 12% more to bleeding foes; your physical hits cause bleeding.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "blood_oath",
+   "pulse": "KO",
+   "core": "Your physical hits cause bleeding; when you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "You take 12% more damage."
+  },
+  {
+   "id": "scarred_veteran",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; foes that hit you with a contact move start bleeding.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "knife_toss",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; your damaging hits cause bleeding.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "rising_colossus",
+   "pulse": "HIT",
+   "core": "Each turn you stay in adds 6% damage, up to 30%; a super-effective hit adds 6% of your max HP in damage.",
+   "clutch": "",
+   "drawback": "Healing you receive is 50% lower."
+  },
+  {
+   "id": "giants_hunger",
+   "pulse": "HIT",
+   "core": "A super-effective hit adds 7% of your max HP in damage; your hits heal you 10% of the damage they deal.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "iron_colossus",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a super-effective move lose 10% of their max HP; foes that hit you with a contact move lose 5% of their max HP.",
+   "clutch": "",
+   "drawback": "Your Speed is 15% lower."
+  },
+  {
+   "id": "falling_star",
+   "pulse": "HIT",
+   "core": "Your Speed is 20% higher; a super-effective hit adds 7% of your max HP in damage.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 15% lower."
+  },
+  {
+   "id": "giant_hunter",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 15% more; a super-effective hit adds 6% of your max HP in damage.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "titans_legacy",
+   "pulse": "KO",
+   "core": "A super-effective hit adds 6% of your max HP in damage; when you faint, the next ally to enter heals 40% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "Healing you receive is 50% lower."
+  },
+  {
+   "id": "living_fortress",
+   "pulse": "STRUCK",
+   "core": "You take 30% less damage from super-effective moves; you take 8% less damage.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "titans_wager",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; a super-effective hit adds 6% of your max HP in damage.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "compound_interest",
+   "pulse": "KO",
+   "core": "Each turn you stay in adds 5% damage, up to 25%; item rewards +15%.",
+   "clutch": "",
+   "drawback": "You take 15% more damage."
+  },
+  {
+   "id": "blood_money",
+   "pulse": "KO",
+   "core": "Each KO heals you 10% of max HP; item rewards +15%.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "golden_cage",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move lose 8% of their max HP; item rewards +15%.",
+   "clutch": "",
+   "drawback": "Your contact moves deal 20% less."
+  },
+  {
+   "id": "gold_rush",
+   "pulse": "KO",
+   "core": "Your Speed is 20% higher; item rewards +15%.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 15% lower."
+  },
+  {
+   "id": "bounty_hunter",
+   "pulse": "KO",
+   "core": "Your first hit marks a foe; your later moves against it deal 15% more; item rewards +15%.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "inheritance",
+   "pulse": "KO",
+   "core": "When you faint, the next ally to enter heals 40% of its max HP and gains +1 Attack and Sp. Atk; item rewards +15%.",
+   "clutch": "",
+   "drawback": "You take 15% more damage."
+  },
+  {
+   "id": "vault_keeper",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; item rewards +15%.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "all_in",
+   "pulse": "KO",
+   "core": "Each turn a coin is flipped: heads, your moves deal 40% more that turn; item rewards +20%.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 25% less that turn."
+  },
+  {
+   "id": "night_symphony",
+   "pulse": "HIT",
+   "core": "Each turn you stay in adds 6% damage, up to 30%; your hits heal you 10% of the damage they deal.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "tempered_steel",
+   "pulse": "STRUCK",
+   "core": "Each turn you stay in adds 5% damage, up to 25%; foes that hit you with a contact move lose 6% of their max HP.",
+   "clutch": "",
+   "drawback": "On your first two turns on the field your moves deal 25% less."
+  },
+  {
+   "id": "accelerando",
+   "pulse": "HIT",
+   "core": "Each turn you stay in adds 5% damage, up to 25%; your Speed is 20% higher.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 12% lower."
+  },
+  {
+   "id": "stalkers_rhythm",
+   "pulse": "HIT",
+   "core": "Each turn you stay in adds 5% damage, up to 25%; your first hit marks a foe; your later moves against it deal 15% more.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "requiem",
+   "pulse": "TICK",
+   "core": "Each turn you stay in adds 6% damage, up to 30%; when you faint, the next ally to enter heals 40% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "On your first two turns on the field your moves deal 20% less."
+  },
+  {
+   "id": "rising_bastion",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; each turn you stay in adds 4% damage, up to 20%.",
+   "clutch": "",
+   "drawback": "On your first two turns on the field your moves deal 30% less."
+  },
+  {
+   "id": "double_or_nothing",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; each turn you stay in adds 4% damage, up to 20%.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "blood_maiden",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move lose 8% of their max HP; your hits heal you 10% of the damage they deal.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "night_flight",
+   "pulse": "HIT",
+   "core": "Your Speed is 25% higher; your hits heal you 10% of the damage they deal.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 15% lower."
+  },
+  {
+   "id": "blood_scent",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 15% more; your hits heal you 10% of the damage they deal.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "eternal_night",
+   "pulse": "KO",
+   "core": "Each KO heals you 12% of max HP; when you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "You take 25% more damage from Fire and Fairy moves."
+  },
+  {
+   "id": "crimson_aegis",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; your hits heal you 8% of the damage they deal.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "vampires_gamble",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; your hits heal you 10% of the damage they deal.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "spiked_wheel",
+   "pulse": "HIT",
+   "core": "Your Speed is 20% higher; foes that hit you with a contact move lose 6% of their max HP.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 15% lower."
+  },
+  {
+   "id": "iron_trap",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move lose 8% of their max HP; your first hit marks a foe; your later moves against it deal 15% more.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "iron_martyr",
+   "pulse": "STRUCK",
+   "core": "Foes that hit you with a contact move lose 8% of their max HP; when you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "Your contact moves deal 20% less."
+  },
+  {
+   "id": "iron_aegis",
+   "pulse": "STRUCK",
+   "core": "You take 25% less damage from contact moves; foes that hit you with a contact move lose 6% of their max HP.",
+   "clutch": "",
+   "drawback": "Your moves deal 25% less."
+  },
+  {
+   "id": "spiked_roulette",
+   "pulse": "STRUCK",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; foes that hit you with a contact move lose 6% of their max HP.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "swift_hunt",
+   "pulse": "HIT",
+   "core": "Your Speed is 20% higher; your first hit marks a foe; your later moves against it deal 15% more.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "last_flight",
+   "pulse": "HIT",
+   "core": "Your Speed is 25% higher; when you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "Your Defense and Sp. Def are 15% lower."
+  },
+  {
+   "id": "gale_bulwark",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; your Speed is 15% higher.",
+   "clutch": "",
+   "drawback": "Your moves deal 20% less."
+  },
+  {
+   "id": "fortunes_wind",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; your Speed is 15% higher.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "pack_hunt",
+   "pulse": "HIT",
+   "core": "Your first hit marks a foe; your later moves against it deal 20% more; when you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "sentinels_watch",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; your first hit marks a foe; your later moves against it deal 15% more.",
+   "clutch": "",
+   "drawback": "You cannot land critical hits."
+  },
+  {
+   "id": "lucky_shot",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 30% more that turn; your first hit marks a foe; your later moves against it deal 15% more.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
+  },
+  {
+   "id": "oathkeeper",
+   "pulse": "STRUCK",
+   "core": "You take 18% less damage; when you faint, the next ally to enter heals 50% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "Your moves deal 25% less."
+  },
+  {
+   "id": "final_wager",
+   "pulse": "HIT",
+   "core": "Each turn a coin is flipped: heads, your moves deal 35% more that turn; when you faint, the next ally to enter heals 35% of its max HP and gains +1 Attack and Sp. Atk.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 25% less that turn."
+  },
+  {
+   "id": "loaded_shield",
+   "pulse": "STRUCK",
+   "core": "You take 15% less damage; each turn a coin is flipped: heads, your moves deal 25% more that turn.",
+   "clutch": "",
+   "drawback": "Tails: your moves deal 20% less that turn."
   }
  ],
  "twists": {

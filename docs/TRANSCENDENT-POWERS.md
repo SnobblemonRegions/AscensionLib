@@ -1,5 +1,7 @@
 # Transcendent powers: 21 signatures, 25 twists, 25 riders (design for approval, 2026-10-09)
 
+> 2026-11-25: 84 more signatures, one for every pair that includes a second-batch Unique, are **composed** from data. See docs/AFFIX-EXPANSION-DESIGN.md, part C.
+
 Status: **approved by the owner 2026-10-09. The pulse system, the effect vocabulary, all 25 motif twists and all 80 bespoke recipe twists, all 25 riders and three pilot signatures (Phoenix Cinder, Eye of the Storm, Jackpot Titan) are built and simulator-tested. All 21 signatures are now coded in the simulator (`TRANSCEND_SIGNATURES`; see `BUILD-STATUS.md`, 2026-10-09), and a profile can hold a Transcendent (Fusion); the fallback to the two Uniques remains only for a signature id the module does not know.** Every number is provisional. It replaces, signature by signature, the battle effect first built for fusion (two Uniques at reduced strength; see [FUSION-DESIGN.md](FUSION-DESIGN.md)). Recipes, lore, harmony and names are unchanged.
 
 ## What the owner decided (2026-10-09)

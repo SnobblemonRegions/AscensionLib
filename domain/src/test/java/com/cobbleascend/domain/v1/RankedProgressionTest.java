@@ -225,10 +225,13 @@ class RankedProgressionTest {
         int draws = 100_000;
         for (int n = 0; n < draws; n++) counts.merge(progression.reforge(profile, "prefix:0", types, random)
                 .profile().slot("prefix:0").orElseThrow().affixId(), 1, Integer::sum);
-        // Prefix weights total 1021: type_mastery 8, overwhelming_force 3, the three status affixes and Keen Edge and Ensnaring 40 each, Momentum and Swift Strike 30 each, standard templates 100 each.
-        assertEquals(draws * 8.0 / 1021, counts.get("type_mastery"), draws * 0.003);
-        assertEquals(draws * 3.0 / 1021, counts.get("overwhelming_force"), draws * 0.002);
-        assertEquals(draws * 100.0 / 1021, counts.get("type_focus"), draws * 0.01);
+        // Prefix weights total 1443: type_mastery 8, giant_slayer and pressure_point 6 each, overwhelming_force 3, the three status affixes, Keen Edge,
+        // Ensnaring, Ambush, Exploit Weakness and Armorbreak 40 each, Momentum, Swift Strike, Relentless and the two touches 30 each, standard templates
+        // (now with Brawler and Sharpshooter) 100 each.
+        assertEquals(draws * 8.0 / 1443, counts.get("type_mastery"), draws * 0.003);
+        assertEquals(draws * 3.0 / 1443, counts.get("overwhelming_force"), draws * 0.002);
+        assertEquals(draws * 6.0 / 1443, counts.get("giant_slayer"), draws * 0.002);
+        assertEquals(draws * 100.0 / 1443, counts.get("type_focus"), draws * 0.01);
         assertTrue(counts.get("overwhelming_force") < counts.get("type_mastery"));
         assertTrue(counts.get("type_mastery") * 5 < counts.get("physical_force"));
     }
@@ -456,7 +459,13 @@ class RankedProgressionTest {
     }
 
     @Test void aRefineNeverRollsBelowTheFloorAndEverythingAboveIsStillPossible() {
-        var profile = withRankFiveSlot(new Random(5));
+        // Four Perfecting steps need room: the first seed from 5 whose rolled affix has a rank V band at least 8 wide (a narrow one tops out sooner).
+        ProfileV1 profile = null;
+        for (int seed = 5; profile == null; seed++) {
+            var candidate = withRankFiveSlot(new Random(seed));
+            var wide = rules.affix(candidate.slot("prefix:0").orElseThrow().affixId()).band(5);
+            if (wide.max() - wide.min() >= 8) profile = candidate;
+        }
         for (int n = 0; n < 4; n++) profile = progression.perfect(profile, "prefix:0").profile();
         var slot = profile.slot("prefix:0").orElseThrow();
         var band = rules.affix(slot.affixId()).band(5);

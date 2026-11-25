@@ -44,7 +44,7 @@ class TranscendenceTest {
     }
 
     @Test void thereIsOneBaseForEveryPairOfUniques() {
-        assertEquals(21, BOOK.baseCount());
+        assertEquals(105, BOOK.baseCount(), "one base for every pair of the 15 Uniques");
         var rules = RankedRules.defaults();
         var ids = rules.uniques().stream().map(UniqueDefinition::id).sorted().toList();
         var names = new HashSet<String>();
