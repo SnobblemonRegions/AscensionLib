@@ -75,6 +75,26 @@ Refine draws uniformly including the current value. The table describes numerica
 | Bracing Entry | 8–16% | 9 | 26 |
 | Wardstone | 5–10% | 6 | 17 |
 | Stubborn | 3–6% | 4 | 11 |
+| Ambush | 6–12% | 7 | 20 |
+| Brawler | 3–6% | 4 | 11 |
+| Sharpshooter | 3–6% | 4 | 11 |
+| Giant Slayer | 10–16% | 7 | 20 |
+| Relentless | 2–4% | 3 | 8 |
+| Exploit Weakness | 5–10% | 6 | 17 |
+| Armorbreak | 5–10% | 6 | 17 |
+| Pressure Point | 15–25% | 11 | 32 |
+| Searing Touch | 3–6% | 4 | 11 |
+| Venom Touch | 3–6% | 4 | 11 |
+| Siphon | 3–6% | 4 | 11 |
+| Thorns | 2–4% | 3 | 8 |
+| Purging | 8–15% | 8 | 23 |
+| Fresh Legs | 5–10% | 6 | 17 |
+| Stalwart | 8–15% | 8 | 23 |
+| Unyielding | 8–15% | 8 | 23 |
+| Watchful | 8–15% | 8 | 23 |
+| Resolute | 4–8% | 5 | 14 |
+| Insulated | 8–15% | 8 | 23 |
+| Hardening | 2–4% | 3 | 8 |
 
 ## Damage envelope
 
