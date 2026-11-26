@@ -7,10 +7,9 @@ A checklist so a release is the same every time. The version lives in one place,
 2. **Run everything locally:**
    ```
    gradlew build                              # all unit tests and the jar
-   python -I tools/build_resourcepack.py      # pack, item art, page icons, mod icon; prints the pack sha1
+   python -I tools/build_resourcepack.py      # pack, item art, icon art (art/icons), mod icon; prints the pack sha1
    python -I tools/build_guide.py --check     # the guide and wiki handoff match the code (drop --check to rewrite them)
    python -I tools/verify_artifact.py         # the jar nests domain, store and SQLite; Cobblemon pin recorded
-   node tools/page_harness.mjs                # every page in a headless browser
    ```
    Commit whatever the generators rewrote; CI fails if the committed copies differ.
 3. **Live pass:** run the checklist in `docs/LIVE-TEST-CHECKLIST.md` on a real server and client, on every Cobblemon version the mod declares.
@@ -21,5 +20,5 @@ A checklist so a release is the same every time. The version lives in one place,
 ## Compatibility notes to refresh each time
 
 - Cobblemon versions the mod declares (`fabric.mod.json`, `README.md`, `INSTALL.md`, `tools/verify_artifact.py`).
-- The WebGUI version the build compiles against (`ascensionlib/libs/README.md`, `.github/workflows/build.yml`).
+- The screens are native Snobblemon GUI pages (SnobbleGUIOverhaul): its `tools/required_pages.txt` must list every page this mod opens, and `tools/sync_asc_guide.py` must be rerun there when `design/guide.json` changes.
 - That the bundled Showdown inside Cobblemon is unchanged, or the simulator tests (`validation/showdown/ascension_fx_test.js --showdown-dir <unbundled Showdown>`) still pass.

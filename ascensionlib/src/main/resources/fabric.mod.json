@@ -36,7 +36,6 @@
   "suggests": {
     "cobbleraids": "*",
     "snobblemon_server": "*",
-    "webgui": ">=2.0.0",
     "polymer-resource-pack": "*"
   }
 }

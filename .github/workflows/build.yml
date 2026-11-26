@@ -35,14 +35,6 @@ jobs:
       - name: Make the wrapper executable
         run: chmod +x gradlew
 
-      # The mod compiles against WebGUI (MIT, github.com/mc-webgui/webgui), which is not committed: fetch the release and make the local dev copy.
-      - name: Fetch WebGUI
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download v2.0.0 -R mc-webgui/webgui -p 'webgui-fabric-2.0.0+mc1.21.1.jar' -D ascensionlib/libs
-          python3 tools/prepare_webgui_dev_jar.py
-
       # The mod also compiles against Polymer's resource-pack API (not committed): two small jars from the Nucleoid Maven.
       - name: Fetch Polymer
         run: |
@@ -83,7 +75,7 @@ jobs:
       - name: Check the resource pack is up to date
         run: |
           python3 tools/build_resourcepack.py
-          git diff --exit-code -- resourcepack ascensionlib/src/main/resources/web/ascensionlib/icons ascensionlib/src/main/resources/data
+          git diff --exit-code -- resourcepack art/icons ascensionlib/src/main/resources/data
 
       # The jar must nest domain, store and the SQLite driver, with the bundled catalog equal to design/.
       - name: Verify the built jar

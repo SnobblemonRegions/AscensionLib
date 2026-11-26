@@ -359,6 +359,10 @@ final class AscendWiring {
                                                 .executes(ctx -> grantAttunement(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot"),
                                                         IntegerArgumentType.getInteger(ctx, "points"))))))
                         // /ascend admin completion <tier> [pay]: show the Tower completion reveal for a tier; with "pay" it settles a real chest for you.
+                        // /ascend admin transcend <slot>: replay the Transcendence reveal for a bonded fusion in the party (nothing is changed)
+                        .then(Commands.literal("transcend")
+                                .then(Commands.argument("slot", IntegerArgumentType.integer(1, 6))
+                                        .executes(ctx -> transcendPreview(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "slot")))))
                         .then(Commands.literal("completion")
                                 .then(Commands.argument("tier", StringArgumentType.word())
                                         .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(List.of("bronze", "silver", "gold", "mythic"), builder))
@@ -743,6 +747,22 @@ final class AscendWiring {
         }
         source.sendSuccess(() -> Component.literal("[Ascend] Backed up the progression store to " + path.get() + " (the newest "
                 + com.cobbleascend.store.StoreBackups.KEEP + " are kept)."), true);
+        return 1;
+    }
+
+    private int transcendPreview(CommandSourceStack source, int slot) throws CommandSyntaxException {
+        if (!ready(source)) return 0;
+        var player = source.getPlayerOrException();
+        var pokemon = Cobblemon.INSTANCE.getStorage().getParty(player).get(slot - 1);
+        if (pokemon == null) {
+            source.sendFailure(Component.literal("That party slot is empty."));
+            return 0;
+        }
+        if (!com.ascensionlib.fusion.TranscendReveal.preview(player, service(), pokemon)) {
+            source.sendFailure(Component.literal("That Pokemon is not a bonded Transcendent."));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.literal("[Ascend] Transcendence reveal sent for slot " + slot + "."), false);
         return 1;
     }
 

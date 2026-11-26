@@ -4,7 +4,7 @@ usage: python -I tools/build_resourcepack.py
 
 Writes (all committed, regenerate after editing the design file or the art (tools/pixel_art.py)):
   resourcepack/                                                  the pack sources (pack.mcmeta, textures, models, base-item overrides)
-  ascensionlib/src/main/resources/web/ascensionlib/icons/*.png   the same icons for the web pages
+  art/icons/*.png   the same icons as source art (not shipped; tests check every currency and modifier has one)
   ascensionlib/src/main/resources/data/ascensionlib/loot_table/currency/*.json   one-item loot tables other mods and datapacks can reference
 and a zip you can host for clients, in build/AscensionLib-resourcepack.zip, printing its sha1 (put both in server.properties:
 resource-pack=<url>, resource-pack-sha1=<sha1>, require-resource-pack=true).
@@ -19,7 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 DESIGN = json.loads((ROOT / 'design' / 'currency-items.json').read_text(encoding='utf-8'))
 NS = DESIGN['namespace']
 PACK = ROOT / 'resourcepack'
-ICONS = ROOT / 'ascensionlib/src/main/resources/web/ascensionlib/icons'
+ICONS = ROOT / 'art/icons'
 LOOT = ROOT / 'ascensionlib/src/main/resources/data' / NS / 'loot_table/currency'
 ICON = ROOT / 'ascensionlib/src/main/resources/assets/ascensionlib/icon.png'
 AFFIX_ICONS = ICONS / 'affix'   # one crest per modifier (tools/affix_art.py), shown on the craft, inspect and overlay pages

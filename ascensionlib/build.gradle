@@ -7,7 +7,7 @@ base { archivesName = 'AscensionLib' }
 // The jars compiled against from libs/ are not in git (licences; see libs/README.md). Without one, Loom stops later with only "Failed to compute
 // checksum", which names no file. Check them first and say which one is missing and where to get it. Keep this list in step with the
 // files('libs/...') lines under dependencies.
-def localJars = ['webgui-dev.jar', 'polymer-resource-pack-0.9.19+1.21.1.jar', 'polymer-common-0.9.19+1.21.1.jar', 'project-fusion-fabric-2.1.0.jar']
+def localJars = ['polymer-resource-pack-0.9.19+1.21.1.jar', 'polymer-common-0.9.19+1.21.1.jar', 'project-fusion-fabric-2.1.0.jar']
 def missingJars = localJars.findAll { !file("libs/$it").exists() }
 if (!missingJars.isEmpty()) {
     throw new GradleException("Missing from ascensionlib/libs/: ${missingJars.join(', ')}. These jars are compiled against but not kept in git; "
@@ -37,10 +37,6 @@ dependencies {
     modImplementation 'net.fabricmc:fabric-loader:0.19.5'
     modImplementation 'net.fabricmc.fabric-api:fabric-api:0.116.6+1.21.1'
     modImplementation 'maven.modrinth:MdwFAVRL:GJ2a1b8O'
-    // WebGUI (github.com/mc-webgui/webgui, MIT) shows the server's pages on each client. Optional at runtime, so compile against it only;
-    // download its v2.0.0 jar and run tools/prepare_webgui_dev_jar.py (see libs/README.md). The dev server loads it too.
-    modCompileOnly files('libs/webgui-dev.jar')
-    modLocalRuntime files('libs/webgui-dev.jar')
     // Polymer (github.com/Patbox/polymer, LGPL) hosts the server resource pack. Optional at runtime: when it is installed the mod adds its item
     // art to the pack itself (PolymerPack); without it the mod runs unchanged. Compile against the two jars only (libs/README.md).
     modCompileOnly files('libs/polymer-resource-pack-0.9.19+1.21.1.jar', 'libs/polymer-common-0.9.19+1.21.1.jar')

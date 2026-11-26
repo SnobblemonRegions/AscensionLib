@@ -59,6 +59,13 @@ public final class TranscendReveal {
         });
     }
 
+    /** An operator's replay of the reveal (/ascend admin transcend): false when this Pokemon is not a bonded Transcendent. */
+    public static boolean preview(ServerPlayer player, ProfileService service, Pokemon fusion) {
+        if (view(service, fusion).isEmpty()) return false;
+        openFor(player, service, fusion);
+        return true;
+    }
+
     static Optional<View> view(ProfileService service, Pokemon fusion) {
         var row = service.store().fusion(fusion.getUuid());
         var head = FusionNbt.headOf(fusion);
