@@ -12,9 +12,9 @@ class CompatReportTest {
     }
 
     @Test void namesWhatIsInstalledAndWhatIsLostWithoutTheRest() {
-        var lines = report(Map.of("cobblemon", "1.8.2+1.21.1", "webgui", "2.0.0+mc1.21.1"));
+        var lines = report(Map.of("cobblemon", "1.8.2+1.21.1", "snobblemon_server", "2.22.0"));
         assertEquals(1, lines.size(), "no warning for a verified Cobblemon");
-        assertTrue(lines.get(0).contains("Cobblemon 1.8.2+1.21.1") && lines.get(0).contains("WebGUI 2.0.0+mc1.21.1"));
+        assertTrue(lines.get(0).contains("Cobblemon 1.8.2+1.21.1") && lines.get(0).contains("Snobblemon GUI 2.22.0"));
         assertTrue(lines.get(0).contains("CobbleRaids (modifiers do not act in battle)"));
         assertTrue(lines.get(0).contains("CobbleTowers (no Tower rewards)"));
     }
@@ -26,7 +26,7 @@ class CompatReportTest {
     }
 
     @Test void everythingPresentMeansNothingIsReportedMissing() {
-        var lines = report(Map.of("cobblemon", "1.8.1+1.21.1", "webgui", "2.0.0", "cobbleraids", "0.8.166", "cobbletowers", "0.29.0", "ascensiondungeons", "1.0", "polymer-core", "0.9.19"));
+        var lines = report(Map.of("cobblemon", "1.8.1+1.21.1", "snobblemon_server", "2.22.0", "cobbleraids", "0.8.166", "cobbletowers", "0.29.0", "ascensiondungeons", "1.0", "polymer-core", "0.9.19"));
         assertFalse(lines.get(0).contains("Not installed"));
     }
 }

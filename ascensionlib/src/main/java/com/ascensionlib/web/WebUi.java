@@ -17,12 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * The bridge to WebGUI, the client mod that shows this server's web pages: opening a page for a player, pushing JSON events to it and
- * receiving the messages it posts. Every screen of this mod is a page under {@code web/ascensionlib/} in the jar, copied to WebGUI's
- * {@code config/webgui/web/} folder at start so WebGUI ships it to clients over the connection they already have; no client mod of ours.
+ * Where this mod's screens are shown: opening a page for a player, pushing JSON events to it and receiving the messages it posts.
  *
- * <p>WebGUI is optional at runtime. Nothing here touches its classes unless {@link #available()}. A page is code the player can edit,
- * so every message is bounded, parsed defensively and re-checked by the server exactly as a native packet would have been.
+ * <p>Snobblemon GUI ({@code snobblemon_server}) is used when it is installed: every page is a native Snobblemon page ({@link SnobbleLink}) drawn by
+ * the Snobblemon Client. Otherwise WebGUI, the older web-page client mod, is used ({@link WebGuiLink}): every screen is then a page under
+ * {@code web/ascensionlib/} in the jar, copied to WebGUI's {@code config/webgui/web/} folder at start. With neither, there are no screens.
+ *
+ * <p>Both are optional at runtime and reached only through those two classes. A page's messages come from the player's client, so every message is
+ * bounded, parsed defensively and re-checked by the server exactly as a native packet would have been.
  */
 public final class WebUi {
     private static final Logger LOG = LoggerFactory.getLogger("ascensionlib");
@@ -30,20 +32,56 @@ public final class WebUi {
     private static final int MAX_MESSAGE = 4096;
     private static boolean registered;
 
+    /** What shows the screens, in order of preference. */
+    enum Backend { SNOBBLE, WEBGUI, NONE }
+
+    private static volatile Backend backend;
+
     private WebUi() {}
 
-    public static boolean available() { return FabricLoader.getInstance().isModLoaded("webgui"); }
+    /** Snobblemon GUI when installed, else WebGUI when installed, else nothing. Pure, for the tests. */
+    static Backend choose(boolean snobbleInstalled, boolean webguiInstalled) {
+        if (snobbleInstalled) return Backend.SNOBBLE;
+        return webguiInstalled ? Backend.WEBGUI : Backend.NONE;
+    }
+
+    /** The backend, chosen once: Snobblemon GUI falls back to WebGUI (or nothing) if it is installed but its API cannot be bound. */
+    static Backend backend() {
+        Backend chosen = backend;
+        if (chosen != null) return chosen;
+        synchronized (WebUi.class) {
+            if (backend != null) return backend;
+            var loader = FabricLoader.getInstance();
+            boolean webgui = loader.isModLoaded(WebGuiLink.MOD_ID);
+            chosen = choose(loader.isModLoaded(SnobbleLink.MOD_ID), webgui);
+            if (chosen == Backend.SNOBBLE) {
+                try {
+                    SnobbleLink.install();
+                } catch (ReflectiveOperationException | LinkageError | RuntimeException exception) {
+                    LOG.warn("Snobblemon GUI is installed but its page API could not be bound; {}", webgui ? "using WebGUI instead" : "screens are off",
+                            exception);
+                    chosen = choose(false, webgui);
+                }
+            }
+            backend = chosen;
+            return chosen;
+        }
+    }
+
+    /** Whether any screen can be shown on this server. */
+    public static boolean available() { return backend() != Backend.NONE; }
 
     /** Publishes the bundled pages when the server has started. Call once at startup; a no-op without WebGUI. */
     public static synchronized void init() {
         if (registered) return;
         registered = true;
-        if (!available()) {
-            LOG.info("WebGUI is not installed: AscensionLib's screens (craft, fusion, inspect, capture card) are unavailable. "
-                    + "Install the WebGUI mod on the server and on each client.");
-            return;
+        switch (backend()) {
+            case SNOBBLE -> LOG.info("AscensionLib's screens are shown by Snobblemon GUI (native pages; players need the Snobblemon Client).");
+            // Only WebGUI serves the web pages; Snobblemon GUI has its own layouts and nothing needs copying.
+            case WEBGUI -> ServerLifecycleEvents.SERVER_STARTED.register(server -> publish());
+            case NONE -> LOG.info("Snobblemon GUI is not installed: AscensionLib's screens (craft, fusion, inspect, capture card) are unavailable. "
+                    + "Install Snobblemon GUI on the server and the Snobblemon Client on each client.");
         }
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> publish());
     }
 
     /**
@@ -57,32 +95,43 @@ public final class WebUi {
      * opens it again the same way (see {@link PageNav}).
      */
     public static boolean open(ServerPlayer player, String page, String key, PageNav.Reopen reopen) {
-        if (!available()) {
-            player.sendSystemMessage(Component.literal("This screen needs the WebGUI mod on the server."));
+        Backend b = backend();
+        if (b == Backend.NONE) {
+            player.sendSystemMessage(Component.literal("This screen needs Snobblemon GUI on the server."));
             return false;
         }
-        if (land.webgui.WebviewNetworking.clientKind(player) != land.webgui.WebviewNetworking.ClientKind.CURRENT) {
-            player.sendSystemMessage(Component.literal("This screen is a web page: install the WebGUI mod on your client."));
+        if (!canShow(player)) {
+            player.sendSystemMessage(Component.literal(b == Backend.SNOBBLE ? "This screen needs the Snobblemon Client mod on your game."
+                    : "This screen is a web page: install the WebGUI mod on your client."));
             return false;
         }
         WebSprites.reset(player.getUUID());
         PageNav.opening(player.getUUID(), key, reopen, GuiPresence.isOpen(player.getUUID()));   // read before touch: was a page already up?
         GuiPresence.touch(player.getUUID());
-        land.webgui.api.WebviewApi.openGui(player, "webgui://ascensionlib/" + page);
+        if (b == Backend.SNOBBLE) {
+            if (!SnobbleLink.open(player, page)) LOG.warn("Snobblemon GUI has no page {} for {}", SnobbleLink.pageId(page), player.getGameProfile().getName());
+        } else {
+            WebGuiLink.open(player, page);
+        }
         return true;
     }
 
     /** Opens a transparent overlay (HUD) page; the player can still play. */
     public static boolean openHud(ServerPlayer player, String page) {
-        if (!available() || land.webgui.WebviewNetworking.clientKind(player) != land.webgui.WebviewNetworking.ClientKind.CURRENT) return false;
+        if (!canShow(player)) return false;
         WebSprites.reset(player.getUUID());
-        land.webgui.api.WebviewApi.openHud(player, "webgui://ascensionlib/" + page);
+        if (backend() == Backend.SNOBBLE) return SnobbleLink.openHud(player, page);
+        WebGuiLink.openHud(player, page);
         return true;
     }
 
     /** Whether this player's client can show our pages. */
     public static boolean canShow(ServerPlayer player) {
-        return available() && land.webgui.WebviewNetworking.clientKind(player) == land.webgui.WebviewNetworking.ClientKind.CURRENT;
+        return switch (backend()) {
+            case SNOBBLE -> SnobbleLink.canShow(player);
+            case WEBGUI -> WebGuiLink.canShow(player);
+            case NONE -> false;
+        };
     }
 
     /** WebGUI refuses a single event over 32 KB; stay under it with room for the framing. */
@@ -93,13 +142,15 @@ public final class WebUi {
 
     /** Sends an event whose JSON is already built; an event too large for WebGUI is logged and dropped, never truncated. */
     public static void emitRaw(ServerPlayer player, String event, String json) {
-        if (!available()) return;
+        Backend b = backend();
+        if (b == Backend.NONE) return;
         if (json.length() > MAX_EVENT) {
             LOG.warn("Page event {} for {} is {} characters, over WebGUI's limit; not sent", event, player.getGameProfile().getName(), json.length());
             return;
         }
         Profiler.sample("emit." + event + ".chars", json.length());
-        land.webgui.api.WebviewApi.emitToPage(player, event, json);
+        if (b == Backend.SNOBBLE) SnobbleLink.emit(player, event, json);
+        else WebGuiLink.emit(player, event, json);
     }
 
     /** What a page's message handler receives: the player and the parsed JSON object the page posted. */
@@ -110,8 +161,9 @@ public final class WebUi {
      * a failure in the handler is logged and never reaches the page.
      */
     public static void listen(String channel, PageHandler handler) {
-        if (!available()) return;
-        land.webgui.api.WebviewApi.onPageEvent(channel, (player, raw) -> {
+        Backend b = backend();
+        if (b == Backend.NONE) return;
+        java.util.function.BiConsumer<ServerPlayer, String> route = (player, raw) -> {
             var server = player.getServer();
             if (server == null || raw == null || raw.length() > MAX_MESSAGE) return;
             long queued = Profiler.start();
@@ -129,7 +181,9 @@ public final class WebUi {
                 }
                 Profiler.stop("page." + channel + ".run", started);
             });
-        });
+        };
+        if (b == Backend.SNOBBLE) SnobbleLink.listen(channel, route);
+        else WebGuiLink.listen(channel, route);
     }
 
     /** A bounded string field, or "" when absent or too long. */
@@ -155,7 +209,7 @@ public final class WebUi {
         return value != null && value.isJsonPrimitive() && value.getAsJsonPrimitive().isBoolean() && value.getAsBoolean();
     }
 
-    /** Copies every file under the jar's web/ascensionlib/ to WebGUI's web folder, then asks WebGUI to rescan. */
+    /** WebGUI only: copies every file under the jar's web/ascensionlib/ to WebGUI's web folder, then asks WebGUI to rescan. */
     private static void publish() {
         try {
             var container = FabricLoader.getInstance().getModContainer("ascensionlib").orElse(null);
@@ -176,7 +230,7 @@ public final class WebUi {
                     copied++;
                 }
             }
-            land.webgui.server.WebviewAssets.reload();
+            WebGuiLink.reloadAssets();
             LOG.info("Published the AscensionLib pages to {} ({} updated)", target, copied);
         } catch (IOException | RuntimeException | LinkageError exception) {
             LOG.warn("Could not publish the AscensionLib web pages; the screens will not open", exception);
