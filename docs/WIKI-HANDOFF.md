@@ -15,7 +15,7 @@ Every Pokémon you catch or hatch gets an ascension profile: a rarity and a few 
 1. Catch or hatch a Pokémon. Right-click your AscensionDex (get one with /ascend dex), pick it and press Inspect to see its rarity and traits.
 2. Level it up. Every 10 levels earns one upgrade credit (up to 10). Spend it on the Traits screen (Upgrade): one trait goes up a rank and rerolls its value. It never fails.
 3. Earn materials. Tower runs, trials, dungeons and raids pay Resonance Dust, Facets, Cores and more into your wallet (the Wallet tab of the Dex).
-4. Win battles with it. A Pokémon that fights in a victory earns 3 attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Ascended.
+4. Win battles with it. A Pokémon that fights in a victory earns 3 attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Radiant.
 5. Scout enemies. A Scouter reveals an enemy's rarity and traits before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.
 6. Go deep. At rank V you can Perfect and Overreach a trait; a Catalyst installs a Unique power; two Pokémon that each hold a Unique can be bonded at a Fuser into a Transcendent.
 
@@ -37,7 +37,7 @@ Everything you know from Cobblemon still works. Ascension adds one layer on top:
 | Rarity | How many trait slots it has (1 to 6) | Caught in a profile zone, or an Ascension Sigil | Promote it with attunement and materials. It never goes down |
 | Traits | Battle bonuses in those slots | Filled when a slot opens | Upgrade, Refine and Reforge on the Traits screen |
 
-> **Tip:** Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Ascended. Check IVs, EVs and nature on Cobblemon's Summary screen as usual.
+> **Tip:** Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Radiant. Check IVs, EVs and nature on Cobblemon's Summary screen as usual.
 
 ## Rarity and traits
 
@@ -45,7 +45,7 @@ Everything you know from Cobblemon still works. Ascension adds one layer on top:
 
 **At a glance:** Attack traits: more damage dealt; Guard traits: less damage taken, or more healing; A higher rank rolls a higher range; Traits of one theme boost each other.
 
-Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Ascended.
+Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Radiant.
 
 | Rarity | Trait slots | Layout | Base chance |
 |---|---|---|---|
@@ -53,8 +53,8 @@ Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits b
 | Uncommon | 2 | 1 attack, 1 guard | 28.0% |
 | Rare | 3 | 2 attack, 1 guard | 12.0% |
 | Epic | 4 | 2 attack, 2 guard | 4.0% |
-| Radiant | 5 | 3 attack, 2 guard | 0.90% |
-| Ascended | 6 | 3 attack, 3 guard | 0.10% |
+| Awakened | 5 | 3 attack, 2 guard | 0.90% |
+| Radiant | 6 | 3 attack, 3 guard | 0.10% |
 
 Each trait has a rank from I to V. Rank I is its base range; every later rank starts one above the last and is about half as wide as rank I, so rank V tops out near three times rank I. A value is always a whole percent.
 
@@ -84,8 +84,8 @@ Open the Traits screen with the Traits button, from the Dex or Inspect. Nothing 
 | Common to Uncommon | 20 dust | 3 |
 | Uncommon to Rare | 50 dust, 2 facets | 10 |
 | Rare to Epic | 100 dust, 5 facets | 25 |
-| Epic to Radiant | 200 dust, 10 facets, 2 cores | 50 |
-| Radiant to Ascended | 400 dust, 20 facets, 5 cores | 90 |
+| Epic to Awakened | 200 dust, 10 facets, 2 cores | 50 |
+| Awakened to Radiant | 400 dust, 20 facets, 5 cores | 90 |
 
 Attunement is earned only by Pokémon that fought: 3 for each victory over a Tower's floor 5 boss, a trial, a dungeon or a raid. Clearing a Tower's champion pays 12 to 22 more, rising with the run's difficulty, so a whole Tower is worth 15 to 25. A Pokémon with no profile earns nothing and you are told so; an Ascension Sigil gives it one.
 
@@ -116,7 +116,7 @@ A Transcendent is made at a Fuser, the lab machine from Project Fusion. Two Pok�
 3. Press Review Transcendence, then Transcend for good. Or press Plain fusion to fuse them without a Transcendence, for Project Fusion's own fee; a plain fusion can be separated later.
 4. The Fuser works for a moment. Collect the result by right-clicking the Fuser with a Poké Ball. A Transcendent is revealed as you collect it, and you can share it in chat.
 
-- Host (the body): Ascended, every upgrade credit spent, at least 150 attunement, holding a Unique.
+- Host (the body): Radiant, every upgrade credit spent, at least 150 attunement, holding a Unique.
 - Donor (the head): Epic or better, holding a different Unique, and not already a Transcendent.
 - Price: 600 dust, 30 facets, 10 cores, 1 Catalyst and 5 Tower Marks.
 - If the Fuser is interrupted (the server stops while it works), both Pokémon come back and the price is refunded.
@@ -139,12 +139,12 @@ Materials live in your wallet, which is saved with the world. Loot that drops as
 | Ascension Core | Epic | The heart of a promotion. Earned in the Tower. | Tradable |
 | Apex Shard | Epic | A crown of crystal won from raid bosses. Needed for the highest promotions. | Tradable |
 | Unique Fragment | Rare | Collect enough to assemble a Unique Catalyst. | Tradable |
-| Unique Catalyst | Radiant | Installs or replaces a Unique power. | Tradable |
+| Unique Catalyst | Awakened | Installs or replaces a Unique power. | Tradable |
 | Scouter | Uncommon | Reveals one enemy's rating. | Tradable |
 | Ascension Sigil | Epic | Gives a Pokemon with no profile a rolled rarity. | Tradable |
 | Tower Mark | Rare | Proof of a Tower clear. Bound to you; it cannot be traded. | Bound to you |
 | Hourglass of Undoing | Epic | Resets one Pokemon's ranks to I and returns its upgrade credits to spend again. Materials are not refunded. Never works on an Overreached Pokemon. | Tradable |
-| Unbinding Prism | Radiant | Swaps a Pokemon's Unique for another, with no Catalyst and no Tower Mark. | Tradable |
+| Unbinding Prism | Awakened | Swaps a Pokemon's Unique for another, with no Catalyst and no Tower Mark. | Tradable |
 | Spooky Essence | Epic | Halloween 2026. Spent with /ascend haunt to give a Pokemon a random Haunting. Earned from the World Boss; trade it freely. It works after the event ends. | Tradable |
 
 Take currency out as items to trade it, then redeem the items with Deposit. A 3% fee, rounded up, is paid on top of a withdrawal. Tower Marks are bound to you and can never be taken out.

@@ -56,7 +56,7 @@ const slots = [
 const craftView = {
   pokemonId: '00000000-0000-0000-0000-000000000001', name: 'Mewtwo', speciesId: 'cobblemon:mewtwo', aspects: [], level: 52, rarityId: 'mythical', uniqueName: '777',
   pending: 1, nextMilestone: 60, profileRevision: 7, walletRevision: 8, dust: 1234, facets: 40, cores: 3, scouters: 5, marks: 6, refine: price, reforge: price,
-  promotion: { toRarity: '', price, attunement: 90, attunementNeeded: 0, block: 'Already Ascended' },
+  promotion: { toRarity: '', price, attunement: 90, attunementNeeded: 0, block: 'Already Radiant' },
   unique: { currentId: '777', catalysts: 1, fragments: 3, fragmentsNeeded: 5, block: '', options: [
     { id: '777', name: '777', benefit: 'More item rewards.', drawback: 'Lower defence.', current: true },
     { id: 'fury', name: 'Fury', benefit: 'Hits harder.', drawback: 'Takes more damage.', current: false } ] },
@@ -416,8 +416,8 @@ await check('fusion: pick, preview, review, confirm, result', async () => {
 
 await check('fusion: a host that cannot host shows why, swap needs a valid host', async () => {
   const p = await open(null, 'fusion.html');
-  await emit(p, 'fusionCandidates', { host: entry('Pidgey', 'h9', 'common', true, false), hostBlock: 'Only an Ascended Pokémon can be the host.' });
-  yes((await p.textContent('#result')).includes('Only an Ascended'), 'reason shown');
+  await emit(p, 'fusionCandidates', { host: entry('Pidgey', 'h9', 'common', true, false), hostBlock: 'Only a Radiant Pokémon can be the host.' });
+  yes((await p.textContent('#result')).includes('Only a Radiant'), 'reason shown');
   eq(await p.isDisabled('#swap'), true, 'swap disabled');
   noErrors(p);
 });

@@ -178,7 +178,7 @@
     $('upgrade').disabled = !(s && s.id && s.rarityId && !s.locked);
     $('upgrade').title = s && s.locked ? 'This Pokemon is on loan and cannot be upgraded.' : s && s.id && !s.rarityId ? 'It has no ascension profile yet: inspect it to use an Ascension Sigil.' : '';
     $('fuse').disabled = !(s && s.id);
-    $('fuse').title = s && s.id ? 'Fuse: open the fusion screen with ' + s.name + ' as the host (an Ascended Pokémon with a Unique can be one; you can change it there).' : 'Pick a Pokemon first.';
+    $('fuse').title = s && s.id ? 'Fuse: open the fusion screen with ' + s.name + ' as the host (a Radiant Pokémon with a Unique can be one; you can change it there).' : 'Pick a Pokemon first.';
     // the footer says why a button is off, where the player is already looking (a tooltip may not show in the game's browser)
     partyInfo = !(s && s.id) ? 'Pick a Pokemon'
       : !s.rarityId ? s.name + ' has no profile yet: Inspect it to use an Ascension Sigil.'

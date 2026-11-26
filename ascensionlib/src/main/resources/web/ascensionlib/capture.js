@@ -88,7 +88,7 @@
     }));
     sprite.appendChild(prism);
     append(lcd, 'div', 'capture-rarity', A.rarityName(d.rarityId).toUpperCase());
-    // Rarity means trait slots (Common 1 to Ascended 6): say so where the badge is, in words a Cobblemon player can place.
+    // Rarity means trait slots (Common 1 to Radiant 6): say so where the badge is, in words a Cobblemon player can place.
     append(lcd, 'p', 'capture-meaning', (index + 1) + ' of 6 trait slots' + (index === 5 ? '' : ' · every Pokémon can reach 6'));
     var content = append(lcd, 'div', 'capture-content');
     var label = append(content, 'div', 'capture-label', 'TRAITS');
@@ -117,11 +117,11 @@
     }
     var promise = append(content, 'div', 'capture-promise'), quote = append(promise, 'p', 'quote');
     quote.appendChild(document.createTextNode('IVs are what it was born with. ')); append(quote, 'span', '', 'Rarity is how many traits it can hold.');
-    append(promise, 'p', 'sub', index === 5 ? 'An Ascended partner. Make it your own.' : 'Check IVs on the Summary screen as usual.');
+    append(promise, 'p', 'sub', index === 5 ? 'A Radiant partner. Make it your own.' : 'Check IVs on the Summary screen as usual.');
     var path = append(content, 'div', 'capture-path');
     path.setAttribute('aria-label', A.rarityName(d.rarityId) + ' rarity, ' + (index + 1) + ' of 6');
     for (i = 0; i < 6; i++) decorative(append(path, 'i', i <= index ? 'on' : ''));
-    var labels = append(content, 'div', 'capture-path-labels'); append(labels, 'span', '', 'COMMON'); append(labels, 'span', '', 'ASCENDED');
+    var labels = append(content, 'div', 'capture-path-labels'); append(labels, 'span', '', 'COMMON'); append(labels, 'span', '', 'RADIANT');
     var actions = append(content, 'div', 'capture-actions');
     var open = append(actions, 'button', 'primary', 'Inspect'); open.type = 'button'; open.addEventListener('click', explore);
     var keep = append(actions, 'button', 'capture-continue', 'Continue'); keep.type = 'button'; keep.addEventListener('click', dismiss);

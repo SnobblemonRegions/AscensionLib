@@ -19,7 +19,7 @@ public final class PartyWeb {
     /**
      * One party slot. {@code id} is empty for an empty slot; {@code rarityId} is empty when the Pokemon has no profile. {@code attack} and {@code guard} are
      * the ranks (1-5) of its Attack and Guard traits; {@code attackSlots} and {@code guardSlots} how many its rarity allows, so the card can show the open ones.
-     * {@code nextMilestone} (0: all reached), {@code attunement} and {@code attunementNeeded} (0 at Ascended) give the card its next goal.
+     * {@code nextMilestone} (0: all reached), {@code attunement} and {@code attunementNeeded} (0 at Radiant) give the card its next goal.
      * {@code traits}: each trait's name, value, range and unit, Attack ones first and then Guard, in the same order as {@code attack} and {@code guard}, so a
      * card's trait cell can show what it is on hover (catalog and profile facts only, as Inspect shows them).
      */

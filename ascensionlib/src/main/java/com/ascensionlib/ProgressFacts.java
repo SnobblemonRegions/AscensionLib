@@ -18,7 +18,7 @@ public final class ProgressFacts {
         return 0;
     }
 
-    /** The attunement the next promotion needs, or 0 at Ascended, where there is no next promotion. */
+    /** The attunement the next promotion needs, or 0 at Radiant, where there is no next promotion. */
     public static int attunementNeeded(RankedRules rules, ProfileV1 profile) {
         if (profile.rarity() == Rarity.MYTHICAL) return 0;
         return rules.base().promotion(profile.rarity(), Tunables.current().threat().enabled()).attunement();

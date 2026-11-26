@@ -185,7 +185,7 @@ public final class CraftNet {
         }
         CraftPayloads.Promotion promotion;
         if (profile.rarity() == Rarity.MYTHICAL) {
-            promotion = new CraftPayloads.Promotion("", new CraftPayloads.Price(0, 0, 0), profile.attunement(), 0, "Already Ascended");
+            promotion = new CraftPayloads.Promotion("", new CraftPayloads.Price(0, 0, 0), profile.attunement(), 0, "Already Radiant");
         } else {
             var step = rules.base().promotion(profile.rarity(), Tunables.current().threat().enabled());
             String block = profile.attunement() < step.attunement()

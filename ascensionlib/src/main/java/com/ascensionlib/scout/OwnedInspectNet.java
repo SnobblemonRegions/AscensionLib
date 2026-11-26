@@ -59,7 +59,7 @@ public final class OwnedInspectNet {
                 profile.map(v -> service.rules().slotCount(v.rarity(), Category.PREFIX)).orElse(0),
                 profile.map(v -> service.rules().slotCount(v.rarity(), Category.SUFFIX)).orElse(0),
                 com.ascensionlib.CraftLocks.locked(p),
-                // the attunement the next promotion asks for, so the page can show a goal (0 at Ascended, where there is none)
+                // the attunement the next promotion asks for, so the page can show a goal (0 at Radiant, where there is none)
                 profile.map(v -> com.ascensionlib.ProgressFacts.attunementNeeded(service.rules(), v)).orElse(0));
         return new OwnedInspectPayload.Result(pokemonId, p.getDisplayName(false).getString(), p.getSpecies().getName(),
                 profile.map(v -> v.pendingCredits()).orElse(0), profile.map(v -> v.attunement()).orElse(0), detail, extra);
