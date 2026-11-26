@@ -175,7 +175,7 @@ public final class CraftNet {
                     .sorted(java.util.Comparator.comparingInt(CraftPayloads.Odds::permille).reversed()).toList();
             String reforgeBlock = pool == 0 ? "No other trait can take this slot" : !canReforge ? "Needs " + describe(reforgeCost) : "";
             slots.add(new CraftPayloads.SlotView(slot.slotId(), slot.category().id(), slotName(service, slot),
-                    affix.base().condition() == null ? "" : affix.base().condition(), slot.rank(), slot.rolledValue(), band.min(), band.max(),
+                    com.cobbleascend.domain.v1.ScoutView.condition(affix.base().condition(), slot.type()), slot.rank(), slot.rolledValue(), band.min(), band.max(),
                     next == null ? -1 : next.min(), next == null ? -1 : next.max(), upgradeBlock, refineBlock, reforgeBlock, pool,
                     perfectBlock, perfectCost, effectiveFloor, overreachBlock, slot.sealed(), RankedProgression.OVERREACH_DUST,
                     RankedProgression.OVERREACH_FACETS, RankedProgression.OVERREACH_CHANCE_PERCENT,
