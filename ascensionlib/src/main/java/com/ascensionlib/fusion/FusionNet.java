@@ -72,7 +72,7 @@ public final class FusionNet {
         var locked = com.ascensionlib.CraftLocks.reason(pokemon);
         if (locked.isPresent()) return locked.get();
         if (profile.isEmpty()) return "That Pokémon has no ascension profile.";
-        if (profile.get().rarity() != Rarity.MYTHICAL) return "Only an Ascended Pokémon can be the host.";
+        if (profile.get().rarity() != Rarity.MYTHICAL) return "Only a Radiant Pokémon can be the host.";
         if (profile.get().unique() == null) return "The host needs a Unique.";
         return fused.contains(pokemon.getUuid()) ? "This Pokémon is already a Transcendent." : "";
     }

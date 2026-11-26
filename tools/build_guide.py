@@ -141,7 +141,7 @@ def fill(text, facts, keep_live=False):
 
 # What players see for each stored rarity id. The ids stay (saved profiles use them); Legendary and Mythical were renamed on screen so they
 # cannot be confused with Cobblemon's Legendary and Mythical species. Keep in step with Rarity.displayName() and A.rarityName in ui.js.
-RARITY_NAMES = {'legendary': 'Radiant', 'mythical': 'Ascended'}
+RARITY_NAMES = {'legendary': 'Awakened', 'mythical': 'Radiant'}
 SLOT_NAMES = {'prefix': 'Attack', 'suffix': 'Guard'}
 
 

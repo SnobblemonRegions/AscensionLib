@@ -168,7 +168,7 @@
   }
   var ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythical'];
 
-  /** The trait slots this Pokemon has but has not filled, and (below Ascended) a line for the slot the next rarity adds. */
+  /** The trait slots this Pokemon has but has not filled, and (below Radiant) a line for the slot the next rarity adds. */
   function openRows(d, box) {
     if (mode !== 'owned' || !owned || !owned.extra) return;
     var pre = d.slots.filter(function (s) { return s.category === 'prefix'; }).length, suf = d.slots.length - pre;
@@ -281,7 +281,7 @@
     if (mode === 'owned' && owned && d) {
       var e = owned.extra;
       fact('Upgrades', owned.pending + ' pending', owned.pending > 0);
-      var need = e.attunementNeeded || 0;   // the next promotion's ask; 0 at Ascended
+      var need = e.attunementNeeded || 0;   // the next promotion's ask; 0 at Radiant
       fact('Attunement', need > 0 ? owned.attunement + ' / ' + need + (owned.attunement >= need ? ', ready' : ' to promote') : String(owned.attunement), need > 0 && owned.attunement >= need);
       fact('Origin', origin(e.origin));
       fact('Started', e.initialRarity && e.initialRarity !== d.rarityId ? A.rarityName(e.initialRarity) + ', promoted' : A.rarityName(d.rarityId));

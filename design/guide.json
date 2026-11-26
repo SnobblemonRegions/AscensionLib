@@ -15,7 +15,7 @@
           "Catch or hatch a Pokémon. Right-click your AscensionDex (get one with /ascend dex), pick it and press Inspect to see its rarity and traits.",
           "Level it up. Every {milestone.step} levels earns one upgrade credit (up to {milestone.credits}). Spend it on the Traits screen (Upgrade): one trait goes up a rank and rerolls its value. It never fails.",
           "Earn materials. Tower runs, trials, dungeons and raids pay Resonance Dust, Facets, Cores and more into your wallet (the Wallet tab of the Dex).",
-          "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Ascended.",
+          "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Radiant.",
           "Scout enemies. A Scouter reveals an enemy's rarity and traits before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.",
           "Go deep. At rank V you can Perfect and Overreach a trait; a Catalyst installs a Unique power; two Pokémon that each hold a Unique can be bonded at a Fuser into a Transcendent."
         ]},
@@ -37,7 +37,7 @@
           ["Rarity", "How many trait slots it has (1 to 6)", "Caught in a profile zone, or an Ascension Sigil", "Promote it with attunement and materials. It never goes down"],
           ["Traits", "Battle bonuses in those slots", "Filled when a slot opens", "Upgrade, Refine and Reforge on the Traits screen"]
         ]},
-        {"type": "tip", "text": "Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Ascended. Check IVs, EVs and nature on Cobblemon's Summary screen as usual."}
+        {"type": "tip", "text": "Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Radiant. Check IVs, EVs and nature on Cobblemon's Summary screen as usual."}
       ]
     },
     {
@@ -47,7 +47,7 @@
       "tldr": "Rarity sets how many traits a Pokémon holds. Each trait ranks from I to V.",
       "glance": ["Attack traits: more damage dealt", "Guard traits: less damage taken, or more healing", "A higher rank rolls a higher range", "Traits of one theme boost each other"],
       "blocks": [
-        {"type": "p", "text": "Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Ascended."},
+        {"type": "p", "text": "Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Radiant."},
         {"type": "gen", "name": "rarity_table"},
         {"type": "p", "text": "Each trait has a rank from I to V. Rank I is its base range; every later rank starts one above the last and is about half as wide as rank I, so rank V tops out near three times rank I. A value is always a whole percent."},
         {"type": "p", "text": "Bonuses stack inside five channels, each with a cap so no team becomes unbeatable: outgoing damage {caps.outgoingDamage}%, damage reduction {caps.incomingReduction}%, healing {caps.healing}%, damage over time {caps.residual}% and mechanics {caps.mechanic}%."},
@@ -92,7 +92,7 @@
           "The Fuser works for a moment. Collect the result by right-clicking the Fuser with a Poké Ball. A Transcendent is revealed as you collect it, and you can share it in chat."
         ]},
         {"type": "ul", "items": [
-          "Host (the body): Ascended, every upgrade credit spent, at least {fusion.hostAttunement} attunement, holding a Unique.",
+          "Host (the body): Radiant, every upgrade credit spent, at least {fusion.hostAttunement} attunement, holding a Unique.",
           "Donor (the head): Epic or better, holding a different Unique, and not already a Transcendent.",
           "Price: {fusion.dust} dust, {fusion.facets} facets, {fusion.cores} cores, {fusion.catalysts} Catalyst and {fusion.marks} Tower Marks.",
           "If the Fuser is interrupted (the server stops while it works), both Pokémon come back and the price is refunded.",

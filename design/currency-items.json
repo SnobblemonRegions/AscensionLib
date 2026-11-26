@@ -181,11 +181,11 @@
       "color": "#af69ff"
     },
     "legendary": {
-      "label": "RADIANT",
+      "label": "AWAKENED",
       "color": "#ffd437"
     },
     "mythical": {
-      "label": "ASCENDED",
+      "label": "RADIANT",
       "color": "#ff3448"
     }
   }

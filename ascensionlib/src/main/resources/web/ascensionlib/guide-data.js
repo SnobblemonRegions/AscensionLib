@@ -32,7 +32,7 @@ window.GUIDE = {
       "Catch or hatch a Pokémon. Right-click your AscensionDex (get one with /ascend dex), pick it and press Inspect to see its rarity and traits.",
       "Level it up. Every 10 levels earns one upgrade credit (up to 10). Spend it on the Traits screen (Upgrade): one trait goes up a rank and rerolls its value. It never fails.",
       "Earn materials. Tower runs, trials, dungeons and raids pay Resonance Dust, Facets, Cores and more into your wallet (the Wallet tab of the Dex).",
-      "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Ascended.",
+      "Win battles with it. A Pokémon that fights in a victory earns {attunement.perVictory} attunement. Attunement plus dust, facets and cores promotes it to the next rarity, all the way to Radiant.",
       "Scout enemies. A Scouter reveals an enemy's rarity and traits before you commit: use the opponent panel on the overlay (press WebGUI's interact key to click it) or /ascend scout.",
       "Go deep. At rank V you can Perfect and Overreach a trait; a Catalyst installs a Unique power; two Pokémon that each hold a Unique can be bonded at a Fuser into a Transcendent."
      ]
@@ -123,7 +123,7 @@ window.GUIDE = {
     },
     {
      "type": "tip",
-     "text": "Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Ascended. Check IVs, EVs and nature on Cobblemon's Summary screen as usual."
+     "text": "Rarity has nothing to do with IVs, shininess or whether a species is legendary. A perfect-IV Pokémon can roll Common, and a Common can be promoted all the way to Radiant. Check IVs, EVs and nature on Cobblemon's Summary screen as usual."
     }
    ],
    "tldr": "Nature, IVs and EVs work as always. Ascension adds rarity and traits on top.",
@@ -141,7 +141,7 @@ window.GUIDE = {
    "blocks": [
     {
      "type": "p",
-     "text": "Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Ascended."
+     "text": "Rarity decides how many trait slots a Pokémon has, from 1 to 6. Attack traits boost the damage it deals; Guard traits cut the damage it takes or boost its healing. Every Pokémon can eventually reach Radiant."
     },
     {
      "type": "table",
@@ -177,13 +177,13 @@ window.GUIDE = {
        "4.0%"
       ],
       [
-       "Radiant",
+       "Awakened",
        "5",
        "3 attack, 2 guard",
        "0.90%"
       ],
       [
-       "Ascended",
+       "Radiant",
        "6",
        "3 attack, 3 guard",
        "0.10%"
@@ -284,12 +284,12 @@ window.GUIDE = {
        "25"
       ],
       [
-       "Epic to Radiant",
+       "Epic to Awakened",
        "200 dust, 10 facets, 2 cores",
        "50"
       ],
       [
-       "Radiant to Ascended",
+       "Awakened to Radiant",
        "400 dust, 20 facets, 5 cores",
        "90"
       ]
@@ -422,7 +422,7 @@ window.GUIDE = {
     {
      "type": "ul",
      "items": [
-      "Host (the body): Ascended, every upgrade credit spent, at least 150 attunement, holding a Unique.",
+      "Host (the body): Radiant, every upgrade credit spent, at least 150 attunement, holding a Unique.",
       "Donor (the head): Epic or better, holding a different Unique, and not already a Transcendent.",
       "Price: 600 dust, 30 facets, 10 cores, 1 Catalyst and 5 Tower Marks.",
       "If the Fuser is interrupted (the server stops while it works), both Pokémon come back and the price is refunded.",
@@ -490,7 +490,7 @@ window.GUIDE = {
       ],
       [
        "Unique Catalyst",
-       "Radiant",
+       "Awakened",
        "Installs or replaces a Unique power.",
        "Tradable"
       ],
@@ -520,7 +520,7 @@ window.GUIDE = {
       ],
       [
        "Unbinding Prism",
-       "Radiant",
+       "Awakened",
        "Swaps a Pokemon's Unique for another, with no Catalyst and no Tower Mark.",
        "Tradable"
       ],
