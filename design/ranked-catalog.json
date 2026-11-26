@@ -37,7 +37,27 @@
     "swift_strike": [[4, 8], [9, 12], [13, 16], [17, 20], [21, 24]],
     "bracing_entry": [[8, 16], [17, 24], [25, 32], [33, 40], [41, 48]],
     "wardstone": [[5, 10], [11, 15], [16, 20], [21, 25], [26, 30]],
-    "stubborn": [[3, 6], [7, 9], [10, 12], [13, 15], [16, 18]]
+    "stubborn": [[3, 6], [7, 9], [10, 12], [13, 15], [16, 18]],
+    "ambush": [[6, 12], [13, 18], [19, 24], [25, 30], [31, 36]],
+    "brawler": [[3, 6], [7, 9], [10, 12], [13, 15], [16, 18]],
+    "sharpshooter": [[3, 6], [7, 9], [10, 12], [13, 15], [16, 18]],
+    "giant_slayer": [[10, 16], [17, 24], [25, 32], [33, 40], [41, 48]],
+    "relentless": [[2, 4], [5, 6], [7, 8], [9, 10], [11, 12]],
+    "exploit_weakness": [[5, 10], [11, 15], [16, 20], [21, 25], [26, 30]],
+    "armorbreak": [[5, 10], [11, 15], [16, 20], [21, 25], [26, 30]],
+    "pressure_point": [[15, 25], [26, 38], [39, 51], [52, 64], [65, 77]],
+    "searing_touch": [[3, 6], [7, 9], [10, 12], [13, 15], [16, 18]],
+    "venom_touch": [[3, 6], [7, 9], [10, 12], [13, 15], [16, 18]],
+    "siphon": [[3, 6], [7, 9], [10, 12], [13, 15], [16, 18]],
+    "thorns": [[2, 4], [5, 6], [7, 8], [9, 10], [11, 12]],
+    "purging": [[8, 15], [16, 23], [24, 31], [32, 39], [40, 47]],
+    "fresh_legs": [[5, 10], [11, 15], [16, 20], [21, 25], [26, 30]],
+    "stalwart": [[8, 15], [16, 23], [24, 31], [32, 39], [40, 47]],
+    "unyielding": [[8, 15], [16, 23], [24, 31], [32, 39], [40, 47]],
+    "watchful": [[8, 15], [16, 23], [24, 31], [32, 39], [40, 47]],
+    "resolute": [[4, 8], [9, 12], [13, 16], [17, 20], [21, 24]],
+    "insulated": [[8, 15], [16, 23], [24, 31], [32, 39], [40, 47]],
+    "hardening": [[2, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
   },
   "uniques":[
     {"id":"ashen_heart","name":"Ashen Heart","benefit":"Burns you inflict deal 50% more damage.","drawback":"Your moves deal 15% less damage."},
@@ -46,6 +66,14 @@
     {"id":"stormcaller","name":"Stormcaller","benefit":"While weather is active, your moves of its matching type deal 30% more damage (Fire in sun, Water in rain).","drawback":"With no weather active, your moves deal 15% less damage."},
     {"id":"rupture","name":"Rupture","benefit":"Your physical moves always cause bleeding.","drawback":"Bleed you cause is weaker per stack: 100%, 80%, 60%."},
     {"id":"titans_heart","name":"Titan's Heart","benefit":"Your super-effective moves deal bonus damage equal to 10% of your max HP.","drawback":"You cannot be healed in battle."},
-    {"id":"triple_seven","name":"777","benefit":"Item rewards you earn are 20% larger while it is in your party.","drawback":"You take 25% more damage from moves."}
+    {"id":"triple_seven","name":"777","benefit":"Item rewards you earn are 20% larger while it is in your party.","drawback":"You take 25% more damage from moves."},
+    {"id":"crescendo","name":"Crescendo","benefit":"Your moves deal 8% more for each full turn you have stayed in battle, up to 40%. Switching out resets it.","drawback":"For your first two turns after entering, your moves deal 20% less."},
+    {"id":"nightfang","name":"Nightfang","benefit":"Your damaging moves heal you 25% of the damage they deal.","drawback":"You take 30% more damage from Fire and Fairy moves."},
+    {"id":"iron_maiden","name":"Iron Maiden","benefit":"An enemy that hits you with a contact move loses 1/8 of its max HP.","drawback":"Your own contact moves deal 20% less damage."},
+    {"id":"tailwind_heart","name":"Tailwind Heart","benefit":"Your Speed is 50% higher.","drawback":"Your Defense and Sp. Def are 15% lower."},
+    {"id":"huntmark","name":"Huntmark","benefit":"Your first hit marks a foe; your later moves against it deal 25% more until it leaves the field.","drawback":"You cannot land critical hits."},
+    {"id":"martyrs_gift","name":"Martyr's Gift","benefit":"When you faint, the next ally to enter heals 50% of its max HP and gains +1 Attack and +1 Sp. Atk.","drawback":"You take 15% more damage from moves."},
+    {"id":"aegis_oath","name":"Aegis Oath","benefit":"You take 30% less damage from moves.","drawback":"Your moves deal 30% less damage."},
+    {"id":"fickle_fortune","name":"Fickle Fortune","benefit":"Each turn a coin is flipped: heads, your moves deal 40% more that turn.","drawback":"Tails: your moves deal 20% less that turn."}
   ]
 }

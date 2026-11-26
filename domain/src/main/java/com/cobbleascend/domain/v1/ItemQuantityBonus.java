@@ -12,9 +12,12 @@ public final class ItemQuantityBonus {
     public static final int PERCENT = 20;
 
     /** The item-reward percent each Transcendent signature built on the 777 Unique carries before harmony (docs/TRANSCENDENT-POWERS.md). */
-    private static final Map<String, Integer> SIGNATURE_PERCENT = Map.of(
-            "gilded_ember", 10, "last_gamble", 15, "fortunes_rot", 15,
-            "skyfall_fortune", 15, "wager_of_blood", 15, "jackpot_titan", 20);
+    private static final Map<String, Integer> SIGNATURE_PERCENT = Map.ofEntries(
+            Map.entry("gilded_ember", 10), Map.entry("last_gamble", 15), Map.entry("fortunes_rot", 15),
+            Map.entry("skyfall_fortune", 15), Map.entry("wager_of_blood", 15), Map.entry("jackpot_titan", 20),
+            // the 777 recipes of the second batch of Uniques (docs/AFFIX-EXPANSION-DESIGN.md; the "loot" part in tools/transcendent_powers.py)
+            Map.entry("compound_interest", 15), Map.entry("blood_money", 15), Map.entry("golden_cage", 15), Map.entry("gold_rush", 15),
+            Map.entry("bounty_hunter", 15), Map.entry("inheritance", 15), Map.entry("vault_keeper", 15), Map.entry("all_in", 20));
 
     private ItemQuantityBonus() {}
 

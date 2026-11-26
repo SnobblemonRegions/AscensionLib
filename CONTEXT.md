@@ -28,6 +28,8 @@ _Avoid_: Tier when referring to affix strength.
 **Unique affix**: A crafted, build-defining power occupying the Pokémon's single separate Unique slot, independent of ascension rarity and ordinary slot ranks.
 _Avoid_: Seventh rarity, native ability.
 
+**Composed signature**: A Transcendent signature written as data (core parts, an optional clutch and one drawback) rather than code; the 84 pairs that include a second-batch Unique are composed.
+
 **Unique classification**: The additional display designation of a Pokémon with an installed Unique affix, such as Rare · Unique.
 
 **Promotion**: Permanent advancement by one ascension rarity, retaining existing affixes and unlocking an additional slot.

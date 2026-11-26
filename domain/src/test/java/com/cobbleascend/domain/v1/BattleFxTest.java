@@ -41,7 +41,7 @@ class BattleFxTest {
     }
 
     @Test void everyCatalogUniqueHasTextAndADrawback() {
-        assertEquals(7, rules.uniques().size());
+        assertEquals(15, rules.uniques().size(), "the first seven and the second batch of eight");
         for (var unique : rules.uniques()) {
             assertFalse(unique.benefit().isBlank(), unique.id() + " needs benefit text");
             assertFalse(unique.drawback().isBlank(), unique.id() + " needs a drawback");

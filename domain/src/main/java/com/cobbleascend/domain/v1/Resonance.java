@@ -28,11 +28,13 @@ public final class Resonance {
     private static final Map<String, Theme> THEMES = new LinkedHashMap<>();
 
     static {
-        theme(Theme.TEMPO, "opening_strike", "opening_guard", "swift_strike", "bracing_entry", "ensnaring");
-        theme(Theme.TOXIN, "smoldering", "venomous", "rending", "defiant_force", "status_guard");
-        theme(Theme.PREDATOR, "executioner", "last_stand", "super_effective_force", "keen_edge", "momentum");
-        theme(Theme.BULWARK, "iron_resolve", "type_bulwark", "physical_bulwark", "special_bulwark", "resilient_hide", "stubborn");
-        theme(Theme.VITALITY, "restorative", "triumphant", "healthy_force", "healthy_guard", "steadfast_guard", "wardstone");
+        theme(Theme.TEMPO, "opening_strike", "opening_guard", "swift_strike", "bracing_entry", "ensnaring", "ambush", "fresh_legs", "watchful");
+        theme(Theme.TOXIN, "smoldering", "venomous", "rending", "defiant_force", "status_guard", "searing_touch", "venom_touch", "purging", "insulated");
+        theme(Theme.PREDATOR, "executioner", "last_stand", "super_effective_force", "keen_edge", "momentum", "giant_slayer", "relentless",
+                "exploit_weakness", "armorbreak", "pressure_point");
+        theme(Theme.BULWARK, "iron_resolve", "type_bulwark", "physical_bulwark", "special_bulwark", "resilient_hide", "stubborn", "thorns",
+                "stalwart", "unyielding", "resolute", "hardening");
+        theme(Theme.VITALITY, "restorative", "triumphant", "healthy_force", "healthy_guard", "steadfast_guard", "wardstone", "siphon");
     }
 
     private static void theme(Theme theme, String... affixIds) {

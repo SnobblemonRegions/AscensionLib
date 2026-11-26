@@ -18,8 +18,8 @@ class TranscendentPowersTest {
     private static final String A = "ashen_heart";
     private static final String B = "last_breath";
 
-    @Test void thereAreTwentyOneSignaturesWithAPulseAndTexts() {
-        assertEquals(21, BOOK.signatures().size());
+    @Test void thereIsASignatureWithAPulseAndTextsForEveryPair() {
+        assertEquals(105, BOOK.signatures().size(), "21 hand-written and 84 composed, one per pair of the 15 Uniques");
         var pulses = new HashSet<Pulse>();
         for (var signature : BOOK.signatures().values()) {
             pulses.add(signature.pulse());
@@ -127,7 +127,7 @@ class TranscendentPowersTest {
                 }
             }
         }
-        assertEquals(7 * 6 * 4, built);
+        assertEquals(15 * 14 * 4, built);
     }
 
     @Test void everyEffectDescribesItselfWithTheNumbersAtTheBenefitShare() {

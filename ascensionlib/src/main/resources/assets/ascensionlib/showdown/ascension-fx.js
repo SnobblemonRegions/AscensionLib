@@ -31,6 +31,13 @@ const HP_LOW = 0.35;
 const DEFAULT_CAPS = {out: 100, inc: 50, heal: 50, res: 100};
 
 const hpFraction = mon => (mon.maxhp > 0 ? mon.hp / mon.maxhp : 1);
+/**
+ * Full turns a Pokemon has been on the field before this one. Showdown's activeTurns counts turn starts since it entered, so a lead or a
+ * faint replacement is already at 1 on its first turn to act (a Pokemon switched in by choice cannot act on the turn it arrives).
+ */
+const turnsIn = mon => Math.max(0, (mon.activeTurns || 0) - 1);
+/** At least one of the Pokemon's stat stages is below zero. */
+const lowered = mon => Object.values((mon && mon.boosts) || {}).some(stage => stage < 0);
 
 // Outgoing: (effect, user, target, move, hit, ctx) -> does it apply to this hit? `hit.typeMod` is native effectiveness.
 const OUTGOING = {
@@ -48,6 +55,13 @@ const OUTGOING = {
   midnight_howl: (fx, user, target, move, hit, ctx) => ctx.firstMove,   // a Haunting: the holder's first attack of the battle
   super_effective_force: (fx, user, target, move, hit) => hit.typeMod > 0,
   transcend_offense: (fx, user, target, move) => move.type === fx.t,
+  // the affix expansion (docs/AFFIX-EXPANSION-DESIGN.md)
+  ambush: (fx, user, target) => (target.activeTurns || 0) <= 1,   // entered this turn (0) or last turn (1); the engine counts at the end of a turn
+  brawler: (fx, user, target, move, hit, ctx) => ctx.contact,
+  sharpshooter: (fx, user, target, move, hit, ctx) => !ctx.contact,
+  giant_slayer: (fx, user, target) => target.maxhp > user.maxhp,
+  exploit_weakness: (fx, user, target) => lowered(target),
+  pressure_point: (fx, user, target, move, hit) => !!hit.crit,
 };
 
 // Incoming: (effect, holder, attacker, move, hit, state) -> does it apply to this hit?
@@ -64,9 +78,13 @@ const INCOMING = {
   physical_bulwark: (fx, holder, attacker, move) => move.category === 'Physical',
   special_bulwark: (fx, holder, attacker, move) => move.category === 'Special',
   transcend_defense: (fx, holder, attacker, move) => move.type === fx.t,
+  // the affix expansion
+  stalwart: (fx, holder, attacker, move, hit) => !!hit.crit,
+  watchful: (fx, holder, attacker, move) => (move.priority || 0) > 0,
+  resolute: (fx, holder) => lowered(holder),
 };
 
-const HEALING = {restorative: true, triumphant: true};
+const HEALING = {restorative: true, triumphant: true, siphon: true, fresh_legs: true};
 
 // Status damage (docs/STATUS-AFFIX-DESIGN.md). The potency affixes boost the native residual of the status the holder inflicted;
 // Showdown already records the inflictor in pokemon.statusState.source, so no ledger is needed. Rending is the library's own
@@ -84,7 +102,9 @@ const BLEED_TURNS = 3;          // refreshed by every new application
 // as a damage multiplier, attacker's aura over defender's, after the channel caps (it is not an affix and has no cap of its own
 // beyond the 100 every percent is clamped to). Sent first in a Pokemon's list so the effect limit can never cut it off.
 const AURA = 'aura';
-const UNIQUES = {ashen_heart: 1, last_breath: 1, creeping_venom: 1, stormcaller: 1, rupture: 1, titans_heart: 1, triple_seven: 1};
+const UNIQUES = {ashen_heart: 1, last_breath: 1, creeping_venom: 1, stormcaller: 1, rupture: 1, titans_heart: 1, triple_seven: 1,
+  // the affix expansion (docs/AFFIX-EXPANSION-DESIGN.md)
+  crescendo: 1, nightfang: 1, iron_maiden: 1, tailwind_heart: 1, huntmark: 1, martyrs_gift: 1, aegis_oath: 1, fickle_fortune: 1};
 const ASHEN_BURN = 50;          // +50% burn damage you inflict (residual channel)
 const ASHEN_PENALTY = 0.85;     // your direct move damage
 const VENOM_STEP = 20;          // +20% per turn the poison has lasted ...
@@ -96,6 +116,23 @@ const BREATH_HEAL = 0.5;        // drawback: healing you receive
 const RUPTURE_WEIGHTS = [1, 0.8, 0.6];   // drawback: stack n of a bleed you inflict deals this share of a normal stack
 const TITAN_FRACTION = 0.10;    // extra damage on a super-effective move: this share of the holder's max HP
 const SEVEN_PENALTY = 1.25;     // drawback of 777: damage taken from moves, equal to about 20% less effective HP
+// The second batch of Uniques (docs/AFFIX-EXPANSION-DESIGN.md, part B). Benefits join their channel; drawbacks act after the caps.
+const CRESCENDO_STEP = 8;       // +8% outgoing for each full turn on the field ...
+const CRESCENDO_MAX = 40;       // ... up to +40%
+const CRESCENDO_PENALTY = 0.80; // drawback: the first two turns after entering
+const NIGHTFANG_LEECH = 25;     // heal 25% of the damage your direct moves deal (healing channel, shared with Siphon)
+const NIGHTFANG_WEAK = 1.30;    // drawback: Fire and Fairy moves hurt you 30% more
+const MAIDEN_FRACTION = 12.5;   // a contact attacker loses 1/8 of its max HP (shares the 17% cap with Thorns)
+const MAIDEN_PENALTY = 0.80;    // drawback: your own contact moves
+const TAILWIND_SPEED = 50;      // +50% Speed
+const TAILWIND_FRAIL = 0.85;    // drawback: Defense and Sp. Def
+const HUNT_BONUS = 25;          // later moves against a foe you marked (outgoing channel)
+const MARTYR_HEAL = 50;         // the next ally to enter after you faint heals this percent of its max HP and gains +1 Atk and Sp. Atk
+const MARTYR_PENALTY = 1.15;    // drawback: damage taken from moves
+const AEGIS_GUARD = 30;         // incoming reduction (incoming channel, so the 50% cap applies)
+const AEGIS_PENALTY = 0.70;     // drawback: your moves
+const FORTUNE_HEADS = 40;       // heads: +40% this turn (outgoing channel)
+const FORTUNE_TAILS = 0.80;     // tails: your moves deal 20% less this turn
 // Transcendent (docs/FUSION-DESIGN.md): two Uniques fused into one holder. Each runs at its harmony share, benefit b and drawback d
 // (percent of the plain Unique), and the host's type adds a typed offence, the donor's a typed defence, through the existing typed
 // channels (so they are capped with the rest). The payload is one effect {"i":"transcendent","u":[a,b],"b":78,"d":60,"t":host,"r":donor};
@@ -109,12 +146,24 @@ const WEATHER_TYPE = {
 };
 
 // Mechanic affixes (docs/DEPTH-DESIGN.md, part A). Chance-based ones are bounded per affix, so no roll can become a guarantee.
-const PROCS = new Set(['keen_edge', 'ensnaring', 'bracing_entry', 'wardstone', 'stubborn']);
+const PROCS = new Set(['keen_edge', 'ensnaring', 'bracing_entry', 'wardstone', 'stubborn',
+  'armorbreak', 'searing_touch', 'venom_touch', 'purging', 'unyielding']);
 const PROC_CAP = 50;
 const MOMENTUM = 'momentum';
 const MOMENTUM_STACKS = 3;      // each KO adds the rolled percent to outgoing damage, up to this many times
 const SWIFT = 'swift_strike';   // the holder's Speed stat is raised by the rolled percent
-const MECHANICS = new Set([...PROCS, MOMENTUM, SWIFT]);
+// The affix expansion's stacking and residual effects (docs/AFFIX-EXPANSION-DESIGN.md).
+const RELENTLESS = 'relentless';  // each consecutive turn the same damaging move lands adds the rolled percent, up to this many repeats
+const RELENTLESS_STACKS = 3;
+const HARDENING = 'hardening';    // each enemy move that hits the holder takes the rolled percent off later hits, up to this many
+const HARDENING_STACKS = 3;
+const THORNS = 'thorns';          // a contact attacker loses the rolled percent of its max HP
+const THORNS_CAP = 17;            // percent of the attacker's max HP per hit, Thorns and Iron Maiden together (about 1/6)
+const INSULATED = 'insulated';    // less damage from burn, poison, bleed, weather and hazards (incoming channel cap)
+// What counts as residual damage for Insulated: the conditions and hazards that chip a Pokemon outside of a move's hit.
+const RESIDUAL_IDS = new Set(['brn', 'psn', 'tox', 'ascensionbleed', 'stealthrock', 'spikes', 'gmaxsteelsurge', 'leechseed', 'curse', 'nightmare',
+  'saltcure', 'partiallytrapped', 'gmaxvolcalith', 'gmaxwildfire', 'gmaxcannonade', 'gmaxvinelash', 'ascensionhex']);
+const MECHANICS = new Set([...PROCS, MOMENTUM, SWIFT, RELENTLESS, HARDENING, THORNS, INSULATED]);
 
 // Hauntings (docs/HALLOWEEN-EVENT-DESIGN.md): one event-only power per Pokemon, in its own slot. Midnight Howl and Spectral Veil are
 // ordinary channel effects (tables above); the other eight are small mechanics handled by applyHauntings. All fixed and bounded.
@@ -233,11 +282,35 @@ function apply(battle, payload) {
   if (!byUuid.size) return 0;
   const state = new Map();
   const stateOf = mon => {
-    if (!state.has(mon)) state.set(mon, {hitTaken: false});
+    if (!state.has(mon)) state.set(mon, {hitTaken: false, hardening: 0, hardenKeys: new Set()});
     return state.get(mon);
   };
   const of = (mon, table) => (byUuid.get(mon.uuid) || []).filter(fx => Object.prototype.hasOwnProperty.call(table, fx.i));
   const momentum = new Map();   // holder -> KO stacks, reset when the holder leaves the field
+  const relentless = new Map(); // holder -> {move, turn, key, count}: how many turns running its move has landed
+  // Huntmark: holder -> Map(foe -> {key, entered}); a mark ends when the foe leaves the field (its entry turn changes).
+  const marks = new Map();
+  const enteredTurn = mon => battle.turn - (mon.activeTurns || 0);
+  const markedBy = (holder, foe, key) => {
+    const entry = marks.get(holder) && marks.get(holder).get(foe);
+    return !!entry && entry.entered === enteredTurn(foe) && entry.key !== key;
+  };
+  const coins = new Map();   // Fickle Fortune: holder -> {turn, heads}, flipped once a turn with the battle's own random source
+  const headsFor = mon => {
+    let coin = coins.get(mon);
+    if (!coin || coin.turn !== battle.turn) {
+      coin = {turn: battle.turn, heads: battle.randomChance(1, 2)};
+      coins.set(mon, coin);
+      note(battle, `${mon.name}'s Fickle Fortune: ${coin.heads ? 'heads!' : 'tails...'}`);
+    }
+    return coin.heads;
+  };
+  /** Whether the move makes contact with this target (Long Reach, Protective Pads and the like have their say). */
+  const contactOf = (move, attacker, defender) => {
+    try {
+      return typeof battle.checkMoveMakesContact === 'function' ? !!battle.checkMoveMakesContact(move, attacker, defender) : !!(move.flags && move.flags.contact);
+    } catch (err) { return !!(move.flags && move.flags.contact); }
+  };
   const titanUsed = new Set();   // titans_heart pays once per move use, however many targets or hits
   const has = (mon, id) => !!mon && (byUuid.get(mon.uuid) || []).some(fx => fx.i === id);
   /** The holder's rarity aura in percent, 0 when it has none. */
@@ -264,16 +337,46 @@ function apply(battle, payload) {
       try {
         if (typeof damage !== 'number' || !(damage > 0) || !pokemon || !target || !move) return damage;
         const hit = target.getMoveHitData(move);
-        const ctx = {firstMove: pokemon.activeMoveActions <= 1};
+        const ctx = {firstMove: pokemon.activeMoveActions <= 1, contact: contactOf(move, pokemon, target)};
         const out = of(pokemon, OUTGOING).filter(fx => OUTGOING[fx.i](fx, pokemon, target, move, hit, ctx)).map(fx => fx.p);
         const holder = stateOf(target);
         const inc = of(target, INCOMING).filter(fx => INCOMING[fx.i](fx, target, pokemon, move, hit, holder)).map(fx => fx.p);
         if (byUuid.has(target.uuid)) holder.hitTaken = true;   // opening_guard: only the first damaging hit of the battle
         const weather = weatherNow();
         if (has(pokemon, 'stormcaller') && WEATHER_TYPE[weather] === move.type) out.push(STORM_BONUS * bScale(pokemon, 'stormcaller'));
+        // The second batch of Uniques: benefits in their channel.
+        if (has(pokemon, 'crescendo') && turnsIn(pokemon) > 0) {
+          out.push(Math.min(CRESCENDO_MAX, CRESCENDO_STEP * turnsIn(pokemon)) * bScale(pokemon, 'crescendo'));
+        }
+        if (has(pokemon, 'huntmark') && markedBy(pokemon, target, `${battle.turn}:${pokemon.activeMoveActions}`)) out.push(HUNT_BONUS * bScale(pokemon, 'huntmark'));
+        const fortune = has(pokemon, 'fickle_fortune') ? headsFor(pokemon) : null;
+        if (fortune) out.push(FORTUNE_HEADS * bScale(pokemon, 'fickle_fortune'));
+        if (has(target, 'aegis_oath')) inc.push(AEGIS_GUARD * bScale(target, 'aegis_oath'));
         for (const fx of of(pokemon, {[MOMENTUM]: 1})) {
           const stacks = momentum.get(pokemon) || 0;
           if (stacks > 0) out.push(fx.p * stacks);
+        }
+        // Relentless: counted once per move use (spread and multi-hit moves share it); a turn without a landed damaging move breaks the chain.
+        const chain = of(pokemon, {[RELENTLESS]: 1});
+        if (chain.length) {
+          const useKey = `${battle.turn}:${pokemon.activeMoveActions}`;
+          let st = relentless.get(pokemon);
+          if (!st || st.key !== useKey) {
+            const repeat = st && st.move === move.id && (st.turn === battle.turn - 1 || st.turn === battle.turn);
+            st = {move: move.id, turn: battle.turn, key: useKey, count: repeat ? Math.min(RELENTLESS_STACKS, st.count + 1) : 0};
+            relentless.set(pokemon, st);
+          }
+          if (st.count > 0) for (const fx of chain) out.push(fx.p * st.count);
+        }
+        // Hardening: the holder's stacks soften this hit; the hit then adds a stack (once per enemy move use).
+        const hardening = of(target, {[HARDENING]: 1});
+        if (hardening.length && pokemon.side !== target.side) {
+          if (holder.hardening > 0) for (const fx of hardening) inc.push(fx.p * holder.hardening);
+          const useKey = `${battle.turn}:${pokemon.uuid}:${pokemon.activeMoveActions}`;
+          if (!holder.hardenKeys.has(useKey)) {
+            holder.hardenKeys.add(useKey);
+            if (holder.hardening < HARDENING_STACKS) holder.hardening++;
+          }
         }
         let scaled = damage;
         if (out.length) scaled = battle.modify(scaled, Math.round(grow(out, caps.out) * 1000), 1000);
@@ -290,6 +393,14 @@ function apply(battle, payload) {
         }
         if (has(target, 'creeping_venom') && move.type === 'Psychic') scaled = battle.modify(scaled, Math.round(drawback(VENOM_PSYCHIC, dScale(target, 'creeping_venom')) * 1000), 1000);
         if (has(target, 'triple_seven')) scaled = battle.modify(scaled, Math.round(drawback(SEVEN_PENALTY, dScale(target, 'triple_seven')) * 1000), 1000);
+        // The second batch of Uniques: drawbacks, fixed and after the caps.
+        const after = (mon, id, multiplier) => { scaled = Math.max(1, battle.modify(scaled, Math.round(drawback(multiplier, dScale(mon, id)) * 1000), 1000)); };
+        if (has(pokemon, 'crescendo') && turnsIn(pokemon) < 2) after(pokemon, 'crescendo', CRESCENDO_PENALTY);
+        if (has(pokemon, 'iron_maiden') && ctx.contact) after(pokemon, 'iron_maiden', MAIDEN_PENALTY);
+        if (has(pokemon, 'aegis_oath')) after(pokemon, 'aegis_oath', AEGIS_PENALTY);
+        if (fortune === false) after(pokemon, 'fickle_fortune', FORTUNE_TAILS);
+        if (has(target, 'nightfang') && (move.type === 'Fire' || move.type === 'Fairy')) after(target, 'nightfang', NIGHTFANG_WEAK);
+        if (has(target, 'martyrs_gift')) after(target, 'martyrs_gift', MARTYR_PENALTY);
         if (transcend) scaled = transcend.adjust(pokemon, target, move, hit, scaled, weather);
         return scaled;
       } catch (err) {
@@ -385,6 +496,7 @@ function apply(battle, payload) {
   }
   applyStatusDamage(battle, byUuid, caps, of, has, scale, shared);
   applyMechanics(battle, byUuid, of, has, momentum);
+  applyExpansion(battle, byUuid, caps, of, has, stateOf, rawHeal, {marks, enteredTurn, bScale, dScale, drawback});
   applyHauntings(battle, byUuid, of, has);
   transcend = applyTranscendents({battle, byUuid, weatherNow, rawHeal, shared});
   return byUuid.size;
@@ -730,6 +842,289 @@ function applyMechanics(battle, byUuid, of, has, momentum) {
         return rawClear.apply(this, arguments);
       };
     }
+  }
+}
+
+/** Lowers a Pokemon's Defense and Sp. Def as the damage formula reads them (calculateStat), by the multiplier fraction(mon) returns. */
+function lowerDefenses(battle, mon, fraction) {
+  const inner = mon.calculateStat;
+  if (typeof inner !== 'function') return;
+  mon.calculateStat = function (statName, boost, modifier, statUser) {
+    const stat = inner.apply(this, arguments);
+    try {
+      if ((statName === 'def' || statName === 'spd') && typeof stat === 'number') return Math.max(1, battle.modify(stat, Math.round(fraction(this) * 1000), 1000));
+    } catch (err) { /* fail open */ }
+    return stat;
+  };
+}
+
+/** No critical hits for a holder: refused in Showdown's own CriticalHit event (as Battle Armor is), so the crit roll is still made. */
+function refuseCrits(battle, refuses) {
+  const inner = battle.runEvent;
+  battle.runEvent = function (eventid) {
+    const result = inner.apply(this, arguments);
+    if (eventid !== 'CriticalHit' || !result) return result;
+    try {
+      const attacker = this.activePokemon;
+      if (attacker && refuses(attacker)) return false;
+    } catch (err) { /* fail open */ }
+    return result;
+  };
+}
+
+/**
+ * The affix expansion (docs/AFFIX-EXPANSION-DESIGN.md): Armorbreak, Searing Touch, Venom Touch, Siphon, Thorns, Purging, Fresh Legs, Unyielding,
+ * Insulated and the reset half of Hardening. The channel ones (Ambush, Brawler, ...) live in the tables above. Every hook is installed only when a
+ * Pokemon holds the affix, wraps the engine's own method and fails open to the native result.
+ */
+function applyExpansion(battle, byUuid, caps, of, has, stateOf, rawHeal, uniq) {
+  const holds = ids => [...byUuid.values()].some(list => list.some(fx => ids.includes(fx.i)));
+  const chance = fx => battle.randomChance(fx.p, 100);
+  const effectOf = (id, name) => ({id, name, fullname: name, effectType: 'Status'});
+  const sum = list => list.reduce((total, fx) => total + fx.p, 0);
+  const holders = [];
+  for (const side of battle.sides) {
+    if (!side) continue;
+    for (const holder of side.pokemon) if (byUuid.has(holder.uuid)) holders.push(holder);
+  }
+  const isFoe = (a, b) => !!a && !!b && a !== b && !!a.side && a.side !== b.side;
+  const contactOf = (move, attacker, defender) => {
+    try {
+      return typeof battle.checkMoveMakesContact === 'function' ? !!battle.checkMoveMakesContact(move, attacker, defender) : !!(move.flags && move.flags.contact);
+    } catch (err) { return !!(move.flags && move.flags.contact); }
+  };
+  /** Chip damage: the engine's Damage event (Magic Guard and friends) runs first, then a plain -damage line. */
+  const chip = (victim, amount, source, effect) => {
+    try {
+      if (!victim || !(victim.hp > 0)) return 0;
+      const allowed = battle.runEvent('Damage', victim, source, effect, amount, true);
+      if (!allowed && allowed !== 0) return 0;
+      const dealt = victim.damage(Math.max(1, Math.trunc(allowed)), source, effect);
+      if (dealt) battle.add('-damage', victim, victim.getHealth);
+      return dealt || 0;
+    } catch (err) { return 0; }
+  };
+  /** A heal through the holder's own heal(), so Titan's Heart and Last Breath still apply, logged as a plain -heal line. */
+  const restore = (mon, amount, effect) => {
+    try {
+      if (mon.hp > 0 && mon.hp < mon.maxhp && amount >= 1 && mon.heal(Math.floor(amount), mon, effect)) battle.add('-heal', mon, mon.getHealth);
+    } catch (err) { /* fail open */ }
+  };
+
+  // ---- reactions to a hit (Thorns): queued, and run once spreadDamage has logged the hit they answer ----
+  const reactions = [];
+  const flush = () => {
+    while (reactions.length) {
+      const reaction = reactions.shift();
+      try { reaction(); } catch (err) { /* fail open */ }
+    }
+  };
+
+  // ---- one spreadDamage wrapper for what happens after a holder's move hits: Armorbreak, the touches, Siphon, and the Thorns flush ----
+  const ON_HIT = {
+    armorbreak: (source, target, effect) => battle.boost({def: -1}, target, source, effectOf('ascensionarmorbreak', 'Armorbreak'), true)
+      && note(battle, `${target.name}'s armor cracked!`),
+    searing_touch: (source, target, effect) => contactOf(effect, source, target) && target.trySetStatus('brn', source, effectOf('ascensionsearing', 'Searing Touch')),
+    venom_touch: (source, target, effect) => contactOf(effect, source, target) && target.trySetStatus('psn', source, effectOf('ascensionvenomtouch', 'Venom Touch')),
+  };
+  const wantsHit = holds([...Object.keys(ON_HIT), 'siphon', 'nightfang', 'huntmark']);
+  const wantsThorns = holds([THORNS, 'iron_maiden']);
+  if ((wantsHit || wantsThorns) && typeof battle.spreadDamage === 'function') {
+    const rawSpread = battle.spreadDamage;
+    const rolled = new Set();
+    battle.spreadDamage = function (damage, targetArray, source, effect) {
+      const result = rawSpread.apply(this, arguments);
+      try {
+        if (wantsHit && source && byUuid.has(source.uuid) && effect && typeof effect === 'object' && effect.effectType === 'Move' && Array.isArray(targetArray)) {
+          let dealt = 0;
+          for (const [i, target] of targetArray.entries()) {
+            if (!target || !isFoe(source, target) || !(typeof result[i] === 'number' && result[i] > 0)) continue;
+            dealt += result[i];
+            // Huntmark: the first hit on a foe marks it, for the holder's later moves (not the rest of this one).
+            if (has(source, 'huntmark')) {
+              if (!uniq.marks.has(source)) uniq.marks.set(source, new Map());
+              const mine = uniq.marks.get(source);
+              const entry = mine.get(target);
+              if (!entry || entry.entered !== uniq.enteredTurn(target)) {
+                mine.set(target, {key: `${this.turn}:${source.activeMoveActions}`, entered: uniq.enteredTurn(target)});
+                note(this, `${target.name} is marked by ${source.name}!`);
+              }
+            }
+            if (!(target.hp > 0)) continue;
+            const key = `${this.turn}:${source.uuid}:${source.activeMoveActions}:${target.uuid}`;
+            if (rolled.has(key)) continue;
+            rolled.add(key);
+            if (target.hasAbility('shielddust') || target.hasItem('covertcloak')) continue;
+            for (const [id, act] of Object.entries(ON_HIT)) {
+              const rolls = of(source, {[id]: 1});
+              if (rolls.length && rolls.some(chance)) act(source, target, effect);
+            }
+          }
+          // Siphon and Nightfang: a share of the damage this hit dealt, one healing channel cap for both.
+          const leech = sum(of(source, {siphon: 1})) + (has(source, 'nightfang') ? NIGHTFANG_LEECH * uniq.bScale(source, 'nightfang') : 0);
+          if (leech > 0 && dealt > 0 && source.hp > 0) {
+            restore(source, dealt * Math.min(caps.heal, leech) / 100, effectOf('ascensionsiphon', 'Siphon'));
+          }
+        }
+      } catch (err) { /* fail open: the hit already happened */ }
+      flush();
+      return result;
+    };
+  }
+
+  for (const holder of holders) {
+    // ---- thorns: a foe's contact move that hit queues chip damage on the attacker ----
+    if (has(holder, THORNS) || has(holder, 'iron_maiden')) {
+      const rawDamage = holder.damage;
+      holder.damage = function (d, source, effect) {
+        const dealt = rawDamage.apply(this, arguments);
+        try {
+          if (dealt > 0 && isFoe(source, this) && effect && typeof effect === 'object' && effect.effectType === 'Move' && contactOf(effect, source, this)) {
+            const maiden = has(this, 'iron_maiden') ? MAIDEN_FRACTION * uniq.bScale(this, 'iron_maiden') : 0;
+            const percent = Math.min(THORNS_CAP, sum(of(this, {[THORNS]: 1})) + maiden);
+            const self = this;
+            reactions.push(() => { if (source.hp > 0) chip(source, Math.max(1, Math.floor(source.baseMaxhp * percent / 100)), self, effectOf('ascensionthorns', 'Thorns')); });
+          }
+        } catch (err) { /* fail open: the hit already happened */ }
+        return dealt;
+      };
+    }
+
+    // ---- insulated: residual damage (status, bleed, weather, hazards) is reduced, incoming channel cap ----
+    if (has(holder, INSULATED)) {
+      const rawDamage = holder.damage;
+      holder.damage = function (d, source, effect) {
+        let amount = d;
+        try {
+          const residual = effect && typeof effect === 'object' && effect.effectType !== 'Move' &&
+            (effect.effectType === 'Weather' || RESIDUAL_IDS.has(effect.id));
+          if (residual && typeof d === 'number' && d > 0) amount = Math.max(1, Math.floor(d * shrink(of(this, {[INSULATED]: 1}).map(fx => fx.p), caps.inc)));
+        } catch (err) { amount = d; }
+        return rawDamage.call(this, amount, source, effect);
+      };
+    }
+
+    // ---- tailwind heart: Speed up, Defense and Sp. Def down (after the engine's own modifiers) ----
+    if (has(holder, 'tailwind_heart')) {
+      const rawGetStat = holder.getStat;
+      holder.getStat = function (statName, unboosted, unmodified) {
+        const stat = rawGetStat.apply(this, arguments);
+        try {
+          if (!unmodified && typeof stat === 'number') {
+            if (statName === 'spe') return Math.min(1e4, battle.modify(stat, Math.round((1 + TAILWIND_SPEED * uniq.bScale(this, 'tailwind_heart') / 100) * 1000), 1000));
+          }
+        } catch (err) { /* fail open */ }
+        return stat;
+      };
+      lowerDefenses(battle, holder, mon => uniq.drawback(TAILWIND_FRAIL, uniq.dScale(mon, 'tailwind_heart')));
+    }
+
+    // ---- hardening: the stacks end when the holder leaves the field (or faints) ----
+    if (has(holder, HARDENING)) {
+      const rawClear = holder.clearVolatile;
+      holder.clearVolatile = function () {
+        try {
+          const st = stateOf(this);
+          if (st.hardening > 0) note(battle, `${this.name}'s Hardening faded.`);
+          st.hardening = 0;
+        } catch (err) { /* fail open */ }
+        return rawClear.apply(this, arguments);
+      };
+    }
+  }
+
+  if (holds(['unyielding']) && typeof battle.boost === 'function') {
+    const rawBoost = battle.boost;
+    battle.boost = function (boost, target, source, effect) {
+      try {
+        const victim = target || (this.event && this.event.target);
+        const from = source || (this.event && this.event.source);
+        if (boost && typeof boost === 'object' && victim && has(victim, 'unyielding') && isFoe(from, victim) &&
+            Object.values(boost).some(stage => stage < 0) && of(victim, {unyielding: 1}).some(chance)) {
+          const kept = {};
+          for (const [stat, stage] of Object.entries(boost)) if (!(stage < 0)) kept[stat] = stage;
+          note(this, `${victim.name} is Unyielding!`);
+          if (!Object.keys(kept).length) return false;
+          const args = Array.from(arguments);
+          args[0] = kept;
+          return rawBoost.apply(this, args);
+        }
+      } catch (err) { /* fail open */ }
+      return rawBoost.apply(this, arguments);
+    };
+  }
+
+  // ---- purging: at the end of each turn, a chance to cure the holder's own status ----
+  if (holds(['purging']) && typeof battle.residualEvent === 'function') {
+    const rawResidual = battle.residualEvent;
+    battle.residualEvent = function (eventid) {
+      const result = rawResidual.apply(this, arguments);
+      if (eventid !== 'Residual') return result;
+      for (const holder of holders) {
+        try {
+          if (!has(holder, 'purging') || !(holder.hp > 0) || !holder.isActive || !holder.status) continue;
+          if (of(holder, {purging: 1}).some(chance)) {
+            note(this, `${holder.name} purged its condition!`);
+            holder.cureStatus();
+          }
+        } catch (err) { /* fail open */ }
+      }
+      return result;
+    };
+  }
+
+  // ---- huntmark's drawback: the holder cannot land a critical hit (through a transcendent: refused at the drawback share) ----
+  const actions = battle.actions;
+  if (holds(['huntmark'])) {
+    refuseCrits(battle, attacker => {
+      if (!has(attacker, 'huntmark')) return false;
+      const share = uniq.dScale(attacker, 'huntmark');
+      return share >= 1 || battle.randomChance(Math.round(share * 100), 100);
+    });
+  }
+
+  // ---- martyr's gift: when the holder faints, the next ally to enter its side heals and gains +1 Attack and Sp. Atk ----
+  if (holds(['martyrs_gift'])) {
+    const gifts = new Map();   // side -> the share b of the holder that fainted
+    for (const holder of holders) {
+      if (!has(holder, 'martyrs_gift')) continue;
+      const rawFaint = holder.faint;
+      holder.faint = function () {
+        try { if (!this.fainted && !gifts.has(this.side)) gifts.set(this.side, uniq.bScale(this, 'martyrs_gift')); } catch (err) { /* fail open */ }
+        return rawFaint.apply(this, arguments);
+      };
+    }
+    if (actions && typeof actions.runSwitch === 'function') {
+      const rawRunSwitch = actions.runSwitch;
+      actions.runSwitch = function (pokemon) {
+        const result = rawRunSwitch.apply(this, arguments);
+        try {
+          if (pokemon && gifts.has(pokemon.side) && pokemon.hp > 0 && !has(pokemon, 'martyrs_gift')) {
+            const share = gifts.get(pokemon.side);
+            gifts.delete(pokemon.side);
+            note(battle, `${pokemon.name} receives a Martyr's Gift!`);
+            restore(pokemon, pokemon.maxhp * MARTYR_HEAL * share / 100, effectOf('ascensionmartyr', "Martyr's Gift"));
+            battle.boost({atk: 1, spa: 1}, pokemon, pokemon, effectOf('ascensionmartyr', "Martyr's Gift"), false, true);
+          }
+        } catch (err) { /* fail open */ }
+        return result;
+      };
+    }
+  }
+
+  // ---- fresh legs: switching out heals the holder, while it is still on the field (the -heal line names its slot) ----
+  if (holds(['fresh_legs']) && typeof battle.runEvent === 'function') {
+    const rawRunEvent = battle.runEvent;
+    battle.runEvent = function (eventid, target) {
+      const result = rawRunEvent.apply(this, arguments);
+      if (eventid !== 'SwitchOut') return result;
+      try {
+        if (result && target && has(target, 'fresh_legs') && target.hp > 0 && target.isActive) {
+          restore(target, target.maxhp * Math.min(caps.heal, sum(of(target, {fresh_legs: 1}))) / 100, effectOf('ascensionfreshlegs', 'Fresh Legs'));
+        }
+      } catch (err) { /* fail open */ }
+      return result;
+    };
   }
 }
 
@@ -1412,6 +1807,277 @@ const TRANSCEND_SIGNATURES = {
   },
 };
 
+// ===================================================================================================================
+// Composed signatures (docs/AFFIX-EXPANSION-DESIGN.md, part C). The 84 Transcendents made with the second batch of Uniques are DATA: a
+// pulse, one to three core parts, an optional clutch and one drawback, from the small vocabulary below. tools/transcendent_powers.py
+// holds them, writes the text players read from the same data, and generates the COMPOSED_SIGNATURES table at the end of this file, so
+// the text and the behaviour cannot drift apart. Like the hand-written signatures, the numbers act after the channel caps; benefits are
+// scaled by the harmony share P and drawbacks by S.
+// ===================================================================================================================
+
+const STAT_NAMES = {atk: 'atk', def: 'def', spa: 'spa', spd: 'spd', spe: 'spe'};
+const STATUS_IDS = {brn: 1, psn: 1, par: 1};
+
+/** Whether a move makes contact, by its flags. */
+const touches = move => !!(move && move.flags && move.flags.contact);
+
+/** Outgoing and incoming conditions a part may name. ctx: {move, hit, weather, key, target, attacker}; t is the holder. */
+const OUT_WHEN = {
+  always: () => true,
+  contact: (t, c) => touches(c.move),
+  noncontact: (t, c) => !touches(c.move),
+  physical: (t, c) => c.move.category === 'Physical',
+  special: (t, c) => c.move.category === 'Special',
+  se: (t, c) => c.hit && c.hit.typeMod > 0,
+  foeStatus: (t, c) => !!(c.target && c.target.status),
+  foeLowered: (t, c) => lowered(c.target),
+  foeBleeding: (t, c) => !!c.target && t.env.shared.isBleeding(c.target),
+  weather: (t, c) => !!c.weather,
+  noWeather: (t, c) => !c.weather,
+  weatherType: (t, c) => !!c.weather && WEATHER_TYPE[c.weather] === c.move.type,
+  hpLow: t => t.mon.hp < t.mon.maxhp / 2,
+  hpHigh: t => t.mon.hp >= t.mon.maxhp * HP_HIGH,
+  firstTurns: t => turnsIn(t.mon) < 2,
+};
+const INC_WHEN = {
+  always: () => true,
+  se: (t, c) => c.hit && c.hit.typeMod > 0,
+  crit: (t, c) => !!(c.hit && c.hit.crit),
+  contact: (t, c) => touches(c.move),
+  physical: (t, c) => c.move.category === 'Physical',
+  special: (t, c) => c.move.category === 'Special',
+  hpLow: t => t.mon.hp < t.mon.maxhp / 2,
+  hpHigh: t => t.mon.hp >= t.mon.maxhp * HP_HIGH,
+  weather: (t, c) => !!c.weather,
+  noWeather: (t, c) => !c.weather,
+  priority: (t, c) => (c.move.priority || 0) > 0,
+  statused: t => !!t.mon.status,
+};
+const TICK_FOES = {
+  statused: foe => !!foe.status,
+  all: () => true,
+  lowered: foe => lowered(foe),
+};
+
+/** The coin of a gamble part: flipped once a turn per holder, with the battle's own random source. */
+function coinOf(t) {
+  const battle = t.env.battle;
+  if (t.st.coinTurn !== battle.turn) {
+    t.st.coinTurn = battle.turn;
+    t.st.heads = battle.randomChance(1, 2);
+    note(battle, `${t.mon.name}'s fortune: ${t.st.heads ? 'heads!' : 'tails...'}`);
+  }
+  return t.st.heads;
+}
+
+/** A foe the holder marked, and the mark is still good (the foe has not left the field since) and from an earlier move use. */
+function isMarked(t, foe, key) {
+  const entry = t.st.marks && t.st.marks.get(foe);
+  return !!entry && entry.entered === t.env.battle.turn - (foe.activeTurns || 0) && entry.key !== key;
+}
+
+/** Builds a signature object (the same shape as the hand-written ones) from a composed spec {p, core, clutch, draw}. */
+function composeSignature(spec) {
+  const core = spec.core || [];
+  const draw = spec.draw || [];
+  const all = [...core, ...draw];
+  const any = kind => all.some(part => part.k === kind);
+  const sig = {
+    pulse: spec.p,
+    composed: true,
+    hooks: {
+      status: core.some(part => part.k === 'potency'),
+      bleed: core.some(part => part.k === 'bleed' || part.k === 'struckBleed' || (part.k === 'out' && part.w === 'foeBleeding')),
+    },
+    forceCrit: !!(spec.clutch && spec.clutch.then === 'crit'),
+  };
+
+  sig.install = function (t) {
+    const battle = t.env.battle;
+    t.st.marks = new Map();
+    for (const part of core) {
+      if (part.k === 'speed') {
+        const inner = t.mon.getStat;
+        t.mon.getStat = function (statName, unboosted, unmodified) {
+          const stat = inner.apply(this, arguments);
+          try {
+            if (statName === 'spe' && !unmodified && typeof stat === 'number') return Math.min(1e4, battle.modify(stat, Math.round((1 + part.pct * t.P / 100) * 1000), 1000));
+          } catch (err) { /* fail open */ }
+          return stat;
+        };
+      } else if (part.k === 'potency') {
+        boostStatus(t, part.s, () => part.pct * t.P);
+      } else if (part.k === 'legacy') {
+        // When the holder faints, the next ally to enter its side heals and gains +1 Attack and Sp. Atk.
+        const innerFaint = t.mon.faint;
+        t.mon.faint = function () {
+          try { if (!this.fainted) t.st.legacyPending = true; } catch (err) { /* fail open */ }
+          return innerFaint.apply(this, arguments);
+        };
+        const actions = battle.actions;
+        if (actions && typeof actions.runSwitch === 'function') {
+          const innerSwitch = actions.runSwitch;
+          actions.runSwitch = function (pokemon) {
+            const result = innerSwitch.apply(this, arguments);
+            try {
+              if (t.st.legacyPending && pokemon && pokemon !== t.mon && pokemon.side === t.mon.side && pokemon.hp > 0) {
+                t.st.legacyPending = false;
+                note(battle, `${pokemon.name} receives ${t.mon.name}'s legacy!`);
+                const amount = Math.floor(pokemon.maxhp * part.heal * t.P / 100);
+                if (amount >= 1 && pokemon.hp < pokemon.maxhp && pokemon.heal(amount)) battle.add('-heal', pokemon, pokemon.getHealth);
+                battle.boost({atk: 1, spa: 1}, pokemon, pokemon, transcendEffect, false, true);
+              }
+            } catch (err) { /* fail open */ }
+            return result;
+          };
+        }
+      }
+    }
+    for (const part of draw) {
+      if (part.k === 'healCut') cutHealing(t, part.pct / 100);
+      else if (part.k === 'slow') slowSpeed(t, part.pct / 100);
+      else if (part.k === 'frail') {
+        lowerDefenses(battle, t.mon, () => 1 - part.pct / 100 * t.S);
+      } else if (part.k === 'healCeil') {
+        const inner = t.mon.heal;
+        t.mon.heal = function (amount, source, effect) {
+          if (typeof amount === 'number' && amount > 0) {
+            const room = Math.floor(this.maxhp * (1 - part.pct / 100 * t.S)) - this.hp;
+            if (room <= 0) return 0;
+            amount = Math.min(amount, room);
+          }
+          return inner.call(this, amount, source, effect);
+        };
+      } else if (part.k === 'noCrit') {
+        refuseCrits(battle, attacker => attacker === t.mon && t.chance(100 * t.S));
+      }
+    }
+    if (spec.clutch) {
+      const c = spec.clutch;
+      const remain = mon => (c.remain > 0 ? Math.max(1, Math.floor(mon.maxhp * c.remain * t.P / 100)) : 0);
+      clutch(t, remain, 'held on, transcendent!', () => {
+        if (c.then === 'crit') t.st.crit = true;
+        else if (c.then === 'boost') t.st.boost = Math.max(t.st.boost, c.pct * t.P / 100);
+        else if (c.then === 'shield') t.st.shield = Math.max(t.st.shield, c.pct * t.P / 100);
+      });
+    }
+  };
+
+  sig.outgoing = function (t, c) {
+    let mult = 1;
+    let add = 0;
+    for (const part of core) {
+      if (part.k === 'out' && OUT_WHEN[part.w] && OUT_WHEN[part.w](t, c)) mult *= 1 + part.pct * t.P / 100;
+      else if (part.k === 'ramp' && turnsIn(t.mon) > 0) mult *= 1 + Math.min(part.max, part.pct * turnsIn(t.mon)) * t.P / 100;
+      else if (part.k === 'koStack' && t.st.koStacks) mult *= 1 + part.pct * t.P / 100 * t.st.koStacks;
+      else if (part.k === 'mark' && c.target && isMarked(t, c.target, c.key)) mult *= 1 + part.pct * t.P / 100;
+      else if (part.k === 'gamble' && coinOf(t)) mult *= 1 + part.pct * t.P / 100;
+      else if (part.k === 'seAdd') add += superEffectiveAdd(t, {hit: c.hit, key: c.key, target: c.target}, part.pct);
+    }
+    for (const part of draw) {
+      if (part.k === 'outPen' && OUT_WHEN[part.w] && OUT_WHEN[part.w](t, c)) mult *= 1 - part.pct / 100 * t.S;
+      else if (part.k === 'gambleDown' && !coinOf(t)) mult *= 1 - part.pct / 100 * t.S;
+    }
+    return mult !== 1 || add ? {mult, add} : null;
+  };
+
+  sig.incoming = function (t, c) {
+    let mult = 1;
+    for (const part of core) {
+      if (part.k === 'inc' && INC_WHEN[part.w] && INC_WHEN[part.w](t, c)) mult *= 1 - part.pct * t.P / 100;
+    }
+    for (const part of draw) {
+      if (part.k !== 'incPen') continue;
+      const types = Array.isArray(part.types) ? part.types : null;
+      if (types ? types.includes(c.move.type) : (INC_WHEN[part.w] && INC_WHEN[part.w](t, c))) mult *= 1 + part.pct / 100 * t.S;
+    }
+    return mult;
+  };
+
+  sig.postHit = function (t, role, foe, moveKey, move, dealt) {
+    if (!foe || !move) return;
+    const battle = t.env.battle;
+    for (const part of core) {
+      if (role === 'hit') {
+        if (part.k === 'hitStatus' && foe.hp > 0 && !foe.status && (part.w !== 'contact' || touches(move)) && (part.w !== 'physical' || move.category === 'Physical') &&
+            t.st.statusKey !== moveKey + foe.uuid) {
+          t.st.statusKey = moveKey + foe.uuid;
+          if (t.chance(part.ch * t.P)) foe.trySetStatus(part.s, t.mon, transcendEffect);
+        } else if (part.k === 'hitHeal' && oncePerMove(t, 'healKey', {key: moveKey}) && t.mon.hp > 0 && t.mon.hp < t.mon.maxhp) {
+          if (t.mon.heal(Math.max(1, Math.floor(t.mon.maxhp * part.pct * t.P / 100)))) battle.add('-heal', t.mon, t.mon.getHealth);
+        } else if (part.k === 'lifesteal' && typeof dealt === 'number' && dealt > 0 && t.mon.hp > 0 && t.mon.hp < t.mon.maxhp) {
+          const amount = Math.floor(dealt * part.pct * t.P / 100);
+          if (amount >= 1 && t.mon.heal(amount)) battle.add('-heal', t.mon, t.mon.getHealth);
+        } else if (part.k === 'bleed' && (part.w === 'any' || (part.w === 'physical' && move.category === 'Physical') || (part.w === 'contact' && touches(move)))) {
+          bleedOn(t, foe, moveKey, {});
+        } else if (part.k === 'hitStage' && foe.hp > 0 && t.st.stageKey !== moveKey + foe.uuid) {
+          t.st.stageKey = moveKey + foe.uuid;
+          if (t.chance(part.ch * t.P)) battle.boost({[part.stat]: -1}, foe, t.mon, transcendEffect, true);
+        } else if (part.k === 'mark') {
+          const entered = battle.turn - (foe.activeTurns || 0);
+          const entry = t.st.marks.get(foe);
+          if (!entry || entry.entered !== entered) {
+            t.st.marks.set(foe, {key: moveKey, entered});
+            note(battle, `${foe.name} is marked by ${t.mon.name}!`);
+          }
+        }
+      } else if (role === 'struck') {
+        if (part.k === 'struckStatus' && foe.hp > 0 && !foe.status && (!part.contact || touches(move)) && t.st.statusKey !== moveKey) {
+          t.st.statusKey = moveKey;
+          if (t.chance(part.ch * t.P)) foe.trySetStatus(part.s, t.mon, transcendEffect);
+        } else if (part.k === 'counter' && foe.hp > 0 && t.st.counterKey !== moveKey &&
+            (part.w === 'any' || (part.w === 'contact' && touches(move)) || (part.w === 'se' && t.mon.getMoveHitData(move).typeMod > 0))) {
+          t.st.counterKey = moveKey;
+          chipFoe(t, foe, foe.maxhp * Math.min(part.pct, 17) * t.P / 100);
+        } else if (part.k === 'struckBleed' && foe.hp > 0 && (!part.contact || touches(move))) {
+          bleedOn(t, foe, moveKey, {});
+        } else if (part.k === 'struckStage' && t.st.struckStageKey !== moveKey && (t.mon.boosts[part.stat] || 0) < 2) {
+          t.st.struckStageKey = moveKey;
+          if (t.chance(part.ch * t.P)) battle.boost({[part.stat]: 1}, t.mon, t.mon, transcendEffect, false, true);
+        }
+      }
+    }
+    for (const part of draw) {
+      if (part.k === 'moveCost' && role === 'hit' && (part.w === 'any' || (part.w === 'physical' && move.category === 'Physical') || (part.w === 'contact' && touches(move))) &&
+          oncePerMove(t, 'costKey', {key: moveKey})) {
+        selfDamage(t, t.mon.maxhp * part.pct / 100 * t.S);
+      }
+    }
+  };
+
+  sig.tick = function (t) {
+    const battle = t.env.battle;
+    const weather = t.env.weatherNow();
+    for (const part of core) {
+      if (part.k === 'tickHeal' && (part.w === 'always' || (part.w === 'weather' && weather) || (part.w === 'hpLow' && t.mon.hp < t.mon.maxhp / 2)) &&
+          t.mon.hp > 0 && t.mon.hp < t.mon.maxhp) {
+        if (t.mon.heal(Math.max(1, Math.floor(t.mon.maxhp * part.pct * t.P / 100)))) battle.add('-heal', t.mon, t.mon.getHealth);
+      } else if (part.k === 'tickChip' && TICK_FOES[part.w]) {
+        for (const foe of activeFoes(t)) if (TICK_FOES[part.w](foe)) chipFoe(t, foe, foe.maxhp * part.pct * t.P / 100);
+      }
+    }
+    for (const part of draw) {
+      if (part.k !== 'tickCost') continue;
+      if (part.w === 'always' || (part.w === 'aboveHalf' && t.mon.hp > t.mon.maxhp / 2) || (part.w === 'noWeather' && !weather)) selfDamage(t, t.mon.maxhp * part.pct / 100 * t.S);
+    }
+  };
+
+  sig.onKo = function (t) {
+    const battle = t.env.battle;
+    for (const part of core) {
+      if (part.k === 'koHeal' && t.mon.hp < t.mon.maxhp) {
+        if (t.mon.heal(Math.max(1, Math.floor(t.mon.maxhp * part.pct * t.P / 100)))) battle.add('-heal', t.mon, t.mon.getHealth);
+      } else if (part.k === 'koStack') {
+        t.st.koStacks = Math.min(part.max, (t.st.koStacks || 0) + 1);
+      } else if (part.k === 'koStage' && (t.mon.boosts[part.stat] || 0) < 2) {
+        battle.boost({[part.stat]: 1}, t.mon, t.mon, transcendEffect, false, true);
+      }
+    }
+  };
+  if (!any('koHeal') && !any('koStack') && !any('koStage')) delete sig.onKo;
+  return sig;
+}
+
 function applyTranscendents(env) {
   const {battle, byUuid} = env;
   const holders = new Map();
@@ -1584,13 +2250,13 @@ function applyTranscendents(env) {
             const attacker = holders.get(source);
             if (attacker) {
               const sig = sigOf(attacker);
-              if (sig && sig.postHit) sig.postHit(attacker, 'hit', target, moveKey, effect);
+              if (sig && sig.postHit) sig.postHit(attacker, 'hit', target, moveKey, effect, result[i]);
               pulse(attacker, 'HIT', target, moveKey);
             }
             const defender = holders.get(target);
             if (defender) {
               const sig = sigOf(defender);
-              if (sig && sig.postHit) sig.postHit(defender, 'struck', source, moveKey, effect);
+              if (sig && sig.postHit) sig.postHit(defender, 'struck', source, moveKey, effect, result[i]);
               pulse(defender, 'STRUCK', source, moveKey);
             }
           }
@@ -1684,6 +2350,98 @@ function applyTranscendents(env) {
       return out;
     },
   };
+}
+
+// BEGIN GENERATED COMPOSED SIGNATURES (tools/transcendent_powers.py; do not edit by hand)
+const COMPOSED_SIGNATURES = {
+  rising_pyre: {"p":"HIT","core":[{"k":"ramp","pct":6,"max":30},{"k":"potency","s":"brn","pct":30}],"draw":[{"k":"outPen","pct":20,"w":"firstTurns"}]},
+  cinder_fang: {"p":"HIT","core":[{"k":"hitStatus","s":"brn","ch":20,"w":"any"},{"k":"lifesteal","pct":15}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Water","Fairy"]}]},
+  brazen_bull: {"p":"STRUCK","core":[{"k":"struckStatus","s":"brn","ch":30,"contact":true},{"k":"counter","pct":8,"w":"contact"}],"draw":[{"k":"outPen","pct":20,"w":"contact"}]},
+  wildfire_gale: {"p":"HIT","core":[{"k":"speed","pct":25},{"k":"hitStatus","s":"brn","ch":15,"w":"any"}],"draw":[{"k":"frail","pct":12}]},
+  hunters_pyre: {"p":"HIT","core":[{"k":"mark","pct":20},{"k":"out","pct":10,"w":"foeStatus"}],"draw":[{"k":"noCrit"}]},
+  funeral_pyre: {"p":"STRUCK","core":[{"k":"legacy","heal":35},{"k":"potency","s":"brn","pct":30}],"draw":[{"k":"incPen","pct":12,"w":"always"}]},
+  hearthguard: {"p":"STRUCK","core":[{"k":"inc","pct":18,"w":"always"},{"k":"struckStatus","s":"brn","ch":20,"contact":true}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  gamblers_flame: {"p":"HIT","core":[{"k":"gamble","pct":35},{"k":"hitStatus","s":"brn","ch":15,"w":"any"}],"draw":[{"k":"gambleDown","pct":20}]},
+  endless_encore: {"p":"TICK","core":[{"k":"ramp","pct":8,"max":40}],"draw":[{"k":"outPen","pct":20,"w":"firstTurns"}],"clutch":{"remain":0,"then":"boost","pct":20}},
+  undying_thirst: {"p":"HIT","core":[{"k":"lifesteal","pct":15}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Fairy"]}],"clutch":{"remain":15,"then":null,"pct":0}},
+  iron_coffin: {"p":"STRUCK","core":[{"k":"counter","pct":10,"w":"contact"}],"draw":[{"k":"outPen","pct":20,"w":"contact"}],"clutch":{"remain":0,"then":"shield","pct":30}},
+  phantom_step: {"p":"HIT","core":[{"k":"speed","pct":30}],"draw":[{"k":"frail","pct":15}],"clutch":{"remain":0,"then":null,"pct":0}},
+  the_last_hunt: {"p":"HIT","core":[{"k":"mark","pct":20}],"draw":[{"k":"slow","pct":12}],"clutch":{"remain":0,"then":"boost","pct":30}},
+  final_vigil: {"p":"STRUCK","core":[{"k":"legacy","heal":50}],"draw":[{"k":"incPen","pct":15,"w":"always"}],"clutch":{"remain":0,"then":null,"pct":0}},
+  unbroken_oath: {"p":"STRUCK","core":[{"k":"inc","pct":20,"w":"always"}],"draw":[{"k":"outPen","pct":25,"w":"always"}],"clutch":{"remain":20,"then":null,"pct":0}},
+  dead_mans_hand: {"p":"HIT","core":[{"k":"gamble","pct":40}],"draw":[{"k":"gambleDown","pct":20}],"clutch":{"remain":0,"then":"boost","pct":30}},
+  slow_rot: {"p":"TICK","core":[{"k":"potency","s":"psn","pct":25},{"k":"ramp","pct":5,"max":25}],"draw":[{"k":"outPen","pct":20,"w":"firstTurns"}]},
+  venom_kiss: {"p":"HIT","core":[{"k":"hitStatus","s":"psn","ch":25,"w":"contact"},{"k":"lifesteal","pct":10}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Psychic"]}]},
+  toxic_thorns: {"p":"STRUCK","core":[{"k":"struckStatus","s":"psn","ch":35,"contact":true},{"k":"counter","pct":6,"w":"contact"}],"draw":[{"k":"outPen","pct":20,"w":"contact"}]},
+  plague_wind: {"p":"TICK","core":[{"k":"speed","pct":20},{"k":"tickChip","pct":3,"w":"statused"}],"draw":[{"k":"frail","pct":12}]},
+  stalking_venom: {"p":"HIT","core":[{"k":"mark","pct":15},{"k":"potency","s":"psn","pct":30}],"draw":[{"k":"noCrit"}]},
+  bitter_legacy: {"p":"STRUCK","core":[{"k":"legacy","heal":35},{"k":"struckStatus","s":"psn","ch":25,"contact":false}],"draw":[{"k":"incPen","pct":12,"w":"always"}]},
+  miasma_shell: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"},{"k":"struckStatus","s":"psn","ch":30,"contact":true}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  poisoned_dice: {"p":"HIT","core":[{"k":"gamble","pct":35},{"k":"hitStatus","s":"psn","ch":20,"w":"any"}],"draw":[{"k":"gambleDown","pct":20}]},
+  gathering_storm: {"p":"TICK","core":[{"k":"ramp","pct":6,"max":30},{"k":"out","pct":10,"w":"weather"}],"draw":[{"k":"outPen","pct":15,"w":"noWeather"}]},
+  blood_moon: {"p":"HIT","core":[{"k":"lifesteal","pct":12},{"k":"tickHeal","pct":3,"w":"weather"}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Fairy"]}]},
+  lightning_rod: {"p":"STRUCK","core":[{"k":"struckStatus","s":"par","ch":30,"contact":true},{"k":"counter","pct":6,"w":"contact"}],"draw":[{"k":"incPen","pct":15,"w":"noWeather"}]},
+  jet_stream: {"p":"HIT","core":[{"k":"speed","pct":25},{"k":"out","pct":15,"w":"weatherType"}],"draw":[{"k":"frail","pct":12}]},
+  storm_hunt: {"p":"HIT","core":[{"k":"mark","pct":15},{"k":"out","pct":10,"w":"weather"}],"draw":[{"k":"noCrit"}]},
+  rain_of_remembrance: {"p":"TICK","core":[{"k":"legacy","heal":40},{"k":"tickHeal","pct":3,"w":"weather"}],"draw":[{"k":"incPen","pct":15,"w":"noWeather"}]},
+  storm_bulwark: {"p":"STRUCK","core":[{"k":"inc","pct":25,"w":"weather"}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  thunder_lottery: {"p":"HIT","core":[{"k":"gamble","pct":30},{"k":"out","pct":15,"w":"weatherType"}],"draw":[{"k":"gambleDown","pct":20}]},
+  bloodletting: {"p":"HIT","core":[{"k":"bleed","w":"physical"},{"k":"ramp","pct":5,"max":25}],"draw":[{"k":"outPen","pct":20,"w":"firstTurns"}]},
+  vampire_bite: {"p":"HIT","core":[{"k":"bleed","w":"contact"},{"k":"lifesteal","pct":12}],"draw":[{"k":"incPen","pct":30,"w":"always","types":["Fire","Fairy"]}]},
+  barbed_hide: {"p":"STRUCK","core":[{"k":"struckBleed","contact":true},{"k":"counter","pct":5,"w":"contact"}],"draw":[{"k":"outPen","pct":20,"w":"contact"}]},
+  razor_wind: {"p":"HIT","core":[{"k":"speed","pct":20},{"k":"bleed","w":"any"}],"draw":[{"k":"frail","pct":15}]},
+  blood_trail: {"p":"HIT","core":[{"k":"mark","pct":15},{"k":"out","pct":12,"w":"foeBleeding"},{"k":"bleed","w":"physical"}],"draw":[{"k":"noCrit"}]},
+  blood_oath: {"p":"KO","core":[{"k":"bleed","w":"physical"},{"k":"legacy","heal":35}],"draw":[{"k":"incPen","pct":12,"w":"always"}]},
+  scarred_veteran: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"},{"k":"struckBleed","contact":true}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  knife_toss: {"p":"HIT","core":[{"k":"gamble","pct":30},{"k":"bleed","w":"any"}],"draw":[{"k":"gambleDown","pct":20}]},
+  rising_colossus: {"p":"HIT","core":[{"k":"ramp","pct":6,"max":30},{"k":"seAdd","pct":6}],"draw":[{"k":"healCut","pct":50}]},
+  giants_hunger: {"p":"HIT","core":[{"k":"seAdd","pct":7},{"k":"lifesteal","pct":10}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Fairy"]}]},
+  iron_colossus: {"p":"STRUCK","core":[{"k":"counter","pct":10,"w":"se"},{"k":"counter","pct":5,"w":"contact"}],"draw":[{"k":"slow","pct":15}]},
+  falling_star: {"p":"HIT","core":[{"k":"speed","pct":20},{"k":"seAdd","pct":7}],"draw":[{"k":"frail","pct":15}]},
+  giant_hunter: {"p":"HIT","core":[{"k":"mark","pct":15},{"k":"seAdd","pct":6}],"draw":[{"k":"noCrit"}]},
+  titans_legacy: {"p":"KO","core":[{"k":"seAdd","pct":6},{"k":"legacy","heal":40}],"draw":[{"k":"healCut","pct":50}]},
+  living_fortress: {"p":"STRUCK","core":[{"k":"inc","pct":30,"w":"se"},{"k":"inc","pct":8,"w":"always"}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  titans_wager: {"p":"HIT","core":[{"k":"gamble","pct":30},{"k":"seAdd","pct":6}],"draw":[{"k":"gambleDown","pct":20}]},
+  compound_interest: {"p":"KO","core":[{"k":"ramp","pct":5,"max":25}],"draw":[{"k":"incPen","pct":15,"w":"always"}]},
+  blood_money: {"p":"KO","core":[{"k":"koHeal","pct":10}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Fairy"]}]},
+  golden_cage: {"p":"STRUCK","core":[{"k":"counter","pct":8,"w":"contact"}],"draw":[{"k":"outPen","pct":20,"w":"contact"}]},
+  gold_rush: {"p":"KO","core":[{"k":"speed","pct":20}],"draw":[{"k":"frail","pct":15}]},
+  bounty_hunter: {"p":"KO","core":[{"k":"mark","pct":15}],"draw":[{"k":"noCrit"}]},
+  inheritance: {"p":"KO","core":[{"k":"legacy","heal":40}],"draw":[{"k":"incPen","pct":15,"w":"always"}]},
+  vault_keeper: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  all_in: {"p":"KO","core":[{"k":"gamble","pct":40}],"draw":[{"k":"gambleDown","pct":25}]},
+  night_symphony: {"p":"HIT","core":[{"k":"ramp","pct":6,"max":30},{"k":"lifesteal","pct":10}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Fairy"]}]},
+  tempered_steel: {"p":"STRUCK","core":[{"k":"ramp","pct":5,"max":25},{"k":"counter","pct":6,"w":"contact"}],"draw":[{"k":"outPen","pct":25,"w":"firstTurns"}]},
+  accelerando: {"p":"HIT","core":[{"k":"ramp","pct":5,"max":25},{"k":"speed","pct":20}],"draw":[{"k":"frail","pct":12}]},
+  stalkers_rhythm: {"p":"HIT","core":[{"k":"ramp","pct":5,"max":25},{"k":"mark","pct":15}],"draw":[{"k":"noCrit"}]},
+  requiem: {"p":"TICK","core":[{"k":"ramp","pct":6,"max":30},{"k":"legacy","heal":40}],"draw":[{"k":"outPen","pct":20,"w":"firstTurns"}]},
+  rising_bastion: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"},{"k":"ramp","pct":4,"max":20}],"draw":[{"k":"outPen","pct":30,"w":"firstTurns"}]},
+  double_or_nothing: {"p":"HIT","core":[{"k":"gamble","pct":30},{"k":"ramp","pct":4,"max":20}],"draw":[{"k":"gambleDown","pct":20}]},
+  blood_maiden: {"p":"STRUCK","core":[{"k":"counter","pct":8,"w":"contact"},{"k":"lifesteal","pct":10}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Fairy"]}]},
+  night_flight: {"p":"HIT","core":[{"k":"speed","pct":25},{"k":"lifesteal","pct":10}],"draw":[{"k":"frail","pct":15}]},
+  blood_scent: {"p":"HIT","core":[{"k":"mark","pct":15},{"k":"lifesteal","pct":10}],"draw":[{"k":"noCrit"}]},
+  eternal_night: {"p":"KO","core":[{"k":"koHeal","pct":12},{"k":"legacy","heal":35}],"draw":[{"k":"incPen","pct":25,"w":"always","types":["Fire","Fairy"]}]},
+  crimson_aegis: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"},{"k":"lifesteal","pct":8}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  vampires_gamble: {"p":"HIT","core":[{"k":"gamble","pct":30},{"k":"lifesteal","pct":10}],"draw":[{"k":"gambleDown","pct":20}]},
+  spiked_wheel: {"p":"HIT","core":[{"k":"speed","pct":20},{"k":"counter","pct":6,"w":"contact"}],"draw":[{"k":"frail","pct":15}]},
+  iron_trap: {"p":"STRUCK","core":[{"k":"counter","pct":8,"w":"contact"},{"k":"mark","pct":15}],"draw":[{"k":"noCrit"}]},
+  iron_martyr: {"p":"STRUCK","core":[{"k":"counter","pct":8,"w":"contact"},{"k":"legacy","heal":35}],"draw":[{"k":"outPen","pct":20,"w":"contact"}]},
+  iron_aegis: {"p":"STRUCK","core":[{"k":"inc","pct":25,"w":"contact"},{"k":"counter","pct":6,"w":"contact"}],"draw":[{"k":"outPen","pct":25,"w":"always"}]},
+  spiked_roulette: {"p":"STRUCK","core":[{"k":"gamble","pct":30},{"k":"counter","pct":6,"w":"contact"}],"draw":[{"k":"gambleDown","pct":20}]},
+  swift_hunt: {"p":"HIT","core":[{"k":"speed","pct":20},{"k":"mark","pct":15}],"draw":[{"k":"noCrit"}]},
+  last_flight: {"p":"HIT","core":[{"k":"speed","pct":25},{"k":"legacy","heal":35}],"draw":[{"k":"frail","pct":15}]},
+  gale_bulwark: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"},{"k":"speed","pct":15}],"draw":[{"k":"outPen","pct":20,"w":"always"}]},
+  fortunes_wind: {"p":"HIT","core":[{"k":"gamble","pct":30},{"k":"speed","pct":15}],"draw":[{"k":"gambleDown","pct":20}]},
+  pack_hunt: {"p":"HIT","core":[{"k":"mark","pct":20},{"k":"legacy","heal":35}],"draw":[{"k":"noCrit"}]},
+  sentinels_watch: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"},{"k":"mark","pct":15}],"draw":[{"k":"noCrit"}]},
+  lucky_shot: {"p":"HIT","core":[{"k":"gamble","pct":30},{"k":"mark","pct":15}],"draw":[{"k":"gambleDown","pct":20}]},
+  oathkeeper: {"p":"STRUCK","core":[{"k":"inc","pct":18,"w":"always"},{"k":"legacy","heal":50}],"draw":[{"k":"outPen","pct":25,"w":"always"}]},
+  final_wager: {"p":"HIT","core":[{"k":"gamble","pct":35},{"k":"legacy","heal":35}],"draw":[{"k":"gambleDown","pct":25}]},
+  loaded_shield: {"p":"STRUCK","core":[{"k":"inc","pct":15,"w":"always"},{"k":"gamble","pct":25}],"draw":[{"k":"gambleDown","pct":20}]},
+};
+// END GENERATED COMPOSED SIGNATURES
+for (const [id, spec] of Object.entries(COMPOSED_SIGNATURES)) {
+  if (!Object.prototype.hasOwnProperty.call(TRANSCEND_SIGNATURES, id)) TRANSCEND_SIGNATURES[id] = composeSignature(spec);
 }
 
 function install(sim) {

@@ -106,9 +106,14 @@ BASES = [
     ('rupture', 'triple_seven', 'wager_of_blood', 'Wager of Blood', 'A bleeding bet: richer prizes for riskier fights.'),
     ('titans_heart', 'triple_seven', 'jackpot_titan', 'Jackpot Titan', 'A giant paid in gold, hurt by its own weight.'),
 ]
+# The 84 made with the second batch of Uniques (docs/AFFIX-EXPANSION-DESIGN.md): composed signatures, from tools/transcendent_powers.py.
+BASES += [(a, b, i, n, t) for i, (a, b, n, t, *_rest) in powers.COMPOSED.items()]
 uniques = {u for b in BASES for u in b[:2]}
-if len(uniques) != 7 or len(BASES) != 21 or len({(a, b) for a, b, *_ in BASES}) != 21:
-    sys.exit('the base table must cover every pair of the seven Uniques exactly once')
+pairs_seen = {frozenset((a, b)) for a, b, *_ in BASES}
+if len(uniques) != 15 or len(BASES) != 105 or len(pairs_seen) != 105:
+    sys.exit('the base table must cover every pair of the fifteen Uniques exactly once')
+if len({n for _, _, _, n, _ in BASES}) != len(BASES) or len({i for _, _, i, _, _ in BASES}) != len(BASES):
+    sys.exit('every base needs its own id and name')
 
 # ---------------------------------------------------------------- curated recipes
 PAIRS = [  # (host, donor, id, name, harmony, blurb) - recognised in either order
@@ -229,11 +234,13 @@ unused = set(powers.RECIPE_TWISTS) - {e['id'] for e in pairs + groups}
 if unused:
     sys.exit('twists for recipes that do not exist: ' + str(sorted(unused)))
 base_ids = {i for _, _, i, _, _ in BASES}
-if set(powers.SIGNATURES) != base_ids:
-    sys.exit('signatures and bases differ: ' + str(set(powers.SIGNATURES) ^ base_ids))
+all_signatures = dict(powers.SIGNATURES)
+all_signatures.update({i: powers.composed_text(i) for i in powers.COMPOSED})
+if set(all_signatures) != base_ids:
+    sys.exit('signatures and bases differ: ' + str(set(all_signatures) ^ base_ids))
 if set(powers.TWISTS) != set(MOTIFS) or set(powers.RIDERS) != set(MOTIFS):
     sys.exit('every motif needs exactly one twist and one rider')
-signatures = [{'id': i, 'pulse': v[0], 'core': v[1], 'clutch': v[2], 'drawback': v[3]} for i, v in powers.SIGNATURES.items()]
+signatures = [{'id': i, 'pulse': v[0], 'core': v[1], 'clutch': v[2], 'drawback': v[3]} for i, v in all_signatures.items()]
 twists = {m: {'name': n, 'effects': ops} for m, (n, ops) in powers.TWISTS.items()}
 riders = {m: {'affix': a, 'value': v} for m, (a, v) in powers.RIDERS.items()}
 
@@ -258,4 +265,5 @@ with open(REPO + '/lore/motifs.json', 'w', encoding='utf-8', newline='\n') as ha
     json.dump(motifs_json, handle, ensure_ascii=False, indent=1)
 with open(REPO + '/transcendents.json', 'w', encoding='utf-8', newline='\n') as handle:
     json.dump(transcendents, handle, ensure_ascii=False, indent=1)
+powers.write_composed_js(os.path.join(REPO, '..', 'ascensionlib', 'src', 'main', 'resources', 'assets', 'ascensionlib', 'showdown', 'ascension-fx.js'))
 print('pairs', len(pairs), 'groups', len(groups), 'bases', len(BASES), 'motifs', len(MOTIFS), 'signatures', len(signatures), 'twists', len(twists), 'riders', len(riders))

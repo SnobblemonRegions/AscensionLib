@@ -25,7 +25,7 @@ public final class CaptureRevealNet {
         var affix = service.rules().affix(slot.affixId());
         var band = affix.band(slot.rank());
         String type = slot.type();
-        String condition = affix.base().condition() == null ? "" : affix.base().condition();
+        String condition = com.cobbleascend.domain.v1.ScoutView.condition(affix.base().condition(), type);
         return new ScoutPayloads.Slot(slot.category().id(), affix.base().name() + (type == null ? "" : " (" + type + ")"),
                 slot.rank(), slot.rolledValue(), Math.max(band.min(), slot.floor()), band.max(), condition,
                 com.cobbleascend.domain.v1.Resonance.themeOf(slot.affixId()).map(com.cobbleascend.domain.v1.Resonance.Theme::display).orElse(""), slot.sealed(),

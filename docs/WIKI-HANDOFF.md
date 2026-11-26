@@ -108,6 +108,14 @@ A Unique is one powerful ability with a real drawback. It needs a Unique Catalys
 | Rupture | Your physical moves always cause bleeding. | Bleed you cause is weaker per stack: 100%, 80%, 60%. |
 | Titan's Heart | Your super-effective moves deal bonus damage equal to 10% of your max HP. | You cannot be healed in battle. |
 | 777 | Item rewards you earn are 20% larger while it is in your party. | You take 25% more damage from moves. |
+| Crescendo | Your moves deal 8% more for each full turn you have stayed in battle, up to 40%. Switching out resets it. | For your first two turns after entering, your moves deal 20% less. |
+| Nightfang | Your damaging moves heal you 25% of the damage they deal. | You take 30% more damage from Fire and Fairy moves. |
+| Iron Maiden | An enemy that hits you with a contact move loses 1/8 of its max HP. | Your own contact moves deal 20% less damage. |
+| Tailwind Heart | Your Speed is 50% higher. | Your Defense and Sp. Def are 15% lower. |
+| Huntmark | Your first hit marks a foe; your later moves against it deal 25% more until it leaves the field. | You cannot land critical hits. |
+| Martyr's Gift | When you faint, the next ally to enter heals 50% of its max HP and gains +1 Attack and +1 Sp. Atk. | You take 15% more damage from moves. |
+| Aegis Oath | You take 30% less damage from moves. | Your moves deal 30% less damage. |
+| Fickle Fortune | Each turn a coin is flipped: heads, your moves deal 40% more that turn. | Tails: your moves deal 20% less that turn. |
 
 A Transcendent is made at a Fuser, the lab machine from Project Fusion. Two Pokémon that each hold a Unique are fused for good: one becomes the body, the other lives on inside it as the head, and their two Uniques become one completely new power. It can never be separated.
 
@@ -277,10 +285,30 @@ Every trait, its slot, its channel and its value range at each rank.
 | Bracing Entry | Guard | mechanic | When you enter the field, this chance to raise Defense and Sp. Def by one stage. | 8-16% / 17-24% / 25-32% / 33-40% / 41-48% |
 | Wardstone | Guard | mechanic | Each time an enemy would inflict a status condition on you, this chance it fails. | 5-10% / 11-15% / 16-20% / 21-25% / 26-30% |
 | Stubborn | Guard | mechanic | Once per battle, a hit that would faint you has this chance to leave you at 1 HP. | 3-6% / 7-9% / 10-12% / 13-15% / 16-18% |
+| Ambush | Attack | outgoingDamage | Your moves deal more damage to a target that entered the field this turn or last turn. | 6-12% / 13-18% / 19-24% / 25-30% / 31-36% |
+| Brawler | Attack | outgoingDamage | Your contact moves deal more damage. | 3-6% / 7-9% / 10-12% / 13-15% / 16-18% |
+| Sharpshooter | Attack | outgoingDamage | Your moves that do not make contact deal more damage. | 3-6% / 7-9% / 10-12% / 13-15% / 16-18% |
+| Giant Slayer | Attack | outgoingDamage | Your moves deal more damage to a target whose max HP is higher than yours. Rare. | 10-16% / 17-24% / 25-32% / 33-40% / 41-48% |
+| Relentless | Attack | outgoingDamage | Using the same damaging move on consecutive turns adds this much damage per repeat, up to three times. Switching or changing moves resets it. | 2-4% / 5-6% / 7-8% / 9-10% / 11-12% |
+| Exploit Weakness | Attack | outgoingDamage | Your moves deal more damage to a target with at least one lowered stat. | 5-10% / 11-15% / 16-20% / 21-25% / 26-30% |
+| Armorbreak | Attack | mechanic | Each damaging move that hits has this chance to lower the target's Defense by one stage. | 5-10% / 11-15% / 16-20% / 21-25% / 26-30% |
+| Pressure Point | Attack | outgoingDamage | Your critical hits deal more damage. Rare. | 15-25% / 26-38% / 39-51% / 52-64% / 65-77% |
+| Searing Touch | Attack | mechanic | Each damaging contact move that hits has this chance to burn the target. | 3-6% / 7-9% / 10-12% / 13-15% / 16-18% |
+| Venom Touch | Attack | mechanic | Each damaging contact move that hits has this chance to poison the target. Regular poison, not Toxic. | 3-6% / 7-9% / 10-12% / 13-15% / 16-18% |
+| Siphon | Guard | healing | Your damaging moves heal you this share of the damage they deal. | 3-6% / 7-9% / 10-12% / 13-15% / 16-18% |
+| Thorns | Guard | mechanic | An enemy that hits you with a contact move loses this percent of its max HP. | 2-4% / 5-6% / 7-8% / 9-10% / 11-12% |
+| Purging | Guard | mechanic | At the end of each turn, this chance to cure your own status condition. | 8-15% / 16-23% / 24-31% / 32-39% / 40-47% |
+| Fresh Legs | Guard | healing | When you switch out, you heal this percent of your max HP. | 5-10% / 11-15% / 16-20% / 21-25% / 26-30% |
+| Stalwart | Guard | incomingReduction | You take less damage from critical hits. | 8-15% / 16-23% / 24-31% / 32-39% / 40-47% |
+| Unyielding | Guard | mechanic | Each time an enemy would lower your stats, this chance it fails. Drops from your own moves still apply. | 8-15% / 16-23% / 24-31% / 32-39% / 40-47% |
+| Watchful | Guard | incomingReduction | You take less damage from moves with raised priority. | 8-15% / 16-23% / 24-31% / 32-39% / 40-47% |
+| Resolute | Guard | incomingReduction | You take less damage while at least one of your stats is lowered. | 4-8% / 9-12% / 13-16% / 17-20% / 21-24% |
+| Insulated | Guard | incomingReduction | You take less damage from burn, poison, bleeding, weather and entry hazards. | 8-15% / 16-23% / 24-31% / 32-39% / 40-47% |
+| Hardening | Guard | incomingReduction | Each enemy move that hits you makes later hits deal this much less, up to three times. Switching out ends it. | 2-4% / 5-6% / 7-8% / 9-10% / 11-12% |
 
 ## Transcendent recipes
 
-Each pair of Uniques fuses into one of 21 base Transcendents. A few dozen pairs and groups of species have their own curated recipes with extra twists and riders; every other fusion is derived from the same rules.
+Each pair of Uniques fuses into one of 105 base Transcendents. A few dozen pairs and groups of species have their own curated recipes with extra twists and riders; every other fusion is derived from the same rules.
 
 | Transcendent | Made from | Flavour |
 |---|---|---|
@@ -305,6 +333,90 @@ Each pair of Uniques fuses into one of 21 base Transcendents. A few dozen pairs 
 | Breaker's Might | Rupture + Titan's Heart | Physical strikes that bleed and super-effective strikes that hammer. |
 | Wager of Blood | Rupture + 777 | A bleeding bet: richer prizes for riskier fights. |
 | Jackpot Titan | Titan's Heart + 777 | A giant paid in gold, hurt by its own weight. |
+| Rising Pyre | Ashen Heart + Crescendo | A fire that builds the longer it is left to burn. |
+| Cinder Fang | Ashen Heart + Nightfang | A bite that burns and feeds. |
+| Brazen Bull | Ashen Heart + Iron Maiden | A burning bronze hide that scalds whatever strikes it. |
+| Wildfire Gale | Ashen Heart + Tailwind Heart | Flame carried on a racing wind. |
+| Hunter's Pyre | Ashen Heart + Huntmark | Mark the prey, then let it burn. |
+| Funeral Pyre | Ashen Heart + Martyr's Gift | Its ashes kindle the next to fight. |
+| Hearthguard | Ashen Heart + Aegis Oath | A hearth that warms its keeper and burns the hand that strikes it. |
+| Gambler's Flame | Ashen Heart + Fickle Fortune | Every turn a coin, every heads a blaze. |
+| Endless Encore | Last Breath + Crescendo | The song that will not end until it is finished. |
+| Undying Thirst | Last Breath + Nightfang | It will not die while there is still blood to drink. |
+| Iron Coffin | Last Breath + Iron Maiden | Sealed in iron, it outlasts the blow that should have ended it. |
+| Phantom Step | Last Breath + Tailwind Heart | Too quick to catch, too stubborn to fall. |
+| The Last Hunt | Last Breath + Huntmark | Wounded, it marks one last prey. |
+| Final Vigil | Last Breath + Martyr's Gift | It stands watch to the last, and leaves its strength behind. |
+| Unbroken Oath | Last Breath + Aegis Oath | A vow kept past the breaking point. |
+| Dead Man's Hand | Last Breath + Fickle Fortune | Aces and eights, and one more hand to play. |
+| Slow Rot | Creeping Venom + Crescendo | Poison that grows patient and then grows strong. |
+| Venom Kiss | Creeping Venom + Nightfang | A kiss that poisons and feeds. |
+| Toxic Thorns | Creeping Venom + Iron Maiden | Barbs dipped in venom. |
+| Plague Wind | Creeping Venom + Tailwind Heart | A fast, foul wind that wears down the sick. |
+| Stalking Venom | Creeping Venom + Huntmark | It marks its prey and lets the poison work. |
+| Bitter Legacy | Creeping Venom + Martyr's Gift | Even its death is poison to its foes. |
+| Miasma Shell | Creeping Venom + Aegis Oath | A shell wrapped in toxic fog. |
+| Poisoned Dice | Creeping Venom + Fickle Fortune | Loaded dice, laced with venom. |
+| Gathering Storm | Stormcaller + Crescendo | Clouds that build turn by turn. |
+| Blood Moon | Stormcaller + Nightfang | Under a red sky, it feeds. |
+| Lightning Rod | Stormcaller + Iron Maiden | Strike it and the storm strikes back. |
+| Jet Stream | Stormcaller + Tailwind Heart | Riding the high winds of its own weather. |
+| Storm Hunt | Stormcaller + Huntmark | The storm finds the prey it has marked. |
+| Rain of Remembrance | Stormcaller + Martyr's Gift | A rain that falls for the fallen. |
+| Storm Bulwark | Stormcaller + Aegis Oath | A wall of wind and rain. |
+| Thunder Lottery | Stormcaller + Fickle Fortune | Lightning never strikes the same place twice. Usually. |
+| Bloodletting | Rupture + Crescendo | Each turn the wounds run deeper. |
+| Vampire Bite | Rupture + Nightfang | Fangs that open a wound and drink from it. |
+| Barbed Hide | Rupture + Iron Maiden | Every barb leaves the attacker bleeding. |
+| Razor Wind | Rupture + Tailwind Heart | A cutting gale. |
+| Blood Trail | Rupture + Huntmark | It follows the blood to its prey. |
+| Blood Oath | Rupture + Martyr's Gift | Sworn in blood, kept in death. |
+| Scarred Veteran | Rupture + Aegis Oath | Every scar a lesson, every lesson a wound returned. |
+| Knife Toss | Rupture + Fickle Fortune | Throw the knife, flip the coin. |
+| Rising Colossus | Titan's Heart + Crescendo | A giant that wakes slowly and hits harder each turn. |
+| Giant's Hunger | Titan's Heart + Nightfang | A giant that feeds on what it crushes. |
+| Iron Colossus | Titan's Heart + Iron Maiden | Strike its weak point and pay for it. |
+| Falling Star | Titan's Heart + Tailwind Heart | Fast, heavy, and gone. |
+| Giant Hunter | Titan's Heart + Huntmark | It picks the biggest prey and brings it down. |
+| Titan's Legacy | Titan's Heart + Martyr's Gift | When the giant falls, its strength passes on. |
+| Living Fortress | Titan's Heart + Aegis Oath | A wall with no weak point. |
+| Titan's Wager | Titan's Heart + Fickle Fortune | A giant betting on one great blow. |
+| Compound Interest | 777 + Crescendo | Every turn it stays, the returns grow. |
+| Blood Money | 777 + Nightfang | Paid in full, in blood. |
+| Golden Cage | 777 + Iron Maiden | Gilded bars that bite back. |
+| Gold Rush | 777 + Tailwind Heart | First to the gold. |
+| Bounty Hunter | 777 + Huntmark | Mark the bounty, collect the prize. |
+| Inheritance | 777 + Martyr's Gift | Its fortune passes to the next in line. |
+| Vault Keeper | 777 + Aegis Oath | Guarding the treasure, at a cost. |
+| All In | 777 + Fickle Fortune | Everything on one flip. |
+| Night Symphony | Crescendo + Nightfang | A slow song that feeds as it swells. |
+| Tempered Steel | Crescendo + Iron Maiden | Every blow it takes hardens it further. |
+| Accelerando | Crescendo + Tailwind Heart | Faster and stronger with every bar. |
+| Stalker's Rhythm | Crescendo + Huntmark | It learns its prey, beat by beat. |
+| Requiem | Crescendo + Martyr's Gift | A last song that carries on after the singer. |
+| Rising Bastion | Crescendo + Aegis Oath | Walls that rise higher every turn it holds. |
+| Double or Nothing | Crescendo + Fickle Fortune | Let it ride. |
+| Blood Maiden | Nightfang + Iron Maiden | Spikes that drink. |
+| Night Flight | Nightfang + Tailwind Heart | Wings in the dark, fangs at the end. |
+| Blood Scent | Nightfang + Huntmark | Once it tastes you, it will not stop. |
+| Eternal Night | Nightfang + Martyr's Gift | The night does not end when it falls. |
+| Crimson Aegis | Nightfang + Aegis Oath | A shield that feeds its bearer. |
+| Vampire's Gamble | Nightfang + Fickle Fortune | Feast or famine. |
+| Spiked Wheel | Iron Maiden + Tailwind Heart | Rolling fast, and sharp all over. |
+| Iron Trap | Iron Maiden + Huntmark | Bait, mark and snap. |
+| Iron Martyr | Iron Maiden + Martyr's Gift | It falls on its own spikes for its allies. |
+| Iron Aegis | Iron Maiden + Aegis Oath | Touch it and regret it. |
+| Spiked Roulette | Iron Maiden + Fickle Fortune | Spin the wheel, mind the spikes. |
+| Swift Hunt | Tailwind Heart + Huntmark | Fast enough to mark the prey first. |
+| Last Flight | Tailwind Heart + Martyr's Gift | It flies until it falls, then lifts the next. |
+| Gale Bulwark | Tailwind Heart + Aegis Oath | A wall of wind. |
+| Fortune's Wind | Tailwind Heart + Fickle Fortune | Which way will the wind blow? |
+| Pack Hunt | Huntmark + Martyr's Gift | One marks the prey, the pack finishes it. |
+| Sentinel's Watch | Huntmark + Aegis Oath | It guards and watches for the one to strike. |
+| Lucky Shot | Huntmark + Fickle Fortune | Mark the target, trust your luck. |
+| Oathkeeper | Martyr's Gift + Aegis Oath | It holds the line and hands its strength on. |
+| Final Wager | Martyr's Gift + Fickle Fortune | Bet it all, and leave the winnings behind. |
+| Loaded Shield | Aegis Oath + Fickle Fortune | A shield with a gambler behind it. |
 
 ## Credits and licences
 

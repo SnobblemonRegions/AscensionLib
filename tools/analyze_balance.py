@@ -41,7 +41,7 @@ def validate(balance, catalog, example, ranked):
     require(sum(t["weight"] for t in tiers) == 10_000, "Weights must sum to 10,000")
     require(all(isinstance(t["weight"], int) and t["weight"] > 0 for t in tiers), "Invalid weight")
     require(len({t["id"] for t in tiers}) == 6, "Duplicate rarity")
-    require(len(affixes) == 34, "Expected thirty-four launch templates")
+    require(len(affixes) == 54, "Expected fifty-four affix templates (34 launch + 20 expansion)")
     require(len({a["id"] for a in affixes}) == len(affixes), "Duplicate affix ID")
     for affix in affixes:
         require(affix["slot"] in ("prefix", "suffix"), "Invalid slot category")

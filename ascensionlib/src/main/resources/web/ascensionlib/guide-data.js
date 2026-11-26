@@ -363,6 +363,46 @@ window.GUIDE = {
        "777",
        "Item rewards you earn are 20% larger while it is in your party.",
        "You take 25% more damage from moves."
+      ],
+      [
+       "Crescendo",
+       "Your moves deal 8% more for each full turn you have stayed in battle, up to 40%. Switching out resets it.",
+       "For your first two turns after entering, your moves deal 20% less."
+      ],
+      [
+       "Nightfang",
+       "Your damaging moves heal you 25% of the damage they deal.",
+       "You take 30% more damage from Fire and Fairy moves."
+      ],
+      [
+       "Iron Maiden",
+       "An enemy that hits you with a contact move loses 1/8 of its max HP.",
+       "Your own contact moves deal 20% less damage."
+      ],
+      [
+       "Tailwind Heart",
+       "Your Speed is 50% higher.",
+       "Your Defense and Sp. Def are 15% lower."
+      ],
+      [
+       "Huntmark",
+       "Your first hit marks a foe; your later moves against it deal 25% more until it leaves the field.",
+       "You cannot land critical hits."
+      ],
+      [
+       "Martyr's Gift",
+       "When you faint, the next ally to enter heals 50% of its max HP and gains +1 Attack and +1 Sp. Atk.",
+       "You take 15% more damage from moves."
+      ],
+      [
+       "Aegis Oath",
+       "You take 30% less damage from moves.",
+       "Your moves deal 30% less damage."
+      ],
+      [
+       "Fickle Fortune",
+       "Each turn a coin is flipped: heads, your moves deal 40% more that turn.",
+       "Tails: your moves deal 20% less that turn."
       ]
      ]
     },

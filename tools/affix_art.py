@@ -294,6 +294,152 @@ def g_sparkle(g, k, a):
     g.disc(10, 10, 2, a)
 
 
+# ---- glyphs of the affix expansion (docs/AFFIX-EXPANSION-DESIGN.md) ------------------------------------------------------------------------
+
+def g_eye(g, k, a):
+    g.poly([(0.5, 10), (5, 4.5), (10, 3), (15, 4.5), (19.5, 10), (15, 15.5), (10, 17), (5, 15.5)], k)
+    g.disc(10, 10, 4.6, a)
+    g.disc(10, 10, 2.3, X)
+    g.disc(8.6, 8.6, 0.9, mix(a, 1.4))
+
+
+def g_fist(g, k, a):
+    g.poly([(2.5, 3.5), (17.5, 3.5), (17.5, 11), (2.5, 11)], k)
+    for x in (6.3, 10, 13.7):
+        g.line(x, 3.2, x, 9.4, X, 1.1)
+    g.poly([(4, 11), (16, 11), (15, 19), (5, 19)], k)
+    g.poly([(2.5, 9.5), (10.5, 9.5), (10.5, 12.8), (2.5, 12.8)], a)
+    g.line(2.5, 12.9, 10.5, 12.9, X, 0.9)
+
+
+
+
+def g_crosshair(g, k, a):
+    g.ring(10, 10, 8, 1.8, k)
+    for x1, y1, x2, y2 in ((10, 0.5, 10, 6.5), (10, 13.5, 10, 19.5), (0.5, 10, 6.5, 10), (13.5, 10, 19.5, 10)):
+        g.line(x1, y1, x2, y2, k, 1.8)
+    g.disc(10, 10, 2.2, a)
+
+
+def g_giant(g, k, a):
+    g.poly([(10, 0.5), (19, 19), (1, 19)], k)
+    g.poly([(10, 0.5), (13, 6.5), (7, 6.5)], a)
+    g.poly([(10.6, 7.5), (8.6, 11.5), (11.4, 13.2), (9.4, 18.8), (10.8, 18.8), (13, 12.8), (10.2, 11.2), (12, 7.5)], X)
+
+
+def g_repeat(g, k, a):
+    g.ring(10, 10, 8, 2.4, k, only=lambda x, y: y < g.p(0, 9.2)[1])
+    g.ring(10, 10, 8, 2.4, a, only=lambda x, y: y > g.p(0, 10.8)[1])
+    g.poly([(14.6, 6.4), (19.8, 6.4), (17.2, 11.4)], k)
+    g.poly([(5.4, 13.6), (0.2, 13.6), (2.8, 8.6)], a)
+
+
+def g_broken_shield(g, k, a):
+    g.poly([(2.5, 1.5), (9.2, 1.5), (7.6, 7), (10.4, 10.6), (8.4, 18.6), (2.5, 10)], k)
+    g.poly([(11.2, 1.5), (17.5, 1.5), (17.5, 10), (11.4, 18), (12.8, 10.6), (9.8, 7)], a)
+
+
+def g_hammer(g, k, a):
+    g.line(5, 18.5, 12.5, 8, a, 2.2)
+    g.poly([(8.2, 1.6), (18.8, 9.2), (15.6, 13.6), (5, 6)], k)
+    g.line(9, 3, 17.4, 9.1, mix(k, 1.45), 0.9)
+
+
+def g_target(g, k, a):
+    g.ring(10, 10, 9.2, 2.0, k)
+    g.ring(10, 10, 5.6, 2.0, a)
+    g.disc(10, 10, 2.2, k)
+
+
+def g_ember(g, k, a):
+    g.poly([(9, 3), (13.5, 8.5), (15.5, 13.5), (12.8, 19), (5.2, 19), (2.6, 13.5), (5, 9.5), (7.2, 11.6), (7.4, 6.5)], k)
+    g.poly([(9, 10), (12, 14), (11, 17.6), (7, 17.6), (6.2, 14)], a)
+    for cx, cy, r in ((16.2, 3.2, 1.4), (18.4, 7.6, 1.0), (14.2, 0.9, 0.9)):
+        g.disc(cx, cy, r, a)
+
+
+def g_fang(g, k, a):
+    g.poly([(1, 1.5), (19, 1.5), (19, 5), (1, 5)], k)
+    g.poly([(3, 5), (8, 5), (5.5, 15)], k)
+    g.poly([(12, 5), (17, 5), (14.5, 15)], k)
+    g.disc(5.5, 17.4, 1.5, a)
+    g.disc(14.5, 17.4, 1.5, a)
+
+
+def g_siphon(g, k, a):
+    g.poly([(10, 0.5), (3.8, 11), (16.2, 11)], k)
+    g.disc(10, 13, 6.6, k)
+    g.disc(8.2, 12.2, 2.0, a)
+    g.disc(11.8, 12.2, 2.0, a)
+    g.poly([(6.3, 13), (13.7, 13), (10, 17.4)], a)
+
+
+def g_thorns(g, k, a):
+    g.ring(10, 10, 6.8, 2.4, k)
+    for i in range(8):
+        ang = math.pi * i / 4 + math.pi / 8
+        bx, by = 10 + 6.2 * math.cos(ang), 10 + 6.2 * math.sin(ang)
+        tx, ty = 10 + 10.4 * math.cos(ang), 10 + 10.4 * math.sin(ang)
+        nx, ny = -math.sin(ang) * 2.2, math.cos(ang) * 2.2
+        g.poly([(bx + nx, by + ny), (bx - nx, by - ny), (tx, ty)], a)
+
+
+
+def g_feather(g, k, a):
+    g.poly([(17.5, 1), (12, 3.5), (5, 11), (3.5, 16), (8.5, 15), (15.5, 8)], k)
+    g.line(17.5, 1, 2, 19, a, 1.1)
+    for i in range(4):
+        x = 13 - i * 2.6
+        g.line(x, 4 + i * 2.6, x - 2.4, 4 + i * 2.6 - 0.4, X, 0.6)
+
+
+def g_helm(g, k, a):
+    g.poly([(3, 9), (5, 3.5), (10, 1), (15, 3.5), (17, 9), (17, 18.5), (12, 18.5), (12, 12), (8, 12), (8, 18.5), (3, 18.5)], k)
+    g.poly([(5.5, 8), (14.5, 8), (14.5, 10.2), (5.5, 10.2)], X)
+    g.line(10, 1.5, 10, 7.4, a, 1.4)
+
+
+def g_wall(g, k, a):
+    rows = ((2, (1, 7, 13)), (7.2, (4, 10, 16)), (12.4, (1, 7, 13)))
+    for y, xs in rows:
+        for x in xs:
+            g.poly([(x, y), (x + 5.4, y), (x + 5.4, y + 4.6), (x, y + 4.6)], k)
+            g.line(x + 0.6, y + 0.8, x + 4.8, y + 0.8, a, 0.8)
+    g.poly([(1, 17.6), (19, 17.6), (19, 19.4), (1, 19.4)], a)
+
+
+def g_hourglass(g, k, a):
+    g.poly([(3, 0.8), (17, 0.8), (17, 2.8), (3, 2.8)], k)
+    g.poly([(3, 17.2), (17, 17.2), (17, 19.2), (3, 19.2)], k)
+    g.poly([(4.4, 2.8), (15.6, 2.8), (10.9, 10), (15.6, 17.2), (4.4, 17.2), (9.1, 10)], k)
+    g.poly([(6.6, 13.4), (13.4, 13.4), (14.6, 16.4), (5.4, 16.4)], a)
+    g.poly([(7.2, 4.4), (12.8, 4.4), (10, 8.2)], a)
+
+
+def g_pillar(g, k, a):
+    g.poly([(2.5, 0.8), (17.5, 0.8), (17.5, 3.6), (2.5, 3.6)], k)
+    g.poly([(4.5, 3.6), (15.5, 3.6), (15.5, 16.4), (4.5, 16.4)], k)
+    for x in (7.2, 10, 12.8):
+        g.line(x, 4.6, x, 15.4, X, 0.7)
+    g.poly([(2.5, 16.4), (17.5, 16.4), (17.5, 19.2), (2.5, 19.2)], a)
+
+
+def g_bubble(g, k, a):
+    g.ring(10, 10, 9, 2.0, k)
+    g.disc(10, 10, 6.4, mix(k, 0.7))
+    g.ring(10, 10, 6.4, 1.2, a, only=lambda x, y: x < g.p(9, 0)[0] and y < g.p(0, 9)[1])
+    g.disc(6.8, 6.6, 1.3, mix(a, 1.4))
+
+
+def g_layers(g, k, a):
+    for i, col in enumerate((k, a, k)):
+        y = 2 + i * 6
+        x0 = 3 - i * 1.2
+        g.poly([(x0 + 1.2, y), (17 + i * 1.2 - 1.2, y), (18 + i * 1.2 - 1.2, y + 4.6), (x0, y + 4.6)], col)
+        g.line(x0 + 0.4, y + 4.6, 18 + i * 1.2 - 1.6, y + 4.6, X, 0.7)
+
+
+
 # ---- mini marks drawn inside a shield (the shield is the base of the defensive family) ------------------------------------------------------
 
 def shield_with(mark):
@@ -326,6 +472,9 @@ GLYPHS = {
     'flame': g_flame, 'skull': g_skull, 'claw': g_claw, 'diamond': g_diamond, 'web': g_web, 'chevrons': g_chevrons, 'arrow_speed': g_arrow_speed,
     'cross': g_cross, 'crown': g_crown, 'rings': g_rings, 'axe': g_axe, 'arrow_up': g_arrow_up, 'fortress': g_fortress, 'scales': g_scales,
     'gem': g_gem, 'anchor': g_anchor, 'sparkle': g_sparkle, 'unique': g_unique, 'arrow_down': g_arrow_down,
+    'eye': g_eye, 'fist': g_fist, 'crosshair': g_crosshair, 'giant': g_giant, 'repeat': g_repeat, 'broken_shield': g_broken_shield,
+    'hammer': g_hammer, 'target': g_target, 'ember': g_ember, 'fang': g_fang, 'siphon': g_siphon, 'thorns': g_thorns, 'feather': g_feather,
+    'purge': lambda g, k, a: (g_sparkle(g, k, a), g.disc(15.5, 4.5, 1.6, a), g.disc(4.5, 15.5, 1.3, a)), 'helm': g_helm, 'wall': g_wall, 'hourglass': g_hourglass, 'pillar': g_pillar, 'bubble': g_bubble, 'layers': g_layers,
     'shield_heart': shield_with(g_heart), 'shield_crack': shield_with(g_heart_crack), 'shield_spiral': shield_with(g_spiral),
     'shield_bolt': shield_with(g_bolt), 'shield_fist': shield_with(g_sword), 'shield_star': shield_with(g_sparkle),
     'shield_wheel': shield_with(mark_ring_ticks), 'shield_wheel2': shield_double(mark_ring_ticks), 'shield_down': shield_with(mark_arrow_down),
@@ -348,6 +497,13 @@ PLAN = {
     'smoldering': ('flame', 'fire'), 'venomous': ('drop', 'venom'), 'rending': ('claw', 'blood'), 'keen_edge': ('diamond', 'edge'),
     'ensnaring': ('web', 'tactic'), 'momentum': ('chevrons', 'tempo'), 'swift_strike': ('arrow_speed', 'tempo'),
     'bracing_entry': ('shield_down', 'guard'), 'wardstone': ('gem', 'tactic'), 'stubborn': ('anchor', 'guard'),
+    # the affix expansion (docs/AFFIX-EXPANSION-DESIGN.md)
+    'ambush': ('eye', 'tempo'), 'brawler': ('fist', 'power'), 'sharpshooter': ('crosshair', 'power'), 'giant_slayer': ('giant', 'blood'),
+    'relentless': ('repeat', 'power'), 'exploit_weakness': ('broken_shield', 'tactic'), 'armorbreak': ('hammer', 'tactic'),
+    'pressure_point': ('target', 'edge'), 'searing_touch': ('ember', 'fire'), 'venom_touch': ('fang', 'venom'),
+    'siphon': ('siphon', 'life'), 'thorns': ('thorns', 'blood'), 'purging': ('purge', 'life'), 'fresh_legs': ('feather', 'tempo'),
+    'stalwart': ('helm', 'guard'), 'unyielding': ('pillar', 'guard'), 'watchful': ('hourglass', 'tempo'), 'resolute': ('wall', 'guard'),
+    'insulated': ('bubble', 'venom'), 'hardening': ('layers', 'guard'),
 }
 UNIQUE = ('unique', 'unique')
 

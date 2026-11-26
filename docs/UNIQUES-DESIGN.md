@@ -1,4 +1,4 @@
-# Unique powers: design and tuning (2026-10-05)
+# Unique powers: design and tuning (2026-10-05; second batch of 8 added 2026-11-25, docs/AFFIX-EXPANSION-DESIGN.md)
 
 Owner decisions: build all four first-batch Uniques; every Unique has a fixed drawback; any Pokemon may hold any Unique (no type or move
 gate); Ashen Heart is +50% burn / -15% direct damage. The other three were proposed from the spec's "later candidates" list and
@@ -18,6 +18,14 @@ plain "on" flag (1); tuning lives only in the module. The text players read live
 | Rupture | Every physical move you make bleeds (no roll); same bleed as Rending (1/12 max HP per stack, 3 stacks, 3 turns) | Bleed you inflict is weaker per stack: stack 1 100%, stack 2 80%, stack 3 60% (3 stacks = 2.4/12 = 20% max HP a turn) | spreadDamage hook shared with Rending |
 | Titan's Heart | A super-effective move deals extra damage equal to 10% of your max HP (once per move use, after the caps) | No healing is received in battle, from any source | `modifyDamage`; `holder.heal` returns 0 |
 | 777 | Item rewards you earn are +20% while it is in your party (Raid and Tower items only, any party member, no stacking; materials, currency, cards unaffected; a fraction is rolled with a seeded roll) | You take 25% more damage from moves (about 20% less effective HP; residual damage is not scaled) | `AscensionRewards.scaleItemQuantity` called by Raids and Towers at delivery; incoming multiplier |
+| Crescendo | +8% outgoing per full turn on the field, up to +40% | -20% for the first two turns after entering | `modifyDamage`, `turnsIn` |
+| Nightfang | Heals 25% of the damage your direct moves deal (healing channel, shared with Siphon) | Fire and Fairy moves x1.3 to you | `spreadDamage`; incoming multiplier |
+| Iron Maiden | A contact attacker loses 1/8 of its max HP (shares Thorns' 17% cap) | Your contact moves x0.8 | holder `damage` + reaction queue |
+| Tailwind Heart | Speed +50% | Defense and Sp. Def x0.85 | `getStat` (Speed), `calculateStat` (defences) |
+| Huntmark | Your first hit marks a foe; later moves against it +25% (outgoing channel) until it leaves the field | No critical hits | `spreadDamage` marks; `CriticalHit` event |
+| Martyr's Gift | When you faint, the next ally to enter heals 50% and gains +1 Atk and Sp. Atk | Moves deal x1.15 to you | holder `faint`, `runSwitch` |
+| Aegis Oath | -30% damage taken (incoming channel, 50% cap) | Your moves x0.7 | `modifyDamage` |
+| Fickle Fortune | A coin each turn: heads +40% (outgoing channel) | Tails x0.8 | `modifyDamage`, battle RNG |
 
 Boundaries: Last Breath triggers only on an opposing direct move, never on residual damage, recoil or self-damage. Stormcaller does not set
 weather. Uniques on enemies exist (a boss spec may declare one) but no caller declares one yet.

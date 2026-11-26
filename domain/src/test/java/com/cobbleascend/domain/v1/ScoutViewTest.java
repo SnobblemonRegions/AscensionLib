@@ -22,8 +22,22 @@ class ScoutViewTest {
             assertEquals(rules.affix(slot.affixId()).base().name(), line.name());
             assertEquals(slot.rank(), line.rank());
             assertEquals(slot.rolledValue(), line.rolledValue());
+            assertEquals(slot.affixId(), line.affixId(), "the row names its catalog id, so its text can be looked up");
+            assertEquals(slot.type() == null ? "" : slot.type(), line.type(), "a type-bound modifier carries its chosen type");
         }
         assertEquals("", view.uniqueName());
+    }
+
+    @Test void aTypeBoundModifierSaysWhichTypeInItsTextAndName() {
+        assertEquals("Your moves of the Fire type deal more damage.", ScoutView.condition(rules.affix("type_focus").base().condition(), "fire"));
+        assertEquals("You take less damage from moves of the Water type.", ScoutView.condition(rules.affix("type_ward").base().condition(), "water"));
+        assertEquals("Your contact moves deal more damage.", ScoutView.condition(rules.affix("brawler").base().condition(), ""), "untyped text is unchanged");
+        assertEquals("Type Focus (fire)", ScoutView.displayName("Type Focus", "fire"));
+        assertEquals("Brawler", ScoutView.displayName("Brawler", ""));
+        for (var affix : rules.affixes()) {
+            if (affix.base().parameter() == null) continue;
+            assertTrue(affix.base().condition().contains("the chosen type"), affix.id() + "'s text must name the chosen type, or the type never shows");
+        }
     }
 
     @Test void aBossUniqueIsShownByName() {

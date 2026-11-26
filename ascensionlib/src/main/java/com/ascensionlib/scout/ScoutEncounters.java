@@ -238,10 +238,16 @@ public final class ScoutEncounters {
             Optional<ScoutPayloads.Detail> detail = Optional.empty();
             if (scouting.get().isRevealed(player, encounter.id, enemy.snapshot().subjectId())) {
                 var view = ScoutView.of(enemy.snapshot(), rules.get());
+                // An enemy row says what the modifier does (the catalog's own text, nothing secret) and, for a type-bound one, which type: the
+                // name and the condition alone ("Type Focus", "the chosen type") told the player nothing.
                 var slots = view.slots().stream()
-                        .map(line -> new ScoutPayloads.Slot(line.category(), line.name(), line.rank(), line.rolledValue(), -1, -1, "", line.theme(), false,
-                                rules.get().affixes().stream().filter(a -> a.base().name().equals(line.name())).findFirst()
-                                        .map(a -> ScoutPayloads.Slot.unitOf(a.id(), a.base().channel())).orElse("")))
+                        .map(line -> {
+                            var affix = rules.get().affixes().stream()
+                                    .filter(a -> line.affixId().isEmpty() ? a.base().name().equals(line.name()) : a.id().equals(line.affixId())).findFirst();
+                            String condition = affix.map(a -> ScoutView.condition(a.base().condition(), line.type())).orElse("");
+                            return new ScoutPayloads.Slot(line.category(), ScoutView.displayName(line.name(), line.type()), line.rank(), line.rolledValue(),
+                                    -1, -1, condition, line.theme(), false, affix.map(a -> ScoutPayloads.Slot.unitOf(a.id(), a.base().channel())).orElse(""));
+                        })
                         .toList();
                 detail = Optional.of(new ScoutPayloads.Detail(enemy.level(), enemy.types(), enemy.baseStats(),
                         view.rarityId(), view.uniqueName(), slots));

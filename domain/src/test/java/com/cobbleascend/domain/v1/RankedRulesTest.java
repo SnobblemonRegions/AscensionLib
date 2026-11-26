@@ -43,7 +43,7 @@ class RankedRulesTest {
     }
 
     @Test void defaultCatalogDefinesFiveIncreasingBandsPerAffixAndMatchesSchemaZeroRankOne() {
-        assertEquals(34, rules.affixes().size());
+        assertEquals(54, rules.affixes().size());
         for (var affix : rules.affixes()) {
             assertEquals(5, affix.bands().size());
             assertEquals(new RankBand(affix.base().min(), affix.base().max()), affix.band(1),
@@ -52,12 +52,14 @@ class RankedRulesTest {
         }
         assertEquals(bands(4, 8, 9, 12, 13, 16, 17, 20, 21, 24), rules.affix("type_focus").bands(),
                 "Fire Focus matches the specification example");
-        assertEquals(List.of("ashen_heart", "last_breath", "creeping_venom", "stormcaller", "rupture", "titans_heart", "triple_seven"), rules.uniques().stream().map(UniqueDefinition::id).toList());
+        assertEquals(List.of("ashen_heart", "last_breath", "creeping_venom", "stormcaller", "rupture", "titans_heart", "triple_seven",
+                "crescendo", "nightfang", "iron_maiden", "tailwind_heart", "huntmark", "martyrs_gift", "aegis_oath", "fickle_fortune"),
+                rules.uniques().stream().map(UniqueDefinition::id).toList());
         assertEquals(1, rules.catalogVersion());
     }
 
     @Test void powerhouseAffixesAreMuchRarerAndStrongerThanTheirStandardPeers() {
-        var powerhouses = List.of("type_mastery", "overwhelming_force", "iron_resolve", "type_bulwark");
+        var powerhouses = List.of("type_mastery", "overwhelming_force", "iron_resolve", "type_bulwark", "giant_slayer", "pressure_point");
         for (var id : powerhouses) {
             var affix = rules.affix(id);
             assertTrue(affix.weight() <= 8, id + " must be rare");
@@ -68,7 +70,7 @@ class RankedRulesTest {
             assertTrue(mean > standardMean, id + " rank I must beat the standard average of " + standardMean);
         }
         assertEquals(new RankBand(51, 60), rules.affix("type_mastery").band(5));
-        assertEquals(4, rules.affixes().stream().filter(a -> a.weight() <= 8).count(), "Only the four powerhouses are rare");
+        assertEquals(6, rules.affixes().stream().filter(a -> a.weight() <= 8).count(), "Only the six powerhouses are rare (Giant Slayer and Pressure Point joined, owner 2026-11-25)");
         assertTrue(rules.affixes().stream().allMatch(a -> a.weight() >= 3));
     }
 
