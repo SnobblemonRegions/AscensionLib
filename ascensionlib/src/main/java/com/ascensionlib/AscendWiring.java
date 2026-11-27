@@ -71,6 +71,7 @@ final class AscendWiring {
             safely("voucher delivery", () -> com.ascensionlib.wallet.WalletItems.deliverPending(handler.getPlayer()));
         }));
         ServerTickEvents.END_SERVER_TICK.register(com.ascensionlib.wallet.WalletItems::tick);
+        ServerTickEvents.END_SERVER_TICK.register(com.ascensionlib.dex.PartyRarityFeed::tick);
         // Physical rewards: right-clicking a voucher deposits it (before the base item's own use, so a Catalyst's knowledge book is never opened).
         net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
             var stack = player.getItemInHand(hand);
@@ -89,6 +90,7 @@ final class AscendWiring {
         ServerPlayConnectionEvents.DISCONNECT.register((handler, left) -> {
             sweepQueue.removeIf(job -> job.player().equals(handler.getPlayer().getUUID()));
             known.remove(handler.getPlayer().getUUID());
+            com.ascensionlib.dex.PartyRarityFeed.forget(handler.getPlayer().getUUID());
         });
         CobblemonEvents.POKEMON_CAPTURED.subscribe((Consumer<PokemonCapturedEvent>) event -> {
             // Every wild capture rolls a profile at its dimension's tier (1, the ordinary table, unless the configuration or a mod says otherwise); the

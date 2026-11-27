@@ -29,6 +29,8 @@ final class SnobbleLink {
     private static MethodHandle hudPage;
     private static MethodHandle emitJson;
     private static MethodHandle onMessage;
+    /** Optional (Snobblemon GUI 2.21+): the party's rarities for the Snobblemon Client's party marks; null on an older bridge. */
+    private static MethodHandle partyRarity;
 
     private SnobbleLink() {}
 
@@ -45,6 +47,23 @@ final class SnobbleLink {
         MethodHandle e = lookup.findStatic(api, "emitJson", MethodType.methodType(void.class, ServerPlayer.class, String.class, String.class, String.class));
         MethodHandle m = lookup.findStatic(api, "onMessage", MethodType.methodType(void.class, String.class, BiConsumer.class));
         available = a; open = o; openHud = h; isHudLayout = l; openPage = p; hudPage = u; emitJson = e; onMessage = m;
+        try {
+            partyRarity = lookup.findStatic(api, "partyRarity", MethodType.methodType(void.class, ServerPlayer.class, String.class));
+        } catch (NoSuchMethodException older) {
+            partyRarity = null;
+        }
+    }
+
+    static boolean hasPartyRarity() { return partyRarity != null; }
+
+    /** Hands the bridge this player's party rarities ({"<pokemon uuid>": "<rarity id>"}); a cosmetic, so a failure is dropped. */
+    static void partyRarity(ServerPlayer player, String json) {
+        if (partyRarity == null) return;
+        try {
+            partyRarity.invokeExact(player, json);
+        } catch (Throwable ex) {
+            // the marks are cosmetic: the next change sends them again
+        }
     }
 
     /** Whether this player's game can show a page: it has the Snobblemon Client. */

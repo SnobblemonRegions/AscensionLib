@@ -51,6 +51,14 @@ public final class WebUi {
     /** Whether any screen can be shown on this server. */
     public static boolean available() { return bound(); }
 
+    /** Whether the bridge takes party rarities for the Snobblemon Client's party marks (Snobblemon GUI 2.21+). */
+    public static boolean partyRarityAvailable() { return bound() && SnobbleLink.hasPartyRarity(); }
+
+    /** Sends this player's party rarities ({"<pokemon uuid>": "<rarity id>"}) to the bridge; nothing when it cannot take them. */
+    public static void partyRarity(ServerPlayer player, String json) {
+        if (partyRarityAvailable()) SnobbleLink.partyRarity(player, json);
+    }
+
     /** Says at startup where the screens come from. Call once. */
     public static synchronized void init() {
         if (registered) return;
