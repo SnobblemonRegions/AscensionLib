@@ -6,7 +6,11 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
-test { useJUnitPlatform() }
+test {
+    useJUnitPlatform()
+    // GuideFactsTest reads the generated guide at run time: declare it, so a changed (or deleted) guide reruns the test instead of replaying a cached pass
+    inputs.file(rootProject.file('design/guide-generated.json')).withPropertyName('guideData')
+}
 processResources {
     from(rootProject.file('design')) {
         include 'balance.json', 'affixes.json', 'ranked-catalog.json', 'enemy-tiers.json', 'transcendents.json', 'currency-items.json', 'lore/*.json'
