@@ -5,7 +5,7 @@ plugins {
 }
 allprojects {
     group = 'com.cobbleascend'
-    version = '1.0.0+fabric'
+    version = '1.1.0+fabric'
 }
 subprojects {
     repositories { mavenCentral() }
