@@ -1,6 +1,21 @@
 # Changelog
 
-## Unreleased (balance/phase-1): the Threat system, off by default
+## 1.1.0+fabric (2026-11-27)
+
+### New
+- Abandoned Laboratories: ruined labs hidden across the overworld. Search their containers for Ascension materials (every player gets their own loot from each one), but watch out for the tough tier-3 guards inside.
+- 20 new traits and 8 new Uniques, and a Transcendent recipe for every pair of Uniques: 105 in all.
+- Transcendence at the Fuser: with Project Fusion, fusing two Pokémon that each hold a Unique can bond them into one Transcendent. The bond is for good and can never be split.
+- Rarity sparkle: a small sparkle on Cobblemon's party bar and Summary screen shows each Pokémon's rarity. Hover it to see what that rarity means. Needs Snobblemon Client 2.25.0.
+
+### Changed
+- The top two rarities have new names: Legendary is now Awakened and Mythical is now Radiant. Your Pokémon keep their rarity.
+- The AscensionDex is easier to use: a Back button on every screen, one screen size throughout, trait ranks on the home screen, real odds when you Reforge, materials grouped by use in the Wallet and a Guide you can skim.
+- Radiant Pokémon shine with a shimmering pearl frame in the Dex.
+- Enemy traits shown by the Scouter and Inspect now say what they do.
+- Dex screens open through Snobblemon Client. You no longer need the WebGUI mod; update to Snobblemon Client 2.25.0.
+
+## For server owners: the Threat system (in 1.1.0, off by default)
 
 - **Threat bands.** `threat_1` to `threat_7` enemy tiers. With the new `threat.enabled` setting on, legacy tiers fight as their bands. Bosses get bonus rank credits, and from Threat V a Unique. Threat VII enemies are Perfected, and each has a Unique. Owners can override the tiers with `config/ascensionlib-enemy-tiers.json`.
 - **Rarity aura.** With Threat on, every profiled Pokemon fights with +0 to +26% Atk, SpA, Def and SpD by rarity, applied after the affix caps.
