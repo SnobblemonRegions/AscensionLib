@@ -3,7 +3,7 @@
 Drawn at 4x (128x128) from smooth shapes (signed distance functions) that are lit like little reliefs, then reduced to 32x32 by taking the most common
 palette colour in each 4x4 block, so the edges are clean and every pixel is a palette colour. Same toolkit as the item art (tools/pixel_art.py) for the
 canvas, the outline and the PNG writer. A Common Haunting sits on a violet medallion; a Rare one on a dark one ringed in pumpkin gold with four sparks.
-Writes ascensionlib/src/main/resources/web/ascensionlib/icons/haunting/<id>.png (ids are Hauntings.java's).
+Writes art/icons/haunting/<id>.png (ids are Hauntings.java's).
 usage: python -I tools/haunting_art.py            (writes the icons)
        python -I tools/haunting_art.py preview.png (also writes a contact sheet, 8x)
 """
@@ -19,7 +19,7 @@ pa = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(pa)   # by path: this runs isolated (python -I), which does not put its own folder on the import path
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
-OUT = os.path.join(ROOT, 'ascensionlib', 'src', 'main', 'resources', 'web', 'ascensionlib', 'icons', 'haunting')
+OUT = os.path.join(ROOT, 'art', 'icons', 'haunting')
 
 N = 128                 # working size: 4x the icon
 SS = N // pa.SIZE

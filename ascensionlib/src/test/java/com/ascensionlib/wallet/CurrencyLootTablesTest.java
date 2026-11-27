@@ -28,8 +28,8 @@ class CurrencyLootTablesTest {
         }
     }
 
-    @Test void everyIconTheWalletPageShowsExists() {
+    @Test void everyMaterialHasAnIcon() {
         for (var material : MaterialId.values())
-            assertNotNull(getClass().getResourceAsStream("/web/ascensionlib/icons/" + material.id() + ".png"), "Missing icon for " + material.id());
+            assertTrue(java.nio.file.Files.exists(java.nio.file.Path.of("..", "art", "icons", material.id() + ".png")), "Missing icon for " + material.id());
     }
 }
