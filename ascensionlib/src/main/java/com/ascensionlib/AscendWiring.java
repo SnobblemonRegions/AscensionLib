@@ -655,7 +655,7 @@ final class AscendWiring {
             return 0;
         }
         if (!com.ascensionlib.fusion.FusionWeb.available()) {
-            source.sendFailure(Component.literal("The fusion screen is a web page: install the WebGUI mod on the server."));
+            source.sendFailure(Component.literal("The fusion screen needs Snobblemon GUI on the server."));
             return 0;
         }
         com.ascensionlib.fusion.FusionNet.openFor(player, pokemon);

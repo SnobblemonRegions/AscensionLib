@@ -21,7 +21,7 @@ final class CompatReport {
     private static final LinkedHashMap<String, String[]> COMPANIONS = new LinkedHashMap<>();
     static {
         COMPANIONS.put("cobblemon", new String[] {"Cobblemon", "required"});
-        COMPANIONS.put("webgui", new String[] {"WebGUI", "no screens: every page needs it"});
+        COMPANIONS.put("snobblemon_server", new String[] {"Snobblemon GUI", "no screens: every page needs it"});
         COMPANIONS.put("cobbleraids", new String[] {"CobbleRaids", "modifiers do not act in battle"});
         COMPANIONS.put("cobbletowers", new String[] {"CobbleTowers", "no Tower rewards"});
         COMPANIONS.put("ascensiondungeons", new String[] {"ascensionDungeons", "no dungeon rewards"});
