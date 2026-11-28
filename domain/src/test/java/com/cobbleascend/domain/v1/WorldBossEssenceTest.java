@@ -21,6 +21,13 @@ class WorldBossEssenceTest {
         assertEquals(Map.of(a, 2L, b, 2L, c, 2L), pay);
     }
 
+    @Test void nothingIsPaidOnceTheEventIsOver() {
+        // Spooky Essence is Halloween's currency: a World Boss (or the Daily Boss) beaten after the window pays none of it
+        var damage = Map.of(a, 900f, b, 50f);
+        assertTrue(WorldBossEssence.payouts(damage, false).isEmpty());
+        assertEquals(WorldBossEssence.payouts(damage), WorldBossEssence.payouts(damage, true), "during the event it pays as before");
+    }
+
     @Test void aPlayerBelowTheThresholdEarnsNothing() {
         var pay = WorldBossEssence.payouts(Map.of(a, 990f, b, 9f));   // the average is 499.5, so the bar is 25
         assertEquals(Map.of(a, 2L), pay);

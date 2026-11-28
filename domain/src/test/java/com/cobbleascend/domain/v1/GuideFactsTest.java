@@ -9,12 +9,11 @@ import org.junit.jupiter.api.Test;
 
 /** The guide generator (tools/build_guide.py) and {@link GuideFacts} compute the same numbers; if one changes without the other this fails. */
 class GuideFactsTest {
-    private static final Path DATA = Path.of("..", "ascensionlib", "src", "main", "resources", "web", "ascensionlib", "guide-data.js");
+    /** The guide the generator writes ({facts, topics}); SnobbleGUIOverhaul syncs its in-game guide from it. A test input in build.gradle. */
+    private static final Path DATA = Path.of("..", "design", "guide-generated.json");
 
     private static com.google.gson.JsonObject guide() throws Exception {
-        String text = Files.readString(DATA);
-        int start = text.indexOf("window.GUIDE = ") + "window.GUIDE = ".length();
-        return JsonParser.parseString(text.substring(start, text.lastIndexOf(';'))).getAsJsonObject();
+        return JsonParser.parseString(Files.readString(DATA)).getAsJsonObject();
     }
 
     private static java.util.List<String> toList(com.google.gson.JsonArray array) {

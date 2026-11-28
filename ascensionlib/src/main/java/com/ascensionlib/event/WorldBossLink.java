@@ -14,7 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Pays Spooky Essence when CobbleRaids' World Boss is defeated (docs/HALLOWEEN-EVENT-DESIGN.md). CobbleRaids is optional for this library, so its
+ * Pays Spooky Essence when CobbleRaids' World Boss is defeated during the Halloween window ({@link HalloweenEvent}; docs/HALLOWEEN-EVENT-DESIGN.md).
+ * After the window a defeat pays none: the Essence is the event's currency. CobbleRaids is optional for this library, so its
  * World Boss API is reached by reflection, the same way {@code RaidsShowdownHost} reaches its Showdown extension API: when it is absent, or is not
  * version 1, nothing happens and the library runs as before.
  *
@@ -59,7 +60,8 @@ public final class WorldBossLink {
             });
             add.invoke(null, proxy);
             registered = proxy;
-            LOG.info("Listening for the CobbleRaids World Boss: a defeat pays {} Spooky Essence to each participant.", WorldBossEssence.PER_PARTICIPANT);
+            LOG.info("Listening for the CobbleRaids World Boss: while Halloween is on, a defeat pays {} Spooky Essence to each participant.",
+                    WorldBossEssence.PER_PARTICIPANT);
         } catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException absent) {
             LOG.debug("CobbleRaids has no World Boss API here ({}); World Boss rewards are off.", absent.toString());
         } catch (ReflectiveOperationException | LinkageError unexpected) {
@@ -74,8 +76,12 @@ public final class WorldBossLink {
             LOG.warn("World Boss {} was defeated but progression is disabled, so no Spooky Essence was paid.", bossId);
             return;
         }
+        if (!HalloweenEvent.isOpen()) {
+            LOG.info("World Boss {} defeated after Halloween: no Spooky Essence paid.", bossId);
+            return;
+        }
         int paid = 0;
-        for (var entry : WorldBossEssence.payouts(damage).entrySet()) {
+        for (var entry : WorldBossEssence.payouts(damage, true).entrySet()) {
             try {
                 var outcome = service.get().store().grant(WorldBossEssence.operationId(bossId, entry.getKey()), entry.getKey(),
                         Map.of(MaterialId.SPOOKY_ESSENCE, entry.getValue()), "world boss " + bossId);

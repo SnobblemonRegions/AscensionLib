@@ -21,6 +21,16 @@ public final class WorldBossEssence {
     private WorldBossEssence() {}
 
     /**
+     * As {@link #payouts(Map)}, but only while the Halloween event is open: Spooky Essence is the event's currency, so a boss beaten after the
+     * window (an event boss run late, or the Daily Boss) pays none of it. Essence already earned stays spendable.
+     *
+     * @param eventOpen whether the Halloween window is open now
+     */
+    public static Map<UUID, Long> payouts(Map<UUID, Float> damage, boolean eventOpen) {
+        return eventOpen ? payouts(damage) : new LinkedHashMap<>();
+    }
+
+    /**
      * @param damage damage dealt to the pool per player
      * @return the essence each participant earns, in the order of {@code damage}
      */
